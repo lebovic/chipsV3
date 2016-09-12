@@ -1,0 +1,6 @@
+name: chips
+dependencies:
+- python
+- snakemake
+- bwa
+- samtools
