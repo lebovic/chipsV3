@@ -1,7 +1,8 @@
 #MODULE: Align fastq files to genome
 
-#rule bwa_all:
-#    input:
+rule align_all:
+    input:
+        expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"])
 
 def getFastq(wildcards):
     return config["samples"][wildcards.sample][int(wildcards.mate)]
