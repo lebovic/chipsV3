@@ -11,6 +11,10 @@ def getConts(wildcards):
     r = config['runs'][wildcards.run]
     return r[2:4]
 
+rule peaks_all:
+    input:
+        expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
+
 rule macs2_callpeaks:
     input:
         treat=getTreats
@@ -39,3 +43,12 @@ rule peakToBed:
     message: "PEAKS: Converting peak file to bed file"
     shell:
         "cut -f1,2,3,4,9 {input} > {output}"
+
+rule sortSummits:
+    input:
+        "analysis/peaks/{run}/{run}_summits.bed"
+    output:
+        "analysis/peaks/{run}/{run}_sorted_summits.bed"
+    message: "PEAKS: sorting the summits bed by score"
+    shell:
+        "sort -r -n -k 5 {input} > {output}"
