@@ -4,3 +4,4 @@ dependencies:
 - snakemake
 - bwa
 - samtools
+- fastqc

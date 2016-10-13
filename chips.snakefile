@@ -28,3 +28,5 @@ rule target:
 
 include: "./modules/align.snakefile"         # rules specific to BWA
 include: "./modules/peaks.snakefile"         # peak calling rules
+include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
+
