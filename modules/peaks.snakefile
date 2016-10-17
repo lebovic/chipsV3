@@ -13,6 +13,7 @@ def getConts(wildcards):
 
 rule peaks_all:
     input:
+        expand("analysis/peaks/{run}/{run}_sorted_peaks.bed", run=config["runs"].keys()),
         expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
 
 rule macs2_callpeaks:
@@ -20,7 +21,6 @@ rule macs2_callpeaks:
         treat=getTreats
     output:
         "analysis/peaks/{run}/{run}_peaks.narrowPeak",
-        #"analysis/peaks/{run}/{run}_peaks.bed",
         "analysis/peaks/{run}/{run}_peaks.xls",
         "analysis/peaks/{run}/{run}_summits.bed",
         "analysis/peaks/{run}/{run}_treat_pileup.bdg",
@@ -49,6 +49,15 @@ rule sortSummits:
         "analysis/peaks/{run}/{run}_summits.bed"
     output:
         "analysis/peaks/{run}/{run}_sorted_summits.bed"
+    message: "PEAKS: sorting the summits bed by score"
+    shell:
+        "sort -r -n -k 5 {input} > {output}"
+
+rule sortPeaks:
+    input:
+        "analysis/peaks/{run}/{run}_peaks.bed"
+    output:
+        "analysis/peaks/{run}/{run}_sorted_peaks.bed"
     message: "PEAKS: sorting the summits bed by score"
     shell:
         "sort -r -n -k 5 {input} > {output}"
