@@ -5,3 +5,4 @@ dependencies:
 - bwa
 - samtools
 - fastqc
+- bedtools

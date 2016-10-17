@@ -1,0 +1,15 @@
+metasheet: 'metasheet.csv'
+bwa_index: /data/static_libraries/bwa_indices/hg19/hg19.fa
+conservation: /data/static_libraries/conservation/hg19/vertebrate
+geneTable: /data/static_libraries/ucsc/hg19.refGene
+DHS: /data/static_libraries/DHS/DHS_hg19.bed
+
+samples:
+  Sample01_treat:
+    - data/AR_500k.fastq.gz
+    - data/AR_500k.fastq.gz
+  Sample01_cont:
+    - data/AR_500k_in.fastq.gz
+
+
+
