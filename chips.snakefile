@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import os
+import sys
+import subprocess
 import pandas as pd
 
 def getRuns(config):
@@ -16,10 +19,19 @@ def getRuns(config):
     config['runs'] = ret
     return config
 
+def addPy2Paths_Config(config):
+    """ADDS the python2 paths to config"""
+    conda_root = subprocess.check_output('conda info --root',shell=True).decode('utf-8').strip()
+    conda_path = os.path.join(conda_root, 'pkgs')
+    config["python2_pythonpath"] = os.path.join(conda_root, 'envs', 'chips_py2', 'lib', 'python2.7', 'site-packages')
+    
+    if not "python2" in config or not config["python2"]:
+        config["python2"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'python2.7')
 
 #---------  CONFIG set up  ---------------
 configfile: "config.yaml"   # This makes snakemake load up yaml into config 
 config = getRuns(config)
+addPy2Paths_Config(config)
 #-----------------------------------------
 
 rule target:

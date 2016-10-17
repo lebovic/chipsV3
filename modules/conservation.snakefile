@@ -27,8 +27,9 @@ rule conservation:
     params:
         db=config['conservation'],
         width=4000,
-        run = lambda wildcards: wildcards.run
+        run = lambda wildcards: wildcards.run,
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         #name= wildcards.run
     log: "log.txt"
     shell:
-        "conserv/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score}"
+        "{params.pypath} {config[python2]} chips/modules/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score}"
