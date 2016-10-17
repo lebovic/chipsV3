@@ -1,0 +1,8 @@
+name: chips_py2
+channels:
+- bioconda
+dependencies:
+- python=2.7.9=3
+- bx-python
+- numpy
+- cython
