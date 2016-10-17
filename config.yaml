@@ -3,6 +3,7 @@ bwa_index: /data/static_libraries/bwa_indices/hg19/hg19.fa
 conservation: /data/static_libraries/conservation/hg19/vertebrate
 geneTable: /data/static_libraries/ucsc/hg19.refGene
 DHS: /data/static_libraries/DHS/DHS_hg19.bed
+velcro_regions: /data/static_libraries/vecro/wgEncodeHg19ConsensusSignalArtifactRegions.bed
 
 samples:
   Sample01_treat:

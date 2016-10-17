@@ -5,6 +5,8 @@ rule ceas_all:
         expand("analysis/ceas/{run}/{run}_summary.txt", run=config["runs"].keys()),
         expand("analysis/ceas/{run}/{run}_DHS_peaks.bed", run=config["runs"].keys()),
         expand("analysis/ceas/{run}/{run}_DHS_stats.txt", run=config["runs"].keys()),
+        expand("analysis/ceas/{run}/{run}_velcro_peaks.bed", run=config["runs"].keys()),
+        expand("analysis/ceas/{run}/{run}_velcro_stats.txt", run=config["runs"].keys()),
 
 rule ceas:
     """Annotate peak regions"""
@@ -24,7 +26,7 @@ rule ceas:
         "chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} > {output.summary}"
 
 
-rule DHS_takeTop5k:
+rule takeTop5k:
     """Take the top 5000 sites"""
     input:
         "analysis/peaks/{run}/{run}_sorted_peaks.bed"
@@ -36,6 +38,7 @@ rule DHS_takeTop5k:
     shell:
         "head -n {params.n} {input} > {output}"
 
+#------------------------------------------------------------------------------
 rule DHS_intersectDHS:
     """Intersect PEAKS with DHS regions"""
     input:
@@ -58,4 +61,26 @@ rule DHS_stat:
         'analysis/ceas/{run}/{run}_DHS_stats.txt'
     shell:
         "wc -l {input.n} {input.dhs} > {output}"
+#------------------------------------------------------------------------------
+rule VELCRO_intersectVelcro:
+    """Intersect PEAKS with velcro regions"""
+    input:
+        'analysis/ceas/{run}/{run}_sorted_5k_peaks.bed'
+    params:
+        velcro=config['velcro_regions']
+    message: "VELCRO: intersect PEAKS with velcro regions"
+    output:
+        'analysis/ceas/{run}/{run}_velcro_peaks.bed'
+    shell:
+        "intersectBed -wa -u -a {input} -b {params.velcro} > {output}"
     
+rule VELCRO_stat:
+    """collect VELCRO stats"""
+    input:
+        n='analysis/ceas/{run}/{run}_sorted_5k_peaks.bed',
+        velcro='analysis/ceas/{run}/{run}_velcro_peaks.bed'
+    message: "VELCRO: collecting stats"
+    output:
+        'analysis/ceas/{run}/{run}_velcro_stats.txt'
+    shell:
+        "wc -l {input.n} {input.velcro} > {output}"
