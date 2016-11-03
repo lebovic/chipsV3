@@ -3,13 +3,16 @@
 def getTreats(wildcards):
     r = config['runs'][wildcards.run]
     #convert SAMPLE names to BAMS
-    tmp = ["analysis/align/%s/%s.bam" % (s,s) for s in r if s]
-    #print(tmp)
-    return tmp[:2]
+    tmp = ["analysis/align/%s/%s.bam" % (s,s) for s in r[:2] if s]
+    #print("TREATS: %s" % tmp)
+    return tmp
 
 def getConts(wildcards):
     r = config['runs'][wildcards.run]
-    return r[2:4]
+    #convert SAMPLE names to BAMS
+    tmp = ["analysis/align/%s/%s.bam" % (s,s) for s in r[2:4] if s]
+    #print("CONTS: %s" % tmp)
+    return tmp
 
 rule peaks_all:
     input:
@@ -18,7 +21,8 @@ rule peaks_all:
 
 rule macs2_callpeaks:
     input:
-        treat=getTreats
+        treat=getTreats,
+        cont=getConts
     output:
         "analysis/peaks/{run}/{run}_peaks.narrowPeak",
         "analysis/peaks/{run}/{run}_peaks.xls",
@@ -31,8 +35,11 @@ rule macs2_callpeaks:
         species="hs",
         outdir="analysis/peaks/{run}/",
         name="{run}"
-    shell:
-        "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup 1 -g {params.species} --extsize {params.extsize} --nomodel -t {input.treat} --outdir {params.outdir} -n {params.name}"
+    run:
+        #NOTE: TODO- handle broadPeak calling!
+        treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
+        control = "-c %s" % " ".join(input.cont) if input.cont else ""
+        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup 1 -g {params.species} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name}")
 
 
 rule peakToBed:
