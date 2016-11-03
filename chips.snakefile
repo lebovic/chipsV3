@@ -42,5 +42,6 @@ include: "./modules/align.snakefile"         # rules specific to BWA
 include: "./modules/peaks.snakefile"         # peak calling rules
 include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
 include: "./modules/conservation.snakefile"  # generate conservation plot
-include: "./modules/ceas.snakefile"  # annotate peak regions
+include: "./modules/ceas.snakefile"          # annotate peak regions
+include: "./modules/frips.snakefile"         # fraction of reads in peaks
 
