@@ -35,7 +35,22 @@ addPy2Paths_Config(config)
 #-----------------------------------------
 
 rule target:
-    input: expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]), expand("analysis/peaks/{run}/{run}_peaks.bed", run=config['runs'].keys())
+    input: 
+        expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]), 
+        expand("analysis/peaks/{run}/{run}_peaks.bed", run=config['runs'].keys()),
+        expand("analysis/fastqc/{sample}_perSeqGC.txt", sample=config["samples"]),
+        expand("analysis/peaks/{run}/{run}_sorted_5k_summits.bed", run=config["runs"].keys()),
+        expand("analysis/conserv/{run}/{run}_conserv.txt", run=config["runs"].keys()),
+        expand("analysis/ceas/{run}/{run}_summary.txt", run=config["runs"].keys()),
+        expand("analysis/ceas/{run}/{run}_DHS_peaks.bed", run=config["runs"].keys()),
+        expand("analysis/ceas/{run}/{run}_DHS_stats.txt", run=config["runs"].keys()),
+        expand("analysis/ceas/{run}/{run}_velcro_peaks.bed", run=config["runs"].keys()),
+        expand("analysis/ceas/{run}/{run}_velcro_stats.txt", run=config["runs"].keys()),
+        expand("analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam", sample=config["samples"]),
+        expand("analysis/peaks/{run}/{run}_4M_peaks.narrowPeak", run=config["runs"].keys()),
+        expand("analysis/frip/{run}/{run}_frip.txt",run=config["runs"].keys()),
+
+
     message: "Compiling all output"
 
 include: "./modules/align.snakefile"         # rules specific to BWA

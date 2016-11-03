@@ -34,7 +34,8 @@ rule call_fastqc:
     input:
         "analysis/align/{sample}/{sample}_100k.fastq"
     output:
-        "analysis/fastqc/{sample}_100k_fastqc"
+        #"analysis/fastqc/{sample}_100k_fastqc"
+        "analysis/fastqc/{sample}_100k_fastqc/fastqc_data.txt"
     #threads:
     shell:
         "fastqc {input} --extract -o analysis/fastqc"
