@@ -1,5 +1,10 @@
 #MODULE: Align fastq files to genome
+#PARAMETERS:
 _logfile="analysis/logs/align.log"
+_bwa_q="5"
+_bwa_l="32"
+_bwa_k="2"
+_bwa_threads=4
 
 rule align_all:
     input:
@@ -29,11 +34,14 @@ rule bwa_aln:
         sai="analysis/align/{sample}/{sample}_{mate}.sai"
     params:
         index=config['bwa_index'],
-    threads: 4
+        bwa_q = _bwa_q,
+        bwa_l = _bwa_l,
+        bwa_k = _bwa_k,
+    threads: _bwa_threads
     message: "ALIGN: Running BWA alignment"
     log: _logfile
     shell:
-        "bwa aln -q 5 -l 32 -k 2 -t {threads} {params.index} {input} > {output.sai} 2>>{log}"
+        "bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai} 2>>{log}"
 
 rule bwa_convert:
     input:
@@ -46,7 +54,7 @@ rule bwa_convert:
         index=config['bwa_index'],
         #NOTE: this is a hack b/c snakemake didn't like the - in the shell cmd
         hack="view -bS -"
-    threads: 4
+    threads: _bwa_threads
     message: "ALIGN: Converting BWA alignment to BAM"
     log: _logfile
     shell:

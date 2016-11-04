@@ -4,7 +4,13 @@
 #copied directly from peaks.snakefile
 #TODO: centralize these helper fns!
 
+#PARAMETERS:
 _logfile="analysis/logs/frips.log"
+_macs_fdr="0.01"
+_macs_keepdup="1"
+_macs_extsize="146"
+_macs_species="hs"
+
 def getTreats(wildcards):
     r = config['runs'][wildcards.run]
     #print(r)
@@ -26,7 +32,7 @@ rule frips_all:
     input:
         expand("analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam", sample=config["samples"]),
         expand("analysis/peaks/{run}/{run}_4M_peaks.narrowPeak", run=config["runs"].keys()),
-        expand("analysis/frip/{run}/{run}_frip.txt",run=config["runs"].keys()),
+        expand("analysis/frips/{run}/{run}_frip.txt",run=config["runs"].keys()),
 
 rule sample_unique_nonChrM:
     """Sample uniquely mapped, nonChrM reads from the SAMPLE
@@ -76,11 +82,10 @@ rule frips_callpeaks:
         "analysis/peaks/{run}/{run}_4M_peaks.xls",
         "analysis/peaks/{run}/{run}_4M_summits.bed",
     params:
-        fdr="0.01",
-        keepdup="1",
-        #shiftsize="73", #shiftsize has been replaced by extsize=2*shiftsize
-        extsize="146",
-        species="hs",
+        fdr=_macs_fdr,
+        keepdup=_macs_keepdup,
+        extsize=_macs_extsize,
+        species=_macs_species,
         outdir="analysis/peaks/{run}/",
         name="{run}_4M"
     message: "FRiPs: call peaks from sub-sample"
@@ -102,7 +107,7 @@ rule frip_calculate:
         treat=getTreats,
         bed="analysis/peaks/{run}/{run}_4M_peaks.narrowPeak",
     output:
-        "analysis/frip/{run}/{run}_frip.txt"
+        "analysis/frips/{run}/{run}_frip.txt"
     params:
         pval="1E-9"
     message: "FRiPs: calculate frips"

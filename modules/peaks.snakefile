@@ -1,5 +1,11 @@
 #MODULE: PEAK CALLING using macs2
+
+#PARAMETERS
 _logfile="analysis/logs/peaks.log"
+_macs_fdr="0.01"
+_macs_keepdup="1"
+_macs_extsize="146"
+_macs_species="hs"
 
 #TODO: handle control
 def getTreats(wildcards):
@@ -32,9 +38,10 @@ rule macs2_callpeaks:
         "analysis/peaks/{run}/{run}_treat_pileup.bdg",
         "analysis/peaks/{run}/{run}_control_lambda.bdg",
     params:
-        fdr="0.01",
-        extsize="146",
-        species="hs",
+        fdr=_macs_fdr,
+        keepdup=_macs_keepdup,
+        extsize=_macs_extsize,
+        species=_macs_species,
         outdir="analysis/peaks/{run}/",
         name="{run}"
     message: "PEAKS: calling peaks with macs2"
@@ -43,7 +50,7 @@ rule macs2_callpeaks:
         #NOTE: TODO- handle broadPeak calling!
         treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
         control = "-c %s" % " ".join(input.cont) if input.cont else ""
-        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup 1 -g {params.species} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.species} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 
 rule peakToBed:
