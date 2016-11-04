@@ -1,4 +1,5 @@
 #MODULE: Align fastq files to genome
+_logfile="analysis/logs/align.log"
 
 rule align_all:
     input:
@@ -30,8 +31,9 @@ rule bwa_aln:
         index=config['bwa_index'],
     threads: 4
     message: "ALIGN: Running BWA alignment"
+    log: _logfile
     shell:
-        "bwa aln -q 5 -l 32 -k 2 -t {threads} {params.index} {input} > {output.sai}"
+        "bwa aln -q 5 -l 32 -k 2 -t {threads} {params.index} {input} > {output.sai} 2>>{log}"
 
 rule bwa_convert:
     input:
@@ -46,8 +48,9 @@ rule bwa_convert:
         hack="view -bS -"
     threads: 4
     message: "ALIGN: Converting BWA alignment to BAM"
+    log: _logfile
     shell:
-        "bwa {params.run_type} {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"
+        "bwa {params.run_type} {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output} 2>>{log}"
 
 rule map_stats:
     """Get the mapping stats for each aligment run"""
@@ -57,8 +60,9 @@ rule map_stats:
         temp("analysis/align/{sample}/{sample}_mapping.txt")
         #"analysis/align/{sample}/{sample}_mapping.txt"
     message: "ALIGN: get mapping stats for each bam"
+    log: _logfile
     shell:
-        "samtools flagstat {input} > {output}"
+        "samtools flagstat {input} > {output} 2>>{log}"
 
 rule collect_map_stats:
     """Collect and parse out the mapping stats for the ALL of the samples"""
@@ -67,6 +71,7 @@ rule collect_map_stats:
     output:
         "analysis/align/mapping.csv"
     message: "ALIGN: collect and parse ALL mapping stats"
+    log: _logfile
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/align_getMapStats.py -f {files} > {output}")
+        shell("chips/modules/scripts/align_getMapStats.py -f {files} > {output} 2>>{log}")

@@ -3,6 +3,8 @@
 #helper fns to get samples associated for each run
 #copied directly from peaks.snakefile
 #TODO: centralize these helper fns!
+
+_logfile="analysis/logs/frips.log"
 def getTreats(wildcards):
     r = config['runs'][wildcards.run]
     #print(r)
@@ -37,11 +39,12 @@ rule sample_unique_nonChrM:
         #hack to get the regex in to filter out chrM, random, chrUn
         regex="\'/chrM/d;/random/d;/chrUn/d\'",
     message: "FRiPs: sample- uniquely mapped non-chrM reads"
+    log:_logfile
     output:
         #make temp
         'analysis/align/{sample}/{sample}_unique_nonChrM.sam'
     shell:
-        "samtools view -b -F 4 {input} | sed -e {params.regex} > {output}"
+        "samtools view -b -F 4 {input} | sed -e {params.regex} > {output} 2>>{log}"
 
 rule sample_4M_from_uniqueNonChrM:
     """Sample 4M reads from uniqueNonChrM reads
@@ -53,12 +56,13 @@ rule sample_4M_from_uniqueNonChrM:
     params:
         n="4000000"
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads"
+    log:_logfile
     output:
         #make temp
         'analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam'
     shell:
         """
-        chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output}
+        chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
         """
 
 rule frips_callpeaks:
@@ -80,6 +84,7 @@ rule frips_callpeaks:
         outdir="analysis/peaks/{run}/",
         name="{run}_4M"
     message: "FRiPs: call peaks from sub-sample"
+    log:_logfile
     run:
         #NOTE: here's the broadPeak call
         #macs2 callpeak -q [fdr=0.01] --keep-dup [keep_dup=1] --broad -g {param[species]} -t [4M.bam] -c [4M.bam optional] -n [description="SAMPLE_4M"]
@@ -88,7 +93,7 @@ rule frips_callpeaks:
         #JOIN treatment and control replicate samples
         treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
         control = "-c %s" % " ".join(input.cont) if input.cont else ""
-        shell("macs2 callpeak -q {params.fdr} --keep-dup {params.keepdup} --extsize {params.extsize} --nomodel -g {params.species} {treatment} {control} --outdir {params.outdir} -n {params.name}")
+        shell("macs2 callpeak -q {params.fdr} --keep-dup {params.keepdup} --extsize {params.extsize} --nomodel -g {params.species} {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 rule frip_calculate:
     """Calculate the frip score"""
@@ -101,5 +106,6 @@ rule frip_calculate:
     params:
         pval="1E-9"
     message: "FRiPs: calculate frips"
+    log:_logfile
     shell:
-        "chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output}"
+        "chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} 2>>{log}"

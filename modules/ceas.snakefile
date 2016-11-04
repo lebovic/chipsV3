@@ -1,4 +1,5 @@
 #MODULE: CEAS- annotating where the peaks fall (promoter, exon, intron, interg)
+_logfile="analysis/logs/ceas.log"
 
 rule ceas_all:
     input:
@@ -19,11 +20,12 @@ rule ceas:
         intergenic="analysis/ceas/{run}/{run}_peaks_intergenic.bed",
         summary="analysis/ceas/{run}/{run}_summary.txt",
     message: "CEAS: annotating peak regions"
+    log: _logfile
     params:
         db=config['geneTable'],
         path="analysis/ceas/{run}/"
     shell:
-        "chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} > {output.summary}"
+        "chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} > {output.summary} 2>>{log}"
 
 
 rule takeTop5k:
@@ -33,10 +35,11 @@ rule takeTop5k:
     params:
         n=5000
     message: "DHS: Take top sites"
+    log: _logfile
     output:
         temp('analysis/ceas/{run}/{run}_sorted_5k_peaks.bed')
     shell:
-        "head -n {params.n} {input} > {output}"
+        "head -n {params.n} {input} > {output} 2>>{log}"
 
 #------------------------------------------------------------------------------
 rule DHS_intersectDHS:
@@ -46,10 +49,11 @@ rule DHS_intersectDHS:
     params:
         dhs=config['DHS']
     message: "DHS: intersect PEAKS with DHS regions"
+    log: _logfile
     output:
         'analysis/ceas/{run}/{run}_DHS_peaks.bed'
     shell:
-        "intersectBed -wa -u -a {input} -b {params.dhs} > {output}"
+        "intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}"
 
 rule DHS_stat:
     """collect DHS stats"""
@@ -57,10 +61,11 @@ rule DHS_stat:
         n='analysis/ceas/{run}/{run}_sorted_5k_peaks.bed',
         dhs='analysis/ceas/{run}/{run}_DHS_peaks.bed'
     message: "DHS: collecting stats"
+    log: _logfile
     output:
         'analysis/ceas/{run}/{run}_DHS_stats.txt'
     shell:
-        "wc -l {input.n} {input.dhs} > {output}"
+        "wc -l {input.n} {input.dhs} > {output} 2>>{log}"
 #------------------------------------------------------------------------------
 rule VELCRO_intersectVelcro:
     """Intersect PEAKS with velcro regions"""
@@ -69,10 +74,11 @@ rule VELCRO_intersectVelcro:
     params:
         velcro=config['velcro_regions']
     message: "VELCRO: intersect PEAKS with velcro regions"
+    log: _logfile
     output:
         'analysis/ceas/{run}/{run}_velcro_peaks.bed'
     shell:
-        "intersectBed -wa -u -a {input} -b {params.velcro} > {output}"
+        "intersectBed -wa -u -a {input} -b {params.velcro} > {output} 2>>{log}"
     
 rule VELCRO_stat:
     """collect VELCRO stats"""
@@ -80,7 +86,8 @@ rule VELCRO_stat:
         n='analysis/ceas/{run}/{run}_sorted_5k_peaks.bed',
         velcro='analysis/ceas/{run}/{run}_velcro_peaks.bed'
     message: "VELCRO: collecting stats"
+    log: _logfile
     output:
         'analysis/ceas/{run}/{run}_velcro_stats.txt'
     shell:
-        "wc -l {input.n} {input.velcro} > {output}"
+        "wc -l {input.n} {input.velcro} > {output} 2>>{log}"

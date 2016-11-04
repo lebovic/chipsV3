@@ -1,4 +1,5 @@
 #MODULE: conservation- module to create conservation plots
+_logfile="analysis/logs/conservation.log"
 
 rule conservation_all:
     input:
@@ -13,8 +14,10 @@ rule top5k_peaks:
         "analysis/peaks/{run}/{run}_sorted_5k_summits.bed"
     params:
         lines = 5000
+    message: "CONSERVATION: top5k_peaks"
+    log: _logfile
     shell:
-        "head -n {params.lines} {input} > {output}"
+        "head -n {params.lines} {input} > {output} 2>>{log}"
 
 rule conservation:
     """generate conservation plots"""
@@ -30,6 +33,7 @@ rule conservation:
         run = lambda wildcards: wildcards.run,
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         #name= wildcards.run
-    log: "log.txt"
+    message: "CONSERVATION: calling conservation script"
+    log: _logfile
     shell:
-        "{params.pypath} {config[python2]} chips/modules/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score}"
+        "{params.pypath} {config[python2]} chips/modules/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"

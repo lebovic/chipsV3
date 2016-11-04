@@ -1,3 +1,5 @@
+#MODULE: PEAK CALLING using macs2
+_logfile="analysis/logs/peaks.log"
 
 #TODO: handle control
 def getTreats(wildcards):
@@ -35,11 +37,13 @@ rule macs2_callpeaks:
         species="hs",
         outdir="analysis/peaks/{run}/",
         name="{run}"
+    message: "PEAKS: calling peaks with macs2"
+    log:_logfile
     run:
         #NOTE: TODO- handle broadPeak calling!
         treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
         control = "-c %s" % " ".join(input.cont) if input.cont else ""
-        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup 1 -g {params.species} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name}")
+        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup 1 -g {params.species} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 
 rule peakToBed:
@@ -48,8 +52,9 @@ rule peakToBed:
     output:
         "analysis/peaks/{run}/{run}_peaks.bed"
     message: "PEAKS: Converting peak file to bed file"
+    log:_logfile
     shell:
-        "cut -f1,2,3,4,9 {input} > {output}"
+        "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
 
 rule sortSummits:
     input:
@@ -57,8 +62,9 @@ rule sortSummits:
     output:
         "analysis/peaks/{run}/{run}_sorted_summits.bed"
     message: "PEAKS: sorting the summits bed by score"
+    log:_logfile
     shell:
-        "sort -r -n -k 5 {input} > {output}"
+        "sort -r -n -k 5 {input} > {output} 2>>{log}"
 
 rule sortPeaks:
     input:
@@ -66,5 +72,6 @@ rule sortPeaks:
     output:
         "analysis/peaks/{run}/{run}_sorted_peaks.bed"
     message: "PEAKS: sorting the summits bed by score"
+    log:_logfile
     shell:
-        "sort -r -n -k 5 {input} > {output}"
+        "sort -r -n -k 5 {input} > {output} 2>>{log}"
