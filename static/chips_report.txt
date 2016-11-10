@@ -1,0 +1,16 @@
+========================================================================
+Chips: ChIP-seq Analysis Pipeline for Snakemake
+========================================================================
+
+Alignment Summary
+=================
+    Something here!
+    Something here!
+    Something here!
+    Something here!Something here!
+
+    .. image:: $map_stat
+
+    
+
+

@@ -18,9 +18,10 @@ def main():
         optparser.print_help()
         sys.exit(-1)
 
-    print(",".join(["Sample","Mapped","Total","Percent"]))
+    print(",".join(["Sample","Total","Mapped","UniquelyMapped"]))
 
     for f in options.files:
+        #UGH: this script is ugly!!
         #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
         sampleID = f.strip().split("/")[-1].split('.')[0]
         f = open(f)
@@ -30,7 +31,17 @@ def main():
         l = f.readline()
         l = f.readline()
         mapped = int(f.readline().strip().split()[0])
-        print(",".join([sampleID,str(mapped),str(total), "%.2f" % (float(mapped)/total *100)]))
+        #skip 8 lines
+        l = f.readline()
+        l = f.readline()
+        l = f.readline()
+        l = f.readline()
+        l = f.readline()
+        l = f.readline()
+        l = f.readline()
+        l = f.readline()
+        uniq_mapped = int(f.readline().strip())
+        print(",".join([sampleID,str(total),str(mapped),str(uniq_mapped)]))#"%.2f" % (float(mapped)/total *100)]))
 
 if __name__=='__main__':
     main()

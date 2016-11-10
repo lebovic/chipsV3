@@ -9,7 +9,8 @@ _bwa_threads=4
 rule align_all:
     input:
         expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
-        "analysis/align/mapping.csv"
+        expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
+        "analysis/align/mapping.csv",
 
 def getFastq(wildcards):
     return config["samples"][wildcards.sample][int(wildcards.mate)]
@@ -60,17 +61,34 @@ rule bwa_convert:
     shell:
         "bwa {params.run_type} {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output} 2>>{log}"
 
-rule map_stats:
-    """Get the mapping stats for each aligment run"""
+rule uniquely_mapped_reads:
+    """Get the uniquely mapped reads"""
     input:
         "analysis/align/{sample}/{sample}.bam"
     output:
-        temp("analysis/align/{sample}/{sample}_mapping.txt")
-        #"analysis/align/{sample}/{sample}_mapping.txt"
+        "analysis/align/{sample}/{sample}_unique.bam"
+    message: "ALIGN: Filtering for uniquely mapped reads"
+    log: _logfile
+    shell:
+        #NOTE: this is the generally accepted way of doing this as multiply 
+        #mapped reads have a Quality score of 0
+        "samtools view -bq 1 {input} > {output}"
+
+rule map_stats:
+    """Get the mapping stats for each aligment run"""
+    input:
+        bam="analysis/align/{sample}/{sample}.bam",
+        uniq_bam="analysis/align/{sample}/{sample}_unique.bam"
+    output:
+        #temp("analysis/align/{sample}/{sample}_mapping.txt")
+        "analysis/align/{sample}/{sample}_mapping.txt"
     message: "ALIGN: get mapping stats for each bam"
     log: _logfile
     shell:
-        "samtools flagstat {input} > {output} 2>>{log}"
+        #FLAGSTATS is the top of the file, and we append the uniquely mapped
+        #reads to the end of the file
+        "samtools flagstat {input.bam} > {output} 2>>{log}"
+        " && samtools view -c {input.uniq_bam} >> {output} 2>> {log}"
 
 rule collect_map_stats:
     """Collect and parse out the mapping stats for the ALL of the samples"""
@@ -83,3 +101,4 @@ rule collect_map_stats:
     run:
         files = " -f ".join(input)
         shell("chips/modules/scripts/align_getMapStats.py -f {files} > {output} 2>>{log}")
+
