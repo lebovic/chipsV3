@@ -3,24 +3,20 @@
 #suppressMessages(library(ggplot2))
 #suppressMessages(library(reshape2))
 
-library(ggplot2)
-library(reshape2)
+suppressMessages(library(ggplot2))
+suppressMessages(library(reshape2))
 
 map_stats_f <- function(map_stats_in, map_stats_out) {
     data <- read.csv(map_stats_in, sep=",", header=TRUE, check.names=F )
     #print(data)
     #rownames(data) <- data[,1]
     #data[,1] <- NULL
-    print(data[,1])
-    x <- data.frame(data)#Sample=rownames(data))
-                    #Total_Reads=as.numeric(data[,1]),
-                    #Mapped_Reads=as.numeric(data[,2]),
-                    #Unique_Reads=as.numeric(data[,3]))
+    x <- data.frame(data)
     colnames(x) <- c('Sample', 'Total_Reads', 'Mapped_Reads', 'Uniquely_Mapped_Reads')
     
     #print(x)
     x1 <- melt(x, id.var="Sample")
-    print(x1)
+    #print(x1)
 
     png(map_stats_out, width = 8, height = 8, unit="in",res=300)
 
