@@ -33,6 +33,8 @@ rule frips_all:
         expand("analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam", sample=config["samples"]),
         expand("analysis/peaks/{run}/{run}_4M_peaks.narrowPeak", run=config["runs"].keys()),
         expand("analysis/frips/{run}/{run}_frip.txt",run=config["runs"].keys()),
+        expand("analysis/align/{sample}/{sample}_pbc.txt", sample=config["samples"]),
+        "analysis/align/pbc.csv",
 
 rule sample_unique_nonChrM:
     """Sample uniquely mapped, nonChrM reads from the SAMPLE
@@ -114,3 +116,29 @@ rule frip_calculate:
     log:_logfile
     shell:
         "chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} 2>>{log}"
+
+rule frip_pbc:
+    """Generate the PBC histogram for each normalized sample, which will be 
+    used to calculate N1, Nd, and PBC (for the report)
+    """
+    input:
+        "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
+    output:
+        #make temp
+        "analysis/align/{sample}/{sample}_pbc.txt"
+    message: "FRiP: generate PBC histogram for each sample/bam"
+    log: _logfile
+    shell:
+        "chips/modules/scripts/frips_pbc.sh -i {input} -o {output} 2>> {log}"
+
+rule collect_pbc:
+    """Collect and parse out the PBC for the ALL of the samples"""
+    input:
+        expand("analysis/align/{sample}/{sample}_pbc.txt", sample=config["samples"])
+    output:
+        "analysis/align/pbc.csv"
+    message: "ALIGN: collect and parse ALL pbc stats"
+    log: _logfile
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")

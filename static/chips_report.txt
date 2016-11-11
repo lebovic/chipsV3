@@ -11,6 +11,6 @@ Alignment Summary
 
     .. image:: $map_stat
 
-    
-
-
+PBC Summary
+=================
+    .. image:: $pbc_stat
