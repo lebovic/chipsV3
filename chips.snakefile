@@ -48,7 +48,7 @@ rule target:
         expand("analysis/ceas/{run}/{run}_velcro_stats.txt", run=config["runs"].keys()),
         expand("analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam", sample=config["samples"]),
         expand("analysis/peaks/{run}/{run}_4M_peaks.narrowPeak", run=config["runs"].keys()),
-        expand("analysis/frip/{run}/{run}_frip.txt",run=config["runs"].keys()),
+        expand("analysis/frips/{run}/{run}_frip.txt",run=config["runs"].keys()),
 
 
     message: "Compiling all output"
@@ -59,4 +59,4 @@ include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
 include: "./modules/conservation.snakefile"  # generate conservation plot
 include: "./modules/ceas.snakefile"          # annotate peak regions
 include: "./modules/frips.snakefile"         # fraction of reads in peaks
-include: "./modules/report.snakefile"         # report module
+include: "./modules/report.snakefile"        # report module

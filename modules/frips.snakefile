@@ -42,7 +42,8 @@ rule sample_unique_nonChrM:
     ref: https://www.biostars.org/p/128967/ #for the chrM, chrRandom filter
     """
     input:
-        "analysis/align/{sample}/{sample}.bam"
+        #"analysis/align/{sample}/{sample}.bam"
+        "analysis/align/{sample}/{sample}_unique.bam"
     params:
         #hack to get the regex in to filter out chrM, random, chrUn
         regex="\'/chrM/d;/random/d;/chrUn/d\'",
@@ -50,7 +51,7 @@ rule sample_unique_nonChrM:
     log:_logfile
     output:
         #make temp
-        'analysis/align/{sample}/{sample}_unique_nonChrM.sam'
+        'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
     shell:
         "samtools view -b -F 4 {input} | sed -e {params.regex} > {output} 2>>{log}"
 
@@ -60,7 +61,7 @@ rule sample_4M_from_uniqueNonChrM:
     see '-s 21.5'
     """
     input:
-        'analysis/align/{sample}/{sample}_unique_nonChrM.sam'
+        'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
     params:
         n="4000000"
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads"
