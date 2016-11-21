@@ -13,7 +13,7 @@ _macs_species="hs"
 
 def getTreats(wildcards):
     r = config['runs'][wildcards.run]
-    #print(r)
+    #print(r[:2])
     #convert SAMPLE names to BAMS
     tmp=["analysis/align/%s/%s_4M_unique_nonChrM.bam" % (s,s) for s in r[:2] if s]
     #print(tmp)
@@ -126,7 +126,7 @@ rule frip_pbc:
         "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
     output:
         #make temp
-        "analysis/align/{sample}/{sample}_pbc.txt"
+        "analysis/frips/{sample}/{sample}_pbc.txt"
     message: "FRiP: generate PBC histogram for each sample/bam"
     log: _logfile
     shell:
@@ -135,9 +135,9 @@ rule frip_pbc:
 rule collect_pbc:
     """Collect and parse out the PBC for the ALL of the samples"""
     input:
-        expand("analysis/align/{sample}/{sample}_pbc.txt", sample=config["samples"])
+        expand("analysis/frips/{sample}/{sample}_pbc.txt", sample=config["samples"])
     output:
-        "analysis/align/pbc.csv"
+        "analysis/frips/pbc.csv"
     message: "ALIGN: collect and parse ALL pbc stats"
     log: _logfile
     run:
