@@ -9,7 +9,9 @@ _bwa_threads=4
 rule align_all:
     input:
         expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
+        expand("analysis/align/{sample}/{sample}.sorted.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
+        expand("analysis/align/{sample}/{sample}_unique.sorted.bam", sample=config["samples"]),
         "analysis/align/mapping.csv",
 
 def getFastq(wildcards):
@@ -26,7 +28,6 @@ def getMates(wildcards):
 def getRunType(wildcards):
     s = wildcards.sample
     return "sampe" if len(config["samples"][s]) > 1 else "samse"
-
 
 rule bwa_aln:
     input:
@@ -102,3 +103,15 @@ rule collect_map_stats:
         files = " -f ".join(input)
         shell("chips/modules/scripts/align_getMapStats.py -f {files} > {output} 2>>{log}")
 
+rule sortBams:
+    """General sort rule--take a bam {filename}.bam and 
+    output {filename}.sorted.bam"""
+    input:
+        "analysis/align/{sample}/{filename}.bam"
+    output:
+        "analysis/align/{sample}/{filename}.sorted.bam"
+    message: "ALIGN: sort bam file"
+    log: _logfile
+    threads: _bwa_threads
+    shell:
+        "samtools sort {input} -o {output} --threads {threads} 2>>{log}"
