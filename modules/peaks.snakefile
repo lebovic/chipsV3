@@ -26,6 +26,7 @@ rule peaks_all:
     input:
         expand("analysis/peaks/{run}/{run}_sorted_peaks.bed", run=config["runs"].keys()),
         expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
+        expand("analysis/peaks/{run}/{run}_treat_pileup.bw", run=config["runs"].keys()),
 
 rule macs2_callpeaks:
     input:
@@ -82,3 +83,27 @@ rule sortPeaks:
     log:_logfile
     shell:
         "sort -r -n -k 5 {input} > {output} 2>>{log}"
+
+rule sortBedgraphs:
+    """Sort bed graphs--typically useful for converting bdg to bw"""
+    input:
+        "analysis/peaks/{run}/{run}_{suffix}.bdg"
+    output:
+        "analysis/peaks/{run}/{run}_{suffix}.sorted.bdg"
+    message: "PEAKS: sorting bdg pileups"
+    log:_logfile
+    shell:
+        "bedSort {input} {output} 2>>{log}"
+
+rule bdgToBw:
+    """Convert bedGraphs to BigWig"""
+    input:
+        "analysis/peaks/{run}/{run}_{suffix}.sorted.bdg"
+    output:
+        "analysis/peaks/{run}/{run}_{suffix}.bw"
+    params:
+        chroms=config['chrom_lens']
+    message: "PEAKS: Convert bedGraphs to BigWig"
+    log:_logfile
+    shell:
+        "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"

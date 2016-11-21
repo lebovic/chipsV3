@@ -6,3 +6,5 @@ dependencies:
 - samtools
 - fastqc
 - bedtools
+- ucsc-bedsort
+- ucsc-bedgraphtobigwig
