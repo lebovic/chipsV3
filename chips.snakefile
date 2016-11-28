@@ -28,6 +28,10 @@ def addPy2Paths_Config(config):
     if not "python2" in config or not config["python2"]:
         config["python2"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'python2.7')
 
+    if not "mdseqpos_path" in config or not config["mdseqpos_path"]:
+        config["mdseqpos_path"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'MDSeqPos.py')
+
+
 #---------  CONFIG set up  ---------------
 configfile: "config.yaml"   # This makes snakemake load up yaml into config 
 config = getRuns(config)
@@ -59,4 +63,5 @@ include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
 include: "./modules/conservation.snakefile"  # generate conservation plot
 include: "./modules/ceas.snakefile"          # annotate peak regions
 include: "./modules/frips.snakefile"         # fraction of reads in peaks
+include: "./modules/motif.snakefile"         # motif module
 include: "./modules/report.snakefile"        # report module
