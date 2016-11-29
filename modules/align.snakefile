@@ -12,6 +12,7 @@ rule align_all:
         expand("analysis/align/{sample}/{sample}.sorted.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}_unique.sorted.bam", sample=config["samples"]),
+        expand("analysis/align/{sample}/{sample}.unmapped.fq.gz", sample=config["samples"]),
         "analysis/align/mapping.csv",
 
 def getFastq(wildcards):
@@ -115,3 +116,48 @@ rule sortBams:
     threads: _bwa_threads
     shell:
         "samtools sort {input} -o {output} --threads {threads} 2>>{log}"
+
+rule extractUnmapped:
+    """Extract the unmapped reads and save as {sample}.unmapped.bam"""
+    input:
+        "analysis/align/{sample}/{sample}.bam"
+    output:
+        #THIS should be TEMP
+        "analysis/align/{sample}/{sample}.unmapped.bam"
+    message: "ALIGN: extract unmapped reads"
+    log: _logfile
+    threads: _bwa_threads
+    shell:
+        #THIS extracts all unmapped reads
+        #"samtools view -b -f 4 --threads {threads} {input} >{output} 2>>{log}"
+        #THIS extracts all READ (pairs) where at least one in unmapped
+        #ref: https://www.biostars.org/p/56246/ search "rgiannico"
+        "samtools view -b -F 2 --threads {threads} {input} > {output} 2>>{log}"
+
+rule bamToFastq:
+    """Convert the unmapped.bam to fastq"""
+    input:
+        "analysis/align/{sample}/{sample}.unmapped.bam"
+    output:
+        "analysis/align/{sample}/{sample}.unmapped.fq"
+    params:
+        #handle PE alignments!
+        mate2 = lambda wildcards: "-fq2 analysis/align/{sample}/{sample}.unmapped.fq2" if len(config["samples"][wildcards.sample]) == 2 else ""
+    message: "ALIGN: convert unmapped bam to fastq"
+    log: _logfile
+    shell:
+        "bamToFastq -i {input} -fq {output} {params.mate2}"
+
+rule gzipUnmappedFq:
+    """gzip unmapped fq(s)"""
+    input:
+        "analysis/align/{sample}/{sample}.unmapped.fq"
+    output:
+        "analysis/align/{sample}/{sample}.unmapped.fq.gz"
+    params:
+        #handle PE alignments!
+        mate2 = lambda wildcards: "analysis/align/{sample}/{sample}.unmapped.fq2" if len(config["samples"][wildcards.sample]) == 2 else ""
+    message: "ALIGN: gzip unmapped fq files"
+    log: _logfile
+    shell:
+        "gzip {input} {params} 2>>{log}"
