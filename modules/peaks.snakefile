@@ -27,6 +27,7 @@ rule peaks_all:
         expand("analysis/peaks/{run}/{run}_sorted_peaks.bed", run=config["runs"].keys()),
         expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
         expand("analysis/peaks/{run}/{run}_treat_pileup.bw", run=config["runs"].keys()),
+        expand("analysis/peaks/{run}/{run}_control_lambda.bw", run=config["runs"].keys()),
 
 rule macs2_callpeaks:
     input:
