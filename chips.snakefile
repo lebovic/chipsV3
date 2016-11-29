@@ -64,4 +64,5 @@ include: "./modules/conservation.snakefile"  # generate conservation plot
 include: "./modules/ceas.snakefile"          # annotate peak regions
 include: "./modules/frips.snakefile"         # fraction of reads in peaks
 include: "./modules/motif.snakefile"         # motif module
+include: "./modules/contamination.snakefile" # contamination panel module
 include: "./modules/report.snakefile"        # report module

@@ -6,6 +6,18 @@ DHS: /data/static_libraries/DHS/DHS_hg19.bed
 velcro_regions: /data/static_libraries/vecro/wgEncodeHg19ConsensusSignalArtifactRegions.bed
 chrom_lens: /data/static_libraries/chromLen/hg19.len
 
+#NOTE: this should be a path! we need to modify mdseqpos to take paths!
+#NOTE: mdseqpos wants it stored in path/raw|rawgenome/chr...
+motif_path: hg19
+
+#NOTE: optional contamination panel to check sample contamination against
+#Each element should be a path to the INDEX for the aligner you want to use
+#The name of the file will be used in the table report, 
+#e.g. /some/path/to/BWA/e_coli.fasta will be reported as "e_coli"
+#contamination_panel:
+  #- /some/path/to/BWA/e_coli.fasta
+  #- /some/path/to/BWA/yeast.fasta
+
 samples:
   JG1A_ER:
     - data/JG1A-ERChIP_9M.R1.fastq.gz
