@@ -11,14 +11,14 @@ _macs_species="hs"
 def getTreats(wildcards):
     r = config['runs'][wildcards.run]
     #convert SAMPLE names to BAMS
-    tmp = ["analysis/align/%s/%s.bam" % (s,s) for s in r[:2] if s]
+    tmp = ["analysis/align/%s/%s.sorted.bam" % (s,s) for s in r[:2] if s]
     #print("TREATS: %s" % tmp)
     return tmp
 
 def getConts(wildcards):
     r = config['runs'][wildcards.run]
     #convert SAMPLE names to BAMS
-    tmp = ["analysis/align/%s/%s.bam" % (s,s) for s in r[2:4] if s]
+    tmp = ["analysis/align/%s/%s.sorted.bam" % (s,s) for s in r[2:4] if s]
     #print("CONTS: %s" % tmp)
     return tmp
 

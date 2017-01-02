@@ -41,7 +41,7 @@ addPy2Paths_Config(config)
 rule target:
     input: 
         #ALIGN_ALL - note KEEP these insync!
-        expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
+        #expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}.sorted.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}_unique.sorted.bam", sample=config["samples"]),

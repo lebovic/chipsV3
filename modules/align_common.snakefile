@@ -1,9 +1,23 @@
 #MODULE: Align fastq files to genome - common rules
+#import os
 _align_threads=4
+
+def getBam(wildcards):
+    """This input fn will check to see if the user specified a .fastq or a .bam
+    for the sample.  IF the former (.fastq), will simply return the canonical
+    path, otherwise (.bam) will return the user-specified (bam) path"""
+    #CHECK first entry's file suffix
+    s = wildcards.sample
+    first_file = config["samples"][wildcards.sample][0]
+    ret = "analysis/align/%s/%s.bam" % (s,s)
+    if first_file.endswith('.bam'):
+        #CLEANER to check for .bam vs (.fastq, fq, fq.gz, etc)
+        ret = first_file
+    return [ret]
 
 rule align_all:
     input:
-        expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
+        #expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}.sorted.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
         expand("analysis/align/{sample}/{sample}_unique.sorted.bam", sample=config["samples"]),
@@ -13,7 +27,8 @@ rule align_all:
 rule uniquely_mapped_reads:
     """Get the uniquely mapped reads"""
     input:
-        "analysis/align/{sample}/{sample}.bam"
+        #"analysis/align/{sample}/{sample}.bam"
+        getBam
     output:
         "analysis/align/{sample}/{sample}_unique.bam"
     message: "ALIGN: Filtering for uniquely mapped reads"
@@ -26,7 +41,8 @@ rule uniquely_mapped_reads:
 rule map_stats:
     """Get the mapping stats for each aligment run"""
     input:
-        bam="analysis/align/{sample}/{sample}.bam",
+        #bam="analysis/align/{sample}/{sample}.bam",
+        bam=getBam,
         uniq_bam="analysis/align/{sample}/{sample}_unique.bam"
     output:
         #temp("analysis/align/{sample}/{sample}_mapping.txt")
@@ -55,9 +71,23 @@ rule sortBams:
     """General sort rule--take a bam {filename}.bam and 
     output {filename}.sorted.bam"""
     input:
-        "analysis/align/{sample}/{filename}.bam"
+        #"analysis/align/{sample}/{filename}.bam"
+        getBam
     output:
-        "analysis/align/{sample}/{filename}.sorted.bam"
+        "analysis/align/{sample}/{sample}.sorted.bam"
+    message: "ALIGN: sort bam file"
+    log: _logfile
+    threads: _align_threads
+    shell:
+        "samtools sort {input} -o {output} --threads {threads} 2>>{log}"
+
+rule sortUniqueBams:
+    """General sort rule--take a bam {filename}.bam and 
+    output {filename}.sorted.bam"""
+    input:
+        "analysis/align/{sample}/{sample}_unique.bam"
+    output:
+        "analysis/align/{sample}/{sample}_unique.sorted.bam"
     message: "ALIGN: sort bam file"
     log: _logfile
     threads: _align_threads
@@ -67,7 +97,8 @@ rule sortBams:
 rule extractUnmapped:
     """Extract the unmapped reads and save as {sample}.unmapped.bam"""
     input:
-        "analysis/align/{sample}/{sample}.bam"
+        #"analysis/align/{sample}/{sample}.bam"
+        getBam
     output:
         #THIS should be TEMP
         "analysis/align/{sample}/{sample}.unmapped.bam"

@@ -7,10 +7,10 @@ chrom_lens: /data/static_libraries/chromLen/hg19.len
 
 #ALIGNER: if you want to use bowtie2 as your aligner COMMENT out the next two
 #lines, and UNCOMMENT the two lines after
-#bwa_index: /data/static_libraries/bwa_indices/hg19/hg19.fa
-#aligner: 'bwa'
-bwt2_index: /data/static_libraries/bowtie/indexes/hg19
-aligner: 'bwt2'
+bwa_index: /data/static_libraries/bwa_indices/hg19/hg19.fa
+aligner: 'bwa'
+#bwt2_index: /data/static_libraries/bowtie/indexes/hg19
+#aligner: 'bwt2'
 
 
 #NOTE: this should be a path! we need to modify mdseqpos to take paths!
