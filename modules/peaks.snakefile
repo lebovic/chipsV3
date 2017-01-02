@@ -24,6 +24,7 @@ def getConts(wildcards):
 
 rule peaks_all:
     input:
+        expand("analysis/peaks/{run}/{run}_peaks.bed", run=config['runs'].keys()),
         expand("analysis/peaks/{run}/{run}_sorted_peaks.bed", run=config["runs"].keys()),
         expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
         expand("analysis/peaks/{run}/{run}_treat_pileup.bw", run=config["runs"].keys()),

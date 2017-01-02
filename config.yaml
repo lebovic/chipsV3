@@ -1,10 +1,17 @@
 metasheet: 'metasheet.csv'
-bwa_index: /data/static_libraries/bwa_indices/hg19/hg19.fa
 conservation: /data/static_libraries/conservation/hg19/vertebrate
 geneTable: /data/static_libraries/ucsc/hg19.refGene
 DHS: /data/static_libraries/DHS/DHS_hg19.bed
 velcro_regions: /data/static_libraries/vecro/wgEncodeHg19ConsensusSignalArtifactRegions.bed
 chrom_lens: /data/static_libraries/chromLen/hg19.len
+
+#ALIGNER: if you want to use bowtie2 as your aligner COMMENT out the next two
+#lines, and UNCOMMENT the two lines after
+#bwa_index: /data/static_libraries/bwa_indices/hg19/hg19.fa
+#aligner: 'bwa'
+bwt2_index: /data/static_libraries/bowtie/indexes/hg19
+aligner: 'bwt2'
+
 
 #NOTE: this should be a path! we need to modify mdseqpos to take paths!
 #NOTE: mdseqpos wants it stored in path/raw|rawgenome/chr...
@@ -14,9 +21,12 @@ motif_path: hg19
 #Each element should be a path to the INDEX for the aligner you want to use
 #The name of the file will be used in the table report, 
 #e.g. /some/path/to/BWA/e_coli.fasta will be reported as "e_coli"
-#contamination_panel:
+contamination_panel:
   #- /some/path/to/BWA/e_coli.fasta
   #- /some/path/to/BWA/yeast.fasta
+  - /data/static_libraries/bwa_indices/hg19/hg19.fa
+  - /data/static_libraries/bwa_indices/e_coli/e_coli.fasta
+  - /data/static_libraries/bwa_indices/S_cerevisiae/S_cerevisiae.fa
 
 samples:
   JG1A_ER:

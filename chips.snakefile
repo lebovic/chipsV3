@@ -40,24 +40,52 @@ addPy2Paths_Config(config)
 
 rule target:
     input: 
-        expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]), 
+        #ALIGN_ALL - note KEEP these insync!
+        expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
+        expand("analysis/align/{sample}/{sample}.sorted.bam", sample=config["samples"]),
+        expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
+        expand("analysis/align/{sample}/{sample}_unique.sorted.bam", sample=config["samples"]),
+        expand("analysis/align/{sample}/{sample}.unmapped.fq.gz", sample=config["samples"]),
+        "analysis/align/mapping.csv",
+        #PEAKS_ALL
         expand("analysis/peaks/{run}/{run}_peaks.bed", run=config['runs'].keys()),
+        expand("analysis/peaks/{run}/{run}_sorted_peaks.bed", run=config["runs"].keys()),
+        expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
+        expand("analysis/peaks/{run}/{run}_treat_pileup.bw", run=config["runs"].keys()),
+        expand("analysis/peaks/{run}/{run}_control_lambda.bw", run=config["runs"].keys()),
+        #FASTQC_ALL
         expand("analysis/fastqc/{sample}_perSeqGC.txt", sample=config["samples"]),
+        #CONSERVATION_ALL
         expand("analysis/peaks/{run}/{run}_sorted_5k_summits.bed", run=config["runs"].keys()),
         expand("analysis/conserv/{run}/{run}_conserv.txt", run=config["runs"].keys()),
+        #CEAS_ALL
         expand("analysis/ceas/{run}/{run}_summary.txt", run=config["runs"].keys()),
         expand("analysis/ceas/{run}/{run}_DHS_peaks.bed", run=config["runs"].keys()),
         expand("analysis/ceas/{run}/{run}_DHS_stats.txt", run=config["runs"].keys()),
         expand("analysis/ceas/{run}/{run}_velcro_peaks.bed", run=config["runs"].keys()),
         expand("analysis/ceas/{run}/{run}_velcro_stats.txt", run=config["runs"].keys()),
+        #FRIPS_ALL
         expand("analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam", sample=config["samples"]),
         expand("analysis/peaks/{run}/{run}_4M_peaks.narrowPeak", run=config["runs"].keys()),
         expand("analysis/frips/{run}/{run}_frip.txt",run=config["runs"].keys()),
+        #MOTIF_ALL
+        expand("analysis/motif/{run}/results/mdseqpos_out.html", run=config["runs"].keys()),
+        #CONTAMINATION_ALL- need to figure how to handle this w/o doubling the code
+        #expand("analysis/contam/{sample}/{sample}.{panel}.sai", sample=config['samples'].keys(), panel=_contaminationNames),
+        #expand("analysis/contam/{sample}/{sample}.{panel}.bam", sample=config['samples'].keys(), panel=_contaminationNames),
+        #expand("analysis/contam/{sample}/{sample}.{panel}.txt", sample=config['samples'].keys(), panel=_contaminationNames),
+        #expand("analysis/contam/{sample}/{sample}_contamination.txt", sample=config['samples'].keys()),
+        "report.html",
+
 
 
     message: "Compiling all output"
+if config['aligner'] == 'bwa':
+    include: "./modules/align_bwa.snakefile"     # rules specific to BWA
+else:
+    include: "./modules/align_bwt2.snakefile"     # rules specific to Bowtie2
 
-include: "./modules/align.snakefile"         # rules specific to BWA
+include: "./modules/align_common.snakefile"  # common align rules
 include: "./modules/peaks.snakefile"         # peak calling rules
 include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
 include: "./modules/conservation.snakefile"  # generate conservation plot

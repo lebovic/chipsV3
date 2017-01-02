@@ -1,4 +1,6 @@
 name: chips
+channels:
+- bioconda
 dependencies:
 - python
 - snakemake
@@ -8,3 +10,4 @@ dependencies:
 - bedtools
 - ucsc-bedsort
 - ucsc-bedgraphtobigwig
+- bowtie2
