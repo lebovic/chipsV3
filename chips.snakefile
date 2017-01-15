@@ -93,4 +93,5 @@ include: "./modules/ceas.snakefile"          # annotate peak regions
 include: "./modules/frips.snakefile"         # fraction of reads in peaks
 include: "./modules/motif.snakefile"         # motif module
 include: "./modules/contamination.snakefile" # contamination panel module
+include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
 include: "./modules/report.snakefile"        # report module

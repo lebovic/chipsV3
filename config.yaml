@@ -28,6 +28,9 @@ contamination_panel:
   - /data/static_libraries/bwa_indices/e_coli/e_coli.fasta
   - /data/static_libraries/bwa_indices/S_cerevisiae/S_cerevisiae.fa
 
+#NOTE: optional CNV analysis using QDNAseq R pkg
+cnv_qdnaseq_analysis: true
+
 samples:
   JG1A_ER:
     - data/JG1A-ERChIP_9M.R1.fastq.gz
