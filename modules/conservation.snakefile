@@ -1,10 +1,17 @@
 #MODULE: conservation- module to create conservation plots
 _logfile="analysis/logs/conservation.log"
 
+def conservation_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for run in config["runs"].keys():
+        ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (run,run))
+        ls.append("analysis/conserv/%s/%s_conserv.txt" % (run,run))
+    return ls
+
 rule conservation_all:
     input:
-        expand("analysis/peaks/{run}/{run}_sorted_5k_summits.bed", run=config["runs"].keys()),
-        expand("analysis/conserv/{run}/{run}_conserv.txt", run=config["runs"].keys()),
+        conservation_targets
 
 rule top5k_peaks:
     """take the top 5000 peaks, sorted by score"""

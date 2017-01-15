@@ -11,6 +11,18 @@ _macs_keepdup="1"
 _macs_extsize="146"
 _macs_species="hs"
 
+def frips_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for sample in config["samples"]:
+        ls.append("analysis/align/%s/%s_4M_unique_nonChrM.bam" % (sample,sample))
+        #ls.append("analysis/align/%s/%s_pbc.txt" % (sample,sample))
+    for run in config["runs"].keys():
+        ls.append("analysis/peaks/%s/%s_4M_peaks.narrowPeak" % (run,run))
+        ls.append("analysis/frips/%s/%s_frip.txt" % (run,run))
+    ls.append("analysis/frips/pbc.csv")
+    return ls
+
 def getTreats(wildcards):
     r = config['runs'][wildcards.run]
     #print(r[:2])
@@ -30,11 +42,7 @@ def getConts(wildcards):
 
 rule frips_all:
     input:
-        expand("analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam", sample=config["samples"]),
-        expand("analysis/peaks/{run}/{run}_4M_peaks.narrowPeak", run=config["runs"].keys()),
-        expand("analysis/frips/{run}/{run}_frip.txt",run=config["runs"].keys()),
-        expand("analysis/align/{sample}/{sample}_pbc.txt", sample=config["samples"]),
-        "analysis/align/pbc.csv",
+        frips_targets
 
 rule sample_unique_nonChrM:
     """Sample uniquely mapped, nonChrM reads from the SAMPLE

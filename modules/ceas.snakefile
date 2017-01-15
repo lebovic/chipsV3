@@ -1,13 +1,20 @@
 #MODULE: CEAS- annotating where the peaks fall (promoter, exon, intron, interg)
 _logfile="analysis/logs/ceas.log"
 
+def ceas_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for run in config["runs"].keys():
+        ls.append("analysis/ceas/%s/%s_summary.txt" % (run,run))
+        ls.append("analysis/ceas/%s/%s_DHS_peaks.bed" % (run,run))
+        ls.append("analysis/ceas/%s/%s_DHS_stats.txt" % (run,run))
+        ls.append("analysis/ceas/%s/%s_velcro_peaks.bed" % (run,run))
+        ls.append("analysis/ceas/%s/%s_velcro_stats.txt" % (run,run))
+    return ls
+
 rule ceas_all:
     input:
-        expand("analysis/ceas/{run}/{run}_summary.txt", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_DHS_peaks.bed", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_DHS_stats.txt", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_velcro_peaks.bed", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_velcro_stats.txt", run=config["runs"].keys()),
+        ceas_targets
 
 rule ceas:
     """Annotate peak regions"""

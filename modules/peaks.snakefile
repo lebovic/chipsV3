@@ -22,13 +22,20 @@ def getConts(wildcards):
     #print("CONTS: %s" % tmp)
     return tmp
 
+def peaks_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for run in config["runs"].keys():
+        ls.append("analysis/peaks/%s/%s_peaks.bed" % (run,run))
+        ls.append("analysis/peaks/%s/%s_sorted_peaks.bed" % (run,run))
+        ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (run,run))
+        ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (run,run))
+        ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (run,run))
+    return ls
+
 rule peaks_all:
     input:
-        expand("analysis/peaks/{run}/{run}_peaks.bed", run=config['runs'].keys()),
-        expand("analysis/peaks/{run}/{run}_sorted_peaks.bed", run=config["runs"].keys()),
-        expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
-        expand("analysis/peaks/{run}/{run}_treat_pileup.bw", run=config["runs"].keys()),
-        expand("analysis/peaks/{run}/{run}_control_lambda.bw", run=config["runs"].keys()),
+        peaks_targets
 
 rule macs2_callpeaks:
     input:

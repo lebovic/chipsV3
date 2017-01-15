@@ -38,46 +38,25 @@ config = getRuns(config)
 addPy2Paths_Config(config)
 #-----------------------------------------
 
+def all_targets(wildcards):
+    _qdnaseq = config["cnv_qdnaseq_analysis"]
+    ls = []
+    #IMPORT all of the module targets
+    ls.extend(align_targets(wildcards))
+    ls.extend(peaks_targets(wildcards))
+    ls.extend(fastqc_targets(wildcards))
+    ls.extend(conservation_targets(wildcards))
+    ls.extend(ceas_targets(wildcards))
+    ls.extend(frips_targets(wildcards))
+    ls.extend(motif_targets(wildcards))
+    if _qdnaseq:
+        ls.extend(qdnaseq_targets(wildcards))
+    return ls
+
 rule target:
     input: 
-        #ALIGN_ALL - note KEEP these insync!
-        #expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}.sorted.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}_unique.sorted.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}.unmapped.fq.gz", sample=config["samples"]),
-        "analysis/align/mapping.csv",
-        #PEAKS_ALL
-        expand("analysis/peaks/{run}/{run}_peaks.bed", run=config['runs'].keys()),
-        expand("analysis/peaks/{run}/{run}_sorted_peaks.bed", run=config["runs"].keys()),
-        expand("analysis/peaks/{run}/{run}_sorted_summits.bed", run=config["runs"].keys()),
-        expand("analysis/peaks/{run}/{run}_treat_pileup.bw", run=config["runs"].keys()),
-        expand("analysis/peaks/{run}/{run}_control_lambda.bw", run=config["runs"].keys()),
-        #FASTQC_ALL
-        expand("analysis/fastqc/{sample}_perSeqGC.txt", sample=config["samples"]),
-        #CONSERVATION_ALL
-        expand("analysis/peaks/{run}/{run}_sorted_5k_summits.bed", run=config["runs"].keys()),
-        expand("analysis/conserv/{run}/{run}_conserv.txt", run=config["runs"].keys()),
-        #CEAS_ALL
-        expand("analysis/ceas/{run}/{run}_summary.txt", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_DHS_peaks.bed", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_DHS_stats.txt", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_velcro_peaks.bed", run=config["runs"].keys()),
-        expand("analysis/ceas/{run}/{run}_velcro_stats.txt", run=config["runs"].keys()),
-        #FRIPS_ALL
-        expand("analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam", sample=config["samples"]),
-        expand("analysis/peaks/{run}/{run}_4M_peaks.narrowPeak", run=config["runs"].keys()),
-        expand("analysis/frips/{run}/{run}_frip.txt",run=config["runs"].keys()),
-        #MOTIF_ALL
-        expand("analysis/motif/{run}/results/mdseqpos_out.html", run=config["runs"].keys()),
-        #CONTAMINATION_ALL- need to figure how to handle this w/o doubling the code
-        #expand("analysis/contam/{sample}/{sample}.{panel}.sai", sample=config['samples'].keys(), panel=_contaminationNames),
-        #expand("analysis/contam/{sample}/{sample}.{panel}.bam", sample=config['samples'].keys(), panel=_contaminationNames),
-        #expand("analysis/contam/{sample}/{sample}.{panel}.txt", sample=config['samples'].keys(), panel=_contaminationNames),
-        #expand("analysis/contam/{sample}/{sample}_contamination.txt", sample=config['samples'].keys()),
+        all_targets,
         "report.html",
-
-
 
     message: "Compiling all output"
 if config['aligner'] == 'bwa':

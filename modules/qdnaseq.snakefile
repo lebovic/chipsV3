@@ -1,15 +1,20 @@
 #MODULE: qdnaseq- perform qdnaseq CNV analysis on sample bams
 _logfile="analysis/logs/qdnaseq.log"
 
+def qdnaseq_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    ls.append("analysis/qdnaseq/qdnaseq.bed")
+    ls.append("analysis/qdnaseq/qdnaseq.igv")
+    ls.append("analysis/qdnaseq/qdnaseq.txt")
+    ls.append("analysis/qdnaseq/qdnaseq.pdf")
+    ls.append("analysis/qdnaseq/qdnaseq_segmented.igv")
+    ls.append("analysis/qdnaseq/qdnaseq_calls.igv")
+    return ls
+
 rule qdnaseq_all:
     input:
-        "analysis/qdnaseq/qdnaseq.bed",
-        "analysis/qdnaseq/qdnaseq.igv",
-        "analysis/qdnaseq/qdnaseq.txt",
-        "analysis/qdnaseq/qdnaseq.pdf",
-        "analysis/qdnaseq/qdnaseq_segmented.igv",
-        "analysis/qdnaseq/qdnaseq_calls.igv",
-        #expand(".tmp/{sample}_unique.sorted.bam", sample=config["samples"]),
+        qdnaseq_targets
 
 rule qdnaseq_linkFiles:
     """Link files into one single (temporary) directory"""

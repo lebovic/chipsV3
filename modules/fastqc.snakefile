@@ -3,6 +3,13 @@
 #    sample_fastq: subsample 100k reads from each sample to perform fastqc analysis
 _logfile="analysis/logs/fastqc.log"
 
+def fastqc_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for sample in config["samples"]:
+        ls.append("analysis/fastqc/%s_perSeqGC.txt" % sample)
+    return ls
+
 def getFastqcInput(wildcards):
     """Get the input file for fastqc. It's either the 100k.fastq sample or the 
      original bam"""
@@ -36,11 +43,7 @@ def getFastq3(wildcards):
 
 rule fastqc_all:
     input:
-        #expand("analysis/align/{sample}/{sample}_100k.fastq", sample=config["samples"]),
-        #expand("analysis/fastqc/{sample}_100k_fastqc", sample=config["samples"]),
-        #expand("analysis/fastqc/{sample}_perSeqQual.txt", sample=config["samples"]),
-        expand("analysis/fastqc/{sample}_perSeqGC.txt", sample=config["samples"]),
-        #"analysis/align/mapping.csv"
+        fastqc_targets
 
 rule sample_fastq:
     """Subsample fastq"""

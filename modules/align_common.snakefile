@@ -2,6 +2,18 @@
 #import os
 _align_threads=4
 
+def align_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for sample in config["samples"]:
+        ls.append("analysis/align/%s/%s.sorted.bam" % (sample,sample))
+        ls.append("analysis/align/%s/%s_unique.bam" % (sample,sample))
+        ls.append("analysis/align/%s/%s_unique.sorted.bam" % (sample,sample))
+        ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
+    ls.append("analysis/align/mapping.csv")
+    return ls
+
+
 def getBam(wildcards):
     """This input fn will check to see if the user specified a .fastq or a .bam
     for the sample.  IF the former (.fastq), will simply return the canonical
@@ -17,12 +29,7 @@ def getBam(wildcards):
 
 rule align_all:
     input:
-        #expand("analysis/align/{sample}/{sample}.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}.sorted.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}_unique.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}_unique.sorted.bam", sample=config["samples"]),
-        expand("analysis/align/{sample}/{sample}.unmapped.fq.gz", sample=config["samples"]),
-        "analysis/align/mapping.csv",
+        align_targets
 
 rule uniquely_mapped_reads:
     """Get the uniquely mapped reads"""

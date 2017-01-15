@@ -2,10 +2,16 @@
 #motif table
 _logfile="analysis/logs/motif.log"
 
+def motif_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for run in config["runs"].keys():
+        ls.append("analysis/motif/%s/results/mdseqpos_out.html" % run)
+    return ls
+
 rule motif_all:
     input:
-        expand("analysis/motif/{run}/results/mdseqpos_out.html", run=config["runs"].keys()),
-        #expand("analysis/conserv/{run}/{run}_conserv.txt", run=config["runs"].keys()),
+        motif_targets
 
 rule motif:
     """call MDSeqpos on top 5k summits"""
