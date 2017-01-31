@@ -86,7 +86,7 @@ rule sortBams:
     log: _logfile
     threads: _align_threads
     shell:
-        "samtools sort {input} -o {output} --threads {threads} 2>>{log}"
+        "samtools sort {input} -o {output} 2>>{log}"
 
 rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 

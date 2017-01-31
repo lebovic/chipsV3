@@ -26,7 +26,8 @@ rule plot_map_stat:
 
 rule plot_pbc_stat:
     input:
-        "analysis/align/pbc.csv"
+        #"analysis/align/pbc.csv"
+        "analysis/frips/pbc.csv"
     output:
         "analysis/align/pbc.png"
     log: _logfile

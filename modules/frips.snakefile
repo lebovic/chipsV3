@@ -59,9 +59,9 @@ rule sample_unique_nonChrM:
     log:_logfile
     output:
         #make temp
-        'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
+        'analysis/align/{sample}/{sample}_unique_nonChrM.sam'
     shell:
-        "samtools view -b -F 4 {input} | sed -e {params.regex} > {output} 2>>{log}"
+        "samtools view -h -F 4 {input} | sed -e {params.regex} > {output} 2>>{log}"
 
 rule sample_4M_from_uniqueNonChrM:
     """Sample 4M reads from uniqueNonChrM reads
@@ -69,7 +69,7 @@ rule sample_4M_from_uniqueNonChrM:
     see '-s 21.5'
     """
     input:
-        'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
+        'analysis/align/{sample}/{sample}_unique_nonChrM.sam'
     params:
         n="4000000"
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads"

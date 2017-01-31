@@ -114,4 +114,5 @@ dependencies:
 - xz=5.2.2=0
 - yaml=0.1.6=0
 - zlib=1.2.8=3
+- samtools
 prefix: /home/lentaing/local/miniconda3/envs/chips
