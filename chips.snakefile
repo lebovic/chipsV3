@@ -39,7 +39,7 @@ addPy2Paths_Config(config)
 #-----------------------------------------
 
 def all_targets(wildcards):
-    _qdnaseq = config["cnv_qdnaseq_analysis"]
+    _qdnaseq = config["cnv_analysis"]
     ls = []
     #IMPORT all of the module targets
     ls.extend(align_targets(wildcards))

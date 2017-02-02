@@ -29,7 +29,7 @@ contamination_panel:
   - /data/static_libraries/bwa_indices/S_cerevisiae/S_cerevisiae.fa
 
 #NOTE: optional CNV analysis using QDNAseq R pkg
-cnv_qdnaseq_analysis: false
+cnv_analysis: false
 
 samples:
   JG1A_ER:
