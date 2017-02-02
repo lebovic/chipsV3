@@ -1,8 +1,5 @@
 #!/usr/bin/env Rscript
 
-#suppressMessages(library(ggplot2))
-#suppressMessages(library(reshape2))
-
 suppressMessages(library(ggplot2))
 suppressMessages(library(reshape2))
 
@@ -44,7 +41,7 @@ map_stats_f <- function(map_stats_in, map_stats_out) {
         labs( title="Read Alignment Report\n\n", x = "", y="") +
         guides(fill=guide_legend(title=NULL)) +
         theme_bw() +
-        theme(axis.text.y = element_text(angle=90, hjust = 1, vjust=0.5, size=10), legend.position="top") +
+        theme(axis.text.y = element_text(angle=0, hjust = 1, vjust=0.5, size=10), legend.position="top") +
         coord_flip()
 
     #dev.off()

@@ -44,7 +44,7 @@ plot_pbc_f <- function(pbc_in, png_out) {
         labs( title="PCR Bottleneck Coefficient\n\n", x = "", y="") +
         guides(fill=guide_legend(title=NULL)) +
         theme_bw() +
-        theme(axis.text.y = element_text(angle=90, hjust = 1, vjust=0.5, size=10), legend.position="top") +
+        theme(axis.text.y = element_text(angle=0, hjust = 1, vjust=0.5, size=10), legend.position="top") +
         coord_flip()
 
     #dev.off()
