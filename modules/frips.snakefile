@@ -16,11 +16,12 @@ def frips_targets(wildcards):
     ls = []
     for sample in config["samples"]:
         ls.append("analysis/align/%s/%s_4M_unique_nonChrM.bam" % (sample,sample))
-        #ls.append("analysis/align/%s/%s_pbc.txt" % (sample,sample))
+        ls.append("analysis/align/%s/%s_nonChrM_stat.txt" % (sample,sample))
     for run in config["runs"].keys():
         ls.append("analysis/peaks/%s/%s_4M_peaks.narrowPeak" % (run,run))
         ls.append("analysis/frips/%s/%s_frip.txt" % (run,run))
     ls.append("analysis/frips/pbc.csv")
+    ls.append("analysis/frips/nonChrM_stats.csv")
     return ls
 
 def getTreats(wildcards):
@@ -151,3 +152,33 @@ rule collect_pbc:
     run:
         files = " -f ".join(input)
         shell("chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")
+
+rule nonChrM_stats:
+    """Get the nonChrM mapping stats for each aligment run"""
+    input:
+        #NOTE: uniq_bam is generated in align_common module-
+        #HACK- taking advantage that this moulde is loaded AFTER align_common
+        uniq_bam="analysis/align/{sample}/{sample}_unique.bam",
+        nonChrM_sam="analysis/align/{sample}/{sample}_unique_nonChrM.sam"
+    output:
+        #temp("analysis/align/{sample}/{sample}_mapping.txt")
+        "analysis/align/{sample}/{sample}_nonChrM_stat.txt"
+    message: "ALIGN: get nonChrM mapping stats for each bam"
+    log: _logfile
+    shell:
+        #FLAGSTATS is the top of the file, and we append the uniquely mapped
+        #reads to the end of the file
+        "samtools view -c {input.uniq_bam} > {output} 2>>{log}"
+        " && samtools view -c {input.nonChrM_sam} >> {output} 2>> {log}"
+
+rule collect_nonChrM_stats:
+    """Aggregate all nonChrM stats for ALL of the samples"""
+    input:
+        expand("analysis/align/{sample}/{sample}_nonChrM_stat.txt", sample=config["samples"])
+    output:
+        "analysis/frips/nonChrM_stats.csv"
+    message: "FRiPs: collect and parse ALL nonChrM stats"
+    log: _logfile
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
