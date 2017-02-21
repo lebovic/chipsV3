@@ -9,6 +9,8 @@ def align_targets(wildcards):
         ls.append("analysis/align/%s/%s.sorted.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.bam" % (sample,sample))
+        ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
+        ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
         ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
     ls.append("analysis/align/mapping.csv")
     return ls
@@ -100,6 +102,30 @@ rule sortUniqueBams:
     threads: _align_threads
     shell:
         "samtools sort {input} -o {output} --threads {threads} 2>>{log}"
+
+rule dedupSortedUniqueBams:
+    """Dedup sorted unique bams using PICARD
+    output {sample}_unique.sorted.dedup.bam"""
+    input:
+        "analysis/align/{sample}/{sample}_unique.sorted.bam"
+    output:
+        "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam"
+    message: "ALIGN: dedup sorted unique bam file"
+    log: _logfile
+    threads: _align_threads
+    shell:
+        "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
+
+rule indexBam:
+    """Index bam file"""
+    input:
+        "analysis/align/{sample}/{prefix}.bam"
+    output:
+        "analysis/align/{sample}/{prefix}.bam.bai"
+    message: "ALIGN: indexing bam file"
+    log: _logfile
+    shell:
+        "samtools index {input} {output}"
 
 rule extractUnmapped:
     """Extract the unmapped reads and save as {sample}.unmapped.bam"""

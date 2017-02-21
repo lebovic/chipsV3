@@ -79,7 +79,7 @@ dependencies:
 - r-cluster=2.0.5=r3.3.1_0
 - r-codetools=0.2_15=r3.3.1_0
 - r-colorspace=1.3_1=r3.3.1_0
-- r-dichromat=2.0_0=1a
+- r-dichromat=2.0_0
 - r-digest=0.6.10=r3.3.1_0
 - r-foreign=0.8_67=r3.3.1_0
 - r-ggplot2=2.2.0=r3.3.1_0
@@ -107,4 +107,5 @@ dependencies:
 - r-stringr=1.1.0=r3.3.1_0
 - r-survival=2.39_4=r3.3.1_0
 - r-tibble=1.2=r3.3.1_0
+- picard=1.141
 prefix: /home/lentaing/local/miniconda3/envs/chips
