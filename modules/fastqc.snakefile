@@ -8,6 +8,8 @@ def fastqc_targets(wildcards):
     ls = []
     for sample in config["samples"]:
         ls.append("analysis/fastqc/%s_perSeqGC.txt" % sample)
+        ls.append("analysis/fastqc/%s_perSeqQual.txt" % sample)
+        ls.append("analysis/fastqc/%s.csv" % sample)
     return ls
 
 def getFastqcInput(wildcards):
@@ -50,6 +52,7 @@ rule sample_fastq:
     input:
         getFastq3
     output:
+        #MAKE temp
         "analysis/align/{sample}/{sample}_100k.fastq"
     params:
         seed=11,
@@ -84,7 +87,11 @@ rule call_fastqc:
         getFastqcInput
     output:
         #"analysis/fastqc/{sample}_100k_fastqc"
-        "analysis/fastqc/{sample}_100k_fastqc/fastqc_data.txt"
+        #MAKE temp
+        "analysis/fastqc/{sample}_100k_fastqc/fastqc_data.txt",
+        #"analysis/fastqc/{sample}_100k_fastqc/
+        temp("analysis/fastqc/{sample}_100k_fastqc.html"),
+        temp("analysis/fastqc/{sample}_100k_fastqc.zip")
     #threads:
     message: "FASTQC: call fastqc"
     log:_logfile
@@ -118,4 +125,16 @@ rule get_PerSequenceGC:
     log:_logfile
     shell:
         "chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
+
+rule extract_FastQCStats:
+    """extract per sequence GC content, and seq qual stats from fastqc run"""
+    input:
+        gc = "analysis/fastqc/{sample}_perSeqGC.txt",
+        qual = "analysis/fastqc/{sample}_perSeqQual.txt"
+    output:
+        "analysis/fastqc/{sample}.csv"
+    message: "FASTQC: extract_FastQCStats"
+    log:_logfile
+    shell:
+        "chips/modules/scripts/fastqc_stats.py -a {input.qual} -b {input.gc} > {output} 2>>{log}"
 
