@@ -39,7 +39,7 @@ def calcMedian(list_o_tuples):
 
 
 def main():
-    usage = "USAGE: %prog -f1 [_perSeqQual.txt] -f2 [_perSeqGC.txt]"
+    usage = "USAGE: %prog -a [_perSeqQual.txt] -b [_perSeqGC.txt]"
     optparser = OptionParser(usage=usage)
     optparser.add_option("-a", "--file1", help="path to _perSeqQual.txt file")
     optparser.add_option("-b", "--file2", help="path to _perSeqGC.txt file")
