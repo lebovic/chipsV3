@@ -9,7 +9,8 @@ def fastqc_targets(wildcards):
     for sample in config["samples"]:
         ls.append("analysis/fastqc/%s_perSeqGC.txt" % sample)
         ls.append("analysis/fastqc/%s_perSeqQual.txt" % sample)
-        ls.append("analysis/fastqc/%s.csv" % sample)
+        ls.append("analysis/fastqc/%s_stats.csv" % sample)
+    ls.append("analysis/fastqc/fastqc.csv")
     return ls
 
 def getFastqcInput(wildcards):
@@ -132,9 +133,20 @@ rule extract_FastQCStats:
         gc = "analysis/fastqc/{sample}_perSeqGC.txt",
         qual = "analysis/fastqc/{sample}_perSeqQual.txt"
     output:
-        "analysis/fastqc/{sample}.csv"
+        "analysis/fastqc/{sample}_stats.csv"
     message: "FASTQC: extract_FastQCStats"
     log:_logfile
     shell:
         "chips/modules/scripts/fastqc_stats.py -a {input.qual} -b {input.gc} > {output} 2>>{log}"
 
+rule collect_fastQCStats:
+    """Collect and parse out the fastqc stats for the ALL of the samples"""
+    input:
+        expand("analysis/fastqc/{sample}_stats.csv", sample=config["samples"])
+    output:
+        "analysis/fastqc/fastqc.csv"
+    message: "FASTQC: collect and parse ALL mapping stats"
+    log: _logfile
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output} 2>>{log}")
