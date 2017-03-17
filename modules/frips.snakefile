@@ -17,11 +17,13 @@ def frips_targets(wildcards):
     for sample in config["samples"]:
         ls.append("analysis/align/%s/%s_4M_unique_nonChrM.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_nonChrM_stat.txt" % (sample,sample))
+        ls.append("analysis/frag/%s/%s_fragModel.R" % (sample,sample))
     for run in config["runs"].keys():
         ls.append("analysis/peaks/%s/%s_4M_peaks.narrowPeak" % (run,run))
         ls.append("analysis/frips/%s/%s_frip.txt" % (run,run))
     ls.append("analysis/frips/pbc.csv")
     ls.append("analysis/frips/nonChrM_stats.csv")
+    ls.append("analysis/frag/fragSizes.csv")
     return ls
 
 def getTreats(wildcards):
@@ -182,3 +184,39 @@ rule collect_nonChrM_stats:
     run:
         files = " -f ".join(input)
         shell("chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
+
+rule generate_FragSizeModel:
+    """Call macs2 predictd to calculate the fragment size model 
+    which will be used to calculate the median fragment sizes for each sample
+    see calculate_FragSizes below.
+
+    NOTE: this should be for treatments only but I'm doing this for controls 
+    too"""
+    input:
+        "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
+    params:
+        #NOTE: this macs2 param can be tricky!
+        genome_size = config['genome_size']
+    message: "FRiPs: run macs2 fragment size estimation (predictd)"
+    log:_logfile
+    output:
+        #make temp
+        "analysis/frag/{samples}/{sample}_fragModel.R"
+    shell:
+        "macs2 predictd -i {input} --rfile {output} -g {params.genome_size} 2>>{log}"
+
+rule calculate_FragSizes:
+    """Given a macs2 predictd fragment size model (or a set of them)
+    calculates the estimated fragment sizes
+    """
+    input:
+        expand("analysis/frag/{sample}/{sample}_fragModel.R", sample=config['samples'])
+    message: "FRiPs: calculate fragment sizes"
+    log:_logfile
+    output:
+        "analysis/frag/fragSizes.csv"
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/frag_estFragSize.py -f {files} > {output} 2>>{log}")
+
+    
