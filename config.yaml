@@ -2,6 +2,10 @@ metasheet: 'metasheet.csv'
 conservation: /data/static_libraries/conservation/hg19/vertebrate
 geneTable: /data/static_libraries/ucsc/hg19.refGene
 DHS: /data/static_libraries/DHS/DHS_hg19.bed
+#NOTE: I can try to use the geneTable for these, but for now, I'll just define
+exons: /data/static_libraries/ceas/hg19/exon.bed
+promoters: /data/static_libraries/ceas/hg19/promoter.bed
+
 velcro_regions: /data/static_libraries/vecro/wgEncodeHg19ConsensusSignalArtifactRegions.bed
 chrom_lens: /data/static_libraries/chromLen/hg19.len
 

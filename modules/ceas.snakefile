@@ -10,6 +10,16 @@ def ceas_targets(wildcards):
         ls.append("analysis/ceas/%s/%s_DHS_stats.txt" % (run,run))
         ls.append("analysis/ceas/%s/%s_velcro_peaks.bed" % (run,run))
         ls.append("analysis/ceas/%s/%s_velcro_stats.txt" % (run,run))
+
+    #ADD bam_regionStats
+    for sample in config["samples"]:
+        if config['exons']:
+            ls.append("analysis/ceas/samples/%s/%s.exons" % (sample,sample))
+        if config['promoters']:
+            ls.append("analysis/ceas/samples/%s/%s.promoters" % (sample,sample))
+        if config['DHS']:
+            ls.append("analysis/ceas/samples/%s/%s.DHS" % (sample,sample))
+    ls.append("analysis/ceas/samples/bamRegionStats.csv")
     return ls
 
 rule ceas_all:
@@ -98,3 +108,31 @@ rule VELCRO_stat:
         'analysis/ceas/{run}/{run}_velcro_stats.txt'
     shell:
         "wc -l {input.n} {input.velcro} > {output} 2>>{log}"
+
+rule bam_regionStat:
+    """count the number of reads in promoter, exon, dhs--these regions
+    are defined in the config.yaml"""
+    input:
+        "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
+    params:
+        bed = lambda wildcards: config[wildcards.region]
+    message: "CEAS: bam stat region"
+    log: _logfile
+    output:
+        #make temp
+        'analysis/ceas/samples/{sample}/{sample}.{region}'
+    shell:
+        "chips/modules/scripts/meta_bamRegionCount.sh -i {input} -b {params.bed} -o {output} 2>> {log}"
+
+rule collect_BamRegionStats:
+    """collect the BAM region stats into a single file"""
+    input:
+        #INPUT the stats directories
+        expand("analysis/ceas/samples/{sample}", sample=config['samples'])
+    message: "CEAS: collect bam region stats"
+    log: _logfile
+    output:
+        'analysis/ceas/samples/bamRegionStats.csv'
+    run:
+        files = " -d ".join(input)
+        shell("chips/modules/scripts/ceas_collectBamRegStats.py -d {files} > {output} 2>>{log}")
