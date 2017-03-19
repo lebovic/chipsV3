@@ -24,6 +24,9 @@ def main():
         #UGH: this script is ugly!!
         #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
         sampleID = f.strip().split("/")[-1].split('.')[0]
+        if sampleID.endswith('_stats'):
+            sampleID = sampleID.replace("_stats","")
+
         f = open(f)
         #first line quality; second GC
         qual = int(f.readline().strip().split(",")[1])

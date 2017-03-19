@@ -24,6 +24,10 @@ def main():
         #UGH: this script is ugly!!
         #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
         sampleID = f.strip().split("/")[-1].split('.')[0]
+        #ALSO remove the suffix '_mapping' from the sampleID name
+        if sampleID.endswith('_mapping'):
+            sampleID = sampleID.replace("_mapping","")
+
         f = open(f)
         total = int(f.readline().strip().split()[0])
         #skip 3 lines

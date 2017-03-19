@@ -77,11 +77,14 @@ def main():
         optparser.print_help()
         sys.exit(-1)
 
-    print(",".join(["Sample","EstFragment","StdDev"]))
+    print(",".join(["Sample","MedianFrag","StdDev"]))
 
     for f in options.files:
         #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
         sampleID = f.strip().split("/")[-1].split('.')[0]
+        if sampleID.endswith('_fragModel'):
+            sampleID = sampleID.replace('_fragModel','')
+
         values = get_size(f)
         (frag, sd) = calcFrag(values)
         frag = "%.2f" % frag
