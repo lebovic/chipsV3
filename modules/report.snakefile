@@ -7,7 +7,7 @@ _ReportTemplate = Template(open("chips/static/chips_report.txt").read())
 
 def report_targets(wildcards):
     """Generates the targets for this module"""
-    ls = ['analysis/report/sampleSummary.csv']
+    ls = ['analysis/report/samplesSummary.csv']
     ls.append('analysis/report/report.html')
     return ls
 
@@ -62,7 +62,7 @@ rule summary_table:
         frag = "analysis/frag/fragSizes.csv",
         bam = "analysis/ceas/samples/bamRegionStats.csv"
     output:
-        "analysis/report/sampleSummary.csv"
+        "analysis/report/samplesSummary.csv"
     log: _logfile
     shell:
         "chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} -r {input.frag} -b {input.bam} > {output} 2>>{log}"
