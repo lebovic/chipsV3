@@ -51,12 +51,12 @@ def all_targets(wildcards):
     ls.extend(motif_targets(wildcards))
     if _qdnaseq:
         ls.extend(qdnaseq_targets(wildcards))
+    ls.extend(report_targets(wildcards))
     return ls
 
 rule target:
     input: 
         all_targets,
-        "report.html",
 
     message: "Compiling all output"
 if config['aligner'] == 'bwa':

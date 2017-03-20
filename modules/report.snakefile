@@ -5,6 +5,16 @@ from snakemake.report import data_uri
 
 _ReportTemplate = Template(open("chips/static/chips_report.txt").read())
 
+def report_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = ['analysis/report/sampleSummary.csv']
+    ls.append('report.html')
+    return ls
+
+rule report_all:
+    input:
+        report_targets
+
 rule report:
     input:
         map_stat="analysis/align/mapping.png",
@@ -43,3 +53,16 @@ rule plot_nonChrM_stats:
     log: _logfile
     shell:
         "Rscript chips/modules/scripts/plot_nonChrM.R {input} {output}"
+
+rule summary_table:
+    input:
+        fastqc = "analysis/fastqc/fastqc.csv",
+        mapping = "analysis/align/mapping.csv",
+        pbc = "analysis/frips/pbc.csv",
+        frag = "analysis/frag/fragSizes.csv",
+        bam = "analysis/ceas/samples/bamRegionStats.csv"
+    output:
+        "analysis/report/sampleSummary.csv"
+    log: _logfile
+    shell:
+        "chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} -r {input.frag} -b {input.bam} > {output} 2>>{log}"
