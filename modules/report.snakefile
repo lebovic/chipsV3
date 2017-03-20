@@ -8,7 +8,7 @@ _ReportTemplate = Template(open("chips/static/chips_report.txt").read())
 def report_targets(wildcards):
     """Generates the targets for this module"""
     ls = ['analysis/report/sampleSummary.csv']
-    ls.append('report.html')
+    ls.append('analysis/report/report.html')
     return ls
 
 rule report_all:
@@ -20,7 +20,7 @@ rule report:
         map_stat="analysis/align/mapping.png",
         pbc_stat="analysis/align/pbc.png",
 	nonChrM_stat="analysis/frips/nonChrM_stats.png"
-    output: html="report.html"
+    output: html="analysis/report/report.html"
     run:
         tmp = _ReportTemplate.substitute(map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat), nonChrM_stat=data_uri(input.nonChrM_stat))
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
