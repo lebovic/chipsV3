@@ -1,7 +1,11 @@
 #REPORT module
+import sys
 from string import Template
 from snakemake.utils import report
 from snakemake.report import data_uri
+
+#DEPENDENCIES
+from tabulate import tabulate
 
 _ReportTemplate = Template(open("chips/static/chips_report.txt").read())
 
@@ -11,6 +15,21 @@ def report_targets(wildcards):
     ls.append('analysis/report/report.html')
     return ls
 
+def csvToSimpleTable(csv_file):
+    """function to translate a .csv file into a reStructuredText simple table
+    ref: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
+    """
+    #read in file
+    f = open(csv_file)
+    stats = [l.strip().split(",") for l in f]
+    f.close()
+
+    hdr = stats[0]
+    rest = stats[1:]
+    #RELY on the tabulate pkg
+    ret = tabulate(rest, hdr, tablefmt="rst")
+    return ret
+
 rule report_all:
     input:
         report_targets
@@ -19,9 +38,11 @@ rule report:
     input:
         map_stat="analysis/align/mapping.png",
         pbc_stat="analysis/align/pbc.png",
-	nonChrM_stat="analysis/frips/nonChrM_stats.png"
+	nonChrM_stat="analysis/frips/nonChrM_stats.png",
+	samples_summary="analysis/report/samplesSummary.csv",
     output: html="analysis/report/report.html"
     run:
+        samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         tmp = _ReportTemplate.substitute(map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat), nonChrM_stat=data_uri(input.nonChrM_stat))
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)

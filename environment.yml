@@ -108,4 +108,5 @@ dependencies:
 - r-survival=2.39_4=r3.3.1_0
 - r-tibble=1.2=r3.3.1_0
 - picard=1.141
+- tabulate
 prefix: /home/lentaing/local/miniconda3/envs/chips

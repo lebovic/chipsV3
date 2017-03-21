@@ -2,6 +2,10 @@
 Chips: ChIP-seq Analysis Pipeline for Snakemake
 ========================================================================
 
+Samples Summary Table
+=====================
+{samplesSummaryTable}
+
 Alignment Summary
 =================
     Something here!
@@ -22,3 +26,4 @@ NonChrM Summary
     Something here!Something here!
 
     .. image:: $nonChrM_stat
+
