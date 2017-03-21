@@ -10,12 +10,15 @@ import os
 import sys
 from optparse import OptionParser
 
-class SampleStats:
-    """A class to store a set of statistics for the summary table
-    NOTE: this information is aggregated over several .csv
+def humanReadable(n):
+    """Given an int, e.g. 52071886 returns a human readable string 5.2M
+    ref: http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
     """
-    def __init__(self, sampleID):
-        self.sampleID = sampleID
+    for unit in ['','K','M','B','T','P','E','Z']:
+        if abs(n) < 1000.0:
+            return "%3.1f%s" % (n, unit)
+        n /= 1000.0
+    return "%.1f%s" % (num, 'Y')
     
 def parseCSV(csv_file):
     """parses a CSV file, using the first line as a header (of column names)
@@ -35,12 +38,16 @@ def parseCSV(csv_file):
     f.close()
     return ret
 
-def addStat(d, csv, fieldToGet, fieldToStore):
+def addStat(d, csv, fieldToGet, fieldToStore, readable=False):
     """ADD fieldToGet (value from csv) to d AS fieldToStore
-    this fn has side-effects"""
+    this fn has side-effects
+    readable = flag to make an number humanReadable (see fn above)
+    """
     for s in list(d.keys()):
         if s in csv:
-            d[s][fieldToStore] = csv[s][fieldToGet]
+            val = humanReadable(int(csv[s][fieldToGet])) if readable \
+                else csv[s][fieldToGet]
+            d[s][fieldToStore] = val
         else:
             d[s][fieldToStore] = "NA"
     
@@ -74,9 +81,9 @@ def main():
 
     #HANDLE mapping.csv
     tmp = parseCSV(options.mapping)
-    addStat(stats, tmp, 'Total', 'TotalReads')
-    addStat(stats, tmp, 'Mapped', 'MappedReads')
-    addStat(stats, tmp, 'UniquelyMapped', 'UniqMappedReads')
+    addStat(stats, tmp, 'Total', 'TotalReads', True)
+    addStat(stats, tmp, 'Mapped', 'MappedReads', True)
+    addStat(stats, tmp, 'UniquelyMapped', 'UniqMappedReads', True)
 
     #HANDLE pbc.csv
     tmp = parseCSV(options.pbc)
@@ -89,6 +96,11 @@ def main():
         #FORMAT: convert to 2-decimal percentage
         stats[s]['PBC'] = "%.2f" % stats[s]['PBC']
 
+    #MAKE UniqLoc4M and UniqLoc1read4M  human readable
+    for s in samples:
+        stats[s]['UniqLoc4M'] = humanReadable(int(stats[s]['UniqLoc4M']))
+        stats[s]['UniqLoc1read4M'] = humanReadable(int(stats[s]['UniqLoc1read4M']))
+    
     #HANDLE fragSizes.csv
     tmp = parseCSV(options.fragSizes)
     addStat(stats, tmp, 'MedianFrag', 'Fragment')
