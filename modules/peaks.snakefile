@@ -26,8 +26,9 @@ def peaks_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for run in config["runs"].keys():
-        ls.append("analysis/peaks/%s/%s_peaks.bed" % (run,run))
-        ls.append("analysis/peaks/%s/%s_sorted_peaks.bed" % (run,run))
+        #ls.append("analysis/peaks/%s/%s_peaks.bed" % (run,run))
+        ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak" % (run,run))
+        ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak.bed" % (run,run))
         ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (run,run))
         ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (run,run))
         ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (run,run))
@@ -65,9 +66,9 @@ rule macs2_callpeaks:
 
 rule peakToBed:
     input:
-        "analysis/peaks/{run}/{run}_peaks.narrowPeak"
+        "analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak"
     output:
-        "analysis/peaks/{run}/{run}_peaks.bed"
+        "analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak.bed"
     message: "PEAKS: Converting peak file to bed file"
     log:_logfile
     shell:
@@ -83,15 +84,15 @@ rule sortSummits:
     shell:
         "sort -r -n -k 5 {input} > {output} 2>>{log}"
 
-rule sortPeaks:
+rule sortNarrowPeaks:
     input:
-        "analysis/peaks/{run}/{run}_peaks.bed"
+        "analysis/peaks/{run}/{run}_peaks.narrowPeak"
     output:
-        "analysis/peaks/{run}/{run}_sorted_peaks.bed"
-    message: "PEAKS: sorting the summits bed by score"
+        "analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak"
+    message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
     log:_logfile
     shell:
-        "sort -r -n -k 5 {input} > {output} 2>>{log}"
+        "sort -r -n -k 9 {input} > {output} 2>>{log}"
 
 rule sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
