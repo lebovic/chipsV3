@@ -24,6 +24,7 @@ def frips_targets(wildcards):
     ls.append("analysis/frips/pbc.csv")
     ls.append("analysis/frips/nonChrM_stats.csv")
     ls.append("analysis/frag/fragSizes.csv")
+    ls.append("analysis/frips/frips.csv")
     return ls
 
 def getTreats(wildcards):
@@ -220,3 +221,14 @@ rule calculate_FragSizes:
         shell("chips/modules/scripts/frag_estFragSize.py -f {files} > {output} 2>>{log}")
 
     
+rule getFripStats:
+    """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
+    input:
+        expand("analysis/frips/{run}/{run}_frip.txt", run=config['runs'])
+    output:
+        "analysis/frips/frips.csv"
+    message: "FRiPs: collecting frips stats for each run"
+    log:_logfile
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/frips_getFrips.py -f {files} -o {output} 2>>{log}")
