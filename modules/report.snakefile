@@ -13,6 +13,8 @@ _logfile = "analysis/logs/report.log"
 def report_targets(wildcards):
     """Generates the targets for this module"""
     ls = ['analysis/report/samplesSummary.csv']
+    ls.append('analysis/report/samplesSummary.csv')
+    ls.append('analysis/report/runsSummary.csv')
     ls.append('analysis/report/report.html')
     return ls
 
@@ -76,7 +78,7 @@ rule plot_nonChrM_stats:
     shell:
         "Rscript chips/modules/scripts/plot_nonChrM.R {input} {output}"
 
-rule summary_table:
+rule samples_summary_table:
     input:
         fastqc = "analysis/fastqc/fastqc.csv",
         mapping = "analysis/align/mapping.csv",
@@ -88,3 +90,13 @@ rule summary_table:
     log: _logfile
     shell:
         "chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} -r {input.frag} -b {input.bam} > {output} 2>>{log}"
+
+rule runs_summary_table:
+    input:
+        peaks = "analysis/peaks/peakStats.csv",
+        frips = "analysis/frips/frips.csv",
+    output:
+        "analysis/report/runsSummary.csv"
+    log: _logfile
+    shell:
+        "chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -o {output} 2>>{log}"
