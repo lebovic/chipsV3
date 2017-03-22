@@ -110,9 +110,24 @@ def main():
     #add as percentage
     for s in samples:
         tot = int(tmp[s]['Total'])
-        dhs = "%.2f" % (float(tmp[s]['DHS']) / tot *100)
-        prom = "%.2f" % (float(tmp[s]['Promoter']) / tot *100)
-        exon = "%.2f" % (float(tmp[s]['Exon']) / tot *100)
+        try:
+            dhs = "%.2f" % (float(tmp[s]['DHS']) / tot *100)
+        except:
+            print("WARNING: get_sampleSummary.py: DHS count failed", file=sys.stderr)
+            dhs = "--"
+        
+        try:
+            prom = "%.2f" % (float(tmp[s]['Promoter']) / tot *100)
+        except:
+            print("WARNING: get_sampleSummary.py: Promoter count failed", file=sys.stderr)
+            prom = "--"
+
+        try:
+            exon = "%.2f" % (float(tmp[s]['Exon']) / tot *100)
+        except:
+            print("WARNING: get_sampleSummary.py: Exon count failed", file=sys.stderr)
+            exon = "--"
+            
         stats[s]['DHS-Promoter-Exon4M'] = "%s/%s/%s" % (dhs, prom, exon)
 
     #print(stats)
