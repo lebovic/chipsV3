@@ -43,9 +43,11 @@ rule report:
         pbc_stat="analysis/align/pbc.png",
 	nonChrM_stat="analysis/frips/nonChrM_stats.png",
 	samples_summary="analysis/report/samplesSummary.csv",
+	runs_summary="analysis/report/runsSummary.csv",
     output: html="analysis/report/report.html"
     run:
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
+        runsSummaryTable = csvToSimpleTable(input.runs_summary)
         tmp = _ReportTemplate.substitute(map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat), nonChrM_stat=data_uri(input.nonChrM_stat))
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)

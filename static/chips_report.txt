@@ -6,6 +6,10 @@ Samples Summary Table
 =====================
 {samplesSummaryTable}
 
+Runs Summary Table
+=====================
+{runsSummaryTable}
+
 Alignment Summary
 =================
     Something here!
