@@ -127,12 +127,19 @@ rule bam_regionStat:
 rule collect_BamRegionStats:
     """collect the BAM region stats into a single file"""
     input:
-        #INPUT the stats directories
-        expand("analysis/ceas/samples/{sample}", sample=config['samples'])
+        #INPUT the stats directories--
+        #hack just add all of the file so we dont get a missing input exception
+        #and collect the directories down below
+        dhs = expand("analysis/ceas/samples/{sample}/{sample}.DHS", sample=config['samples']),
+        prom = expand("analysis/ceas/samples/{sample}/{sample}.promoters", sample=config['samples']),
+        exon = expand("analysis/ceas/samples/{sample}/{sample}.exons", sample=config['samples'])
     message: "CEAS: collect bam region stats"
     log: _logfile
     output:
         'analysis/ceas/samples/bamRegionStats.csv'
     run:
-        files = " -d ".join(input)
-        shell("chips/modules/scripts/ceas_collectBamRegStats.py -d {files} > {output} 2>>{log}")
+        #REMOVE the file to get directories - 
+        #Aribitrarily USE only the exon list
+        dirs = ["/".join(d.split("/")[:-1]) for d in input.exon]
+        d = " -d ".join(dirs)
+        shell("chips/modules/scripts/ceas_collectBamRegStats.py -d {d} > {output} 2>>{log}")
