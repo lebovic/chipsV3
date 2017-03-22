@@ -32,6 +32,7 @@ def peaks_targets(wildcards):
         ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (run,run))
         ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (run,run))
         ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (run,run))
+    ls.append("analysis/peaks/peakStats.csv")
     return ls
 
 rule peaks_all:
@@ -117,3 +118,15 @@ rule bdgToBw:
     log:_logfile
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
+
+rule getPeaksStats:
+    """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
+    input:
+        expand("analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak", run=config['runs'])
+    output:
+        "analysis/peaks/peakStats.csv"
+    message: "PEAKS: collecting peaks stats for each run"
+    log:_logfile
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/peaks_getPeakStats.py -f {files} -o {output} 2>>{log}")
