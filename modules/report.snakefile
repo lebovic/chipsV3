@@ -8,7 +8,7 @@ from snakemake.report import data_uri
 from tabulate import tabulate
 
 _ReportTemplate = Template(open("chips/static/chips_report.txt").read())
-_logfile = "analysis/log/report.log"
+_logfile = "analysis/logs/report.log"
 
 def report_targets(wildcards):
     """Generates the targets for this module"""
