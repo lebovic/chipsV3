@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Script to collect the peak statistics from across all samples. 
+"""Script to collect the peak statistics from across all runs. 
 #Total Peaks, #10FC peaks, #20FC peaks
-Sample,Total,10FC,20FC
+Run,Total,10FC,20FC
 """
 
 import os
@@ -21,13 +21,13 @@ def main():
         sys.exit(-1)
 
     out = open(options.output,"w")
-    out.write("%s\n" % ",".join(["Sample","Total","10FC","20FC"]))
+    out.write("%s\n" % ",".join(["Run","Total","10FC","20FC"]))
 
     for f in options.files:
-        #TRY to infer the SAMPLE NAMES
-        sampleID = f.strip().split("/")[-1].split('.')[0]
-        if sampleID.endswith('_sorted_peaks'):
-            sampleID = sampleID.replace("_sorted_peaks","")
+        #TRY to infer the RUN NAMES
+        runID = f.strip().split("/")[-1].split('.')[0]
+        if runID.endswith('_sorted_peaks'):
+            runID = runID.replace("_sorted_peaks","")
 
         f = open(f)
         #start the counts
@@ -42,7 +42,7 @@ def main():
                 fc_10 += 1
             tot += 1
 
-        out.write("%s\n" % ",".join([sampleID,str(tot),str(fc_10),str(fc_20)]))
+        out.write("%s\n" % ",".join([runID,str(tot),str(fc_10),str(fc_20)]))
         f.close()
 
 if __name__=='__main__':
