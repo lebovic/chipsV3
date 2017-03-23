@@ -97,8 +97,9 @@ rule runs_summary_table:
     input:
         peaks = "analysis/peaks/peakStats.csv",
         frips = "analysis/frips/frips.csv",
+        dhs = "analysis/ceas/dhs.csv",
     output:
         "analysis/report/runsSummary.csv"
     log: _logfile
     shell:
-        "chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -o {output} 2>>{log}"
+        "chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -o {output} 2>>{log}"

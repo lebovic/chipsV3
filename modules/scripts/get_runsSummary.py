@@ -54,6 +54,7 @@ def main():
     optparser = OptionParser(usage=usage)
     optparser.add_option("-p", "--peaks", help="peakStats.csv file")
     optparser.add_option("-f", "--frips", help="frips.csv file")
+    optparser.add_option("-d", "--dhs", help="dhs.csv file")
     optparser.add_option("-o", "--output", help="output file")
 
     (options, args) = optparser.parse_args(sys.argv)
@@ -78,8 +79,14 @@ def main():
     addStat(stats, tmp, 'FRiP', 'FRiP')
     #addStat(stats, tmp, 'Mapped', 'MappedReads', True)
 
+    #HANDLE DHS
+    tmp = parseCSV(options.dhs)
+    for r in runs:
+        ratio = float(tmp[r]['DHS'])/int(tmp[r]['Total'])
+        stats[r]['DHS_peaks'] = "%s (%.2f%%)" % (tmp[r]['DHS'], ratio*100)
+
     #OUTPUT- fields defines the column order
-    fields = ['TotalReads', 'FC>10', 'FC>20', 'FRiP']
+    fields = ['TotalReads', 'FC>10', 'FC>20', 'FRiP','DHS_peaks']
     out = open(options.output,"w")
     out.write("%s\n" % ",".join(['Run'] + fields))
 
