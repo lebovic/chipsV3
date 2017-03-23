@@ -29,6 +29,7 @@ def contamination_targets(wildcards):
             ls.append("analysis/contam/%s/%s.%s.bam" % (sample, sample, panel))
             ls.append("analysis/contam/%s/%s.%s.txt" % (sample, sample, panel))
             ls.append("analysis/contam/%s/%s_contamination.txt" % (sample, sample))
+    ls.append("analysis/contam/contamination.csv")
     return ls
 
 def get100k_sample(wildcards):
@@ -117,3 +118,15 @@ rule contaminationCollectStats:
     run:
         for (n, f) in zip(_contaminationNames, input):
             shell("per=$(cat {f}) && echo {n} $per >> {output}")
+
+rule collect_allContamination:
+    """Aggregate all of the contamination stats into one large table/panel"""
+    input:
+        expand("analysis/contam/{sample}/{sample}_contamination.txt", sample=config['samples'])
+    message: "Contamination: collecting contamination panel"
+    log: _logfile
+    output:
+        "analysis/contam/contamination.csv"
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")
