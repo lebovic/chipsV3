@@ -55,6 +55,7 @@ def main():
     optparser.add_option("-p", "--peaks", help="peakStats.csv file")
     optparser.add_option("-f", "--frips", help="frips.csv file")
     optparser.add_option("-d", "--dhs", help="dhs.csv file")
+    optparser.add_option("-m", "--meta", help="meta.csv file")
     optparser.add_option("-o", "--output", help="output file")
 
     (options, args) = optparser.parse_args(sys.argv)
@@ -85,8 +86,19 @@ def main():
         ratio = float(tmp[r]['DHS'])/int(tmp[r]['Total'])
         stats[r]['DHS_peaks'] = "%s (%.2f%%)" % (tmp[r]['DHS'], ratio*100)
 
+    #HANDLE META--only report percentages!
+    metaFld = 'Promoter/Exon/Intron/Intergenic' #save key for consistency
+    tmp = parseCSV(options.meta)
+    for r in runs:
+        tot = int(tmp[r]['Total'])
+        prom = "%.2f%%" % (float(tmp[r]['Promoter'])/tot *100)
+        exon = "%.2f%%" % (float(tmp[r]['Exon'])/tot *100)
+        intr = "%.2f%%" % (float(tmp[r]['Intron'])/tot *100)
+        genic = "%.2f%%" % (float(tmp[r]['Intergenic'])/tot *100)
+        stats[r][metaFld] = "/".join([prom,exon,intr,genic])
+
     #OUTPUT- fields defines the column order
-    fields = ['TotalReads', 'FC>10', 'FC>20', 'FRiP','DHS_peaks']
+    fields = ['TotalReads', 'FC>10', 'FC>20', 'FRiP','DHS_peaks', metaFld]
     out = open(options.output,"w")
     out.write("%s\n" % ",".join(['Run'] + fields))
 
