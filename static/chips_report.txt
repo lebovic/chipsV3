@@ -1,12 +1,14 @@
+.. image:: $cfce_logo
+
 ========================================================================
 Chips: ChIP-seq Analysis Pipeline for Snakemake
 ========================================================================
 
-Samples Summary Table
-=====================
+Sequence Summary Table
+======================
 {samplesSummaryTable}
 
-Runs Summary Table
+Peaks Summary Table
 =====================
 {runsSummaryTable}
 
