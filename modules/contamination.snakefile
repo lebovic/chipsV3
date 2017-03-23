@@ -31,6 +31,21 @@ def contamination_targets(wildcards):
             ls.append("analysis/contam/%s/%s_contamination.txt" % (sample, sample))
     return ls
 
+def get100k_sample(wildcards):
+    """NOTE: there are two different 100k files, either _100k.fastq or
+    _100k.bam.fastq.  The former comes from runs that have fastqs as input,
+    while latter started w/ bams as inputs.  
+
+    This fn distinguishes which. (based on fastqc.snakefile getFastqcInput
+    """
+    s = wildcards.sample
+    first_file = config["samples"][wildcards.sample][0]
+    if first_file.endswith('.bam'):
+        ret = ["analysis/align/%s/%s_100k.bam.fastq" % (s,s)]
+    else:
+        ret = ["analysis/align/%s/%s_100k.fastq" % (s,s)]
+    return ret
+
 rule contamination_all:
     input:
         contamination_targets
@@ -39,8 +54,7 @@ rule contamination:
     """For each sample, run an alignment for each entry in the 
     contaminationPanel and get the mapping rate"""
     input:
-        #from FASTQC: sample_fastq
-        fastq="analysis/align/{sample}/{sample}_100k.fastq",
+        get100k_sample
     output:
         #TEMP file
         "analysis/contam/{sample}/{sample}.{panel}.sai"
@@ -55,13 +69,14 @@ rule contamination:
     message: "CONTAMINATION: checking {params.sample} against {params.panel}"
     log: _logfile
     shell:
-        "bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input.fastq} > {output} 2>>{log}"
+        "bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output} 2>>{log}"
 
 rule contaminationToBam:
     """Convert the sai to bams"""
     input:
         sai="analysis/contam/{sample}/{sample}.{panel}.sai",
-        fastq="analysis/align/{sample}/{sample}_100k.fastq"
+        #fastq="analysis/align/{sample}/{sample}_100k.fastq"
+        fastq=get100k_sample
     output:
         #TEMP file
         "analysis/contam/{sample}/{sample}.{panel}.bam"

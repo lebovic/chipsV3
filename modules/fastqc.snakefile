@@ -64,22 +64,30 @@ rule sample_fastq:
     shell:
         "seqtk sample -s {params.seed} {input} {params.size} > {output} 2>>{log}"
 
-rule makeBamLink:
-    """USED only when the sample-input is a bam file.  Needed so we name
-    the fastqc output files correctly.
-    Creates a link to the input bam, and names it {sample}_100k.bam"""
+rule sample_bam:
+    """USED only when the sample-input is a bam file.  
+    Subsample bam to 100k reads"""
     input:
         getFastqcBam
+    params:
+        n=100000
     output:
         "analysis/align/{sample}/{sample}_100k.bam"
-    message: "FASTQC: linking input bam as 100k bam"
+    message: "FASTQC: sampling 100k reads from bam"
     log:_logfile
     shell:
-        #NEED to make the intermediary file foo to get it to work
-        #DOESN'T work, need abs paths!
-        #"ln -s {input} ./foo.bam && mv ./foo.bam {output}"
-        "ln -s \"$(readlink -f {input})\" {output}"
+        "chips/modules/scripts/sampleBam.sh -i {input} -n {params.n} -o {output}"
 
+rule convertBamToFastq:
+    """USED only when the sample-input is a bam file."""
+    input:
+        "analysis/align/{sample}/{sample}_100k.bam"
+    output:
+        "analysis/align/{sample}/{sample}_100k.bam.fastq"
+    message: "FASTQC: converting 100k.bam to 100k.fastq"
+    log:_logfile
+    shell:
+        "bamToFastq -i {input} -fq {output} 2>> {log}"
     
 rule call_fastqc:
     """CALL FASTQC on each sub-sample"""
