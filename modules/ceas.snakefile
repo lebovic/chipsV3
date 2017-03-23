@@ -30,12 +30,12 @@ rule ceas_all:
 rule ceas:
     """Annotate peak regions"""
     input:
-        "analysis/peaks/{run}/{run}_peaks.bed"
+        "analysis/peaks/{run}/{run}_summits.bed"
     output:
-        promoter="analysis/ceas/{run}/{run}_peaks_promoter.bed",
-        exon="analysis/ceas/{run}/{run}_peaks_exon.bed",
-        intron="analysis/ceas/{run}/{run}_peaks_intron.bed",
-        intergenic="analysis/ceas/{run}/{run}_peaks_intergenic.bed",
+        promoter="analysis/ceas/{run}/{run}_summits_promoter.bed",
+        exon="analysis/ceas/{run}/{run}_summits_exon.bed",
+        intron="analysis/ceas/{run}/{run}_summits_intron.bed",
+        intergenic="analysis/ceas/{run}/{run}_summits_intergenic.bed",
         summary="analysis/ceas/{run}/{run}_summary.txt",
     message: "CEAS: annotating peak regions"
     log: _logfile
@@ -49,7 +49,7 @@ rule ceas:
 rule takeTop5k:
     """Take the top 5000 sites"""
     input:
-        "analysis/peaks/{run}/{run}_sorted_peaks.bed"
+        "analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak.bed"
     params:
         n=5000
     message: "DHS: Take top sites"
