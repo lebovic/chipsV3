@@ -33,6 +33,13 @@ def csvToSimpleTable(csv_file):
     ret = tabulate(rest, hdr, tablefmt="rst")
     return ret
 
+def processRunInfo(run_info_file):
+    """extracts the macs version and the fdr used first and second line"""
+    f = open(run_info_file)
+    ver = f.readline().strip()
+    fdr = f.readline().strip()
+    return (ver,fdr)
+
 rule report_all:
     input:
         report_targets
@@ -40,6 +47,7 @@ rule report_all:
 rule report:
     input:
         cfce_logo="chips/static/CFCE_Logo_Final.jpg",
+        run_info="analysis/peaks/run_info.txt",
         map_stat="analysis/align/mapping.png",
         pbc_stat="analysis/align/pbc.png",
 	#nonChrM_stat="analysis/frips/nonChrM_stats.png", #REMOVED
@@ -48,6 +56,7 @@ rule report:
 	contam_panel="analysis/contam/contamination.csv",
     output: html="analysis/report/report.html"
     run:
+        (macsVersion, fdr) = processRunInfo(input.run_info)
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
         contaminationPanel = csvToSimpleTable(input.contam_panel)

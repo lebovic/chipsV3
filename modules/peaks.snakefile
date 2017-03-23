@@ -33,6 +33,7 @@ def peaks_targets(wildcards):
         ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (run,run))
         ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (run,run))
     ls.append("analysis/peaks/peakStats.csv")
+    ls.append("analysis/peaks/run_info.txt")
     return ls
 
 rule peaks_all:
@@ -130,3 +131,16 @@ rule getPeaksStats:
     run:
         files = " -f ".join(input)
         shell("chips/modules/scripts/peaks_getPeakStats.py -f {files} -o {output} 2>>{log}")
+
+rule macsRunInfo:
+    """Dump the current version of macs and the fdr used into a text file 
+    for the report"""
+    params:
+        fdr = _macs_fdr
+    output:
+        #MAKE temp
+        "analysis/peaks/run_info.txt"
+    message: "PEAKS/REPORT - collection macs version and fdr info"
+    shell:
+        "macs2 --version 2> {output} && echo fdr {params.fdr} >> {output}"
+    

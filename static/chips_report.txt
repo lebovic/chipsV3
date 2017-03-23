@@ -8,8 +8,10 @@ Sequence Summary Table
 ======================
 {samplesSummaryTable}
 
-Peaks Summary Table
-=====================
+Peaks Summary Table 
+===================
+**(called with {macsVersion}, {fdr})**
+
 {runsSummaryTable}
 
 Alignment Summary
