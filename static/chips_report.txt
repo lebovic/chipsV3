@@ -31,3 +31,6 @@ NonChrM Summary
 
     .. image:: $nonChrM_stat
 
+Contamination Panel
+=====================
+{contaminationPanel}
