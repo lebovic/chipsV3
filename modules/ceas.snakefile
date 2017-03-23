@@ -20,6 +20,7 @@ def ceas_targets(wildcards):
         if config['DHS']:
             ls.append("analysis/ceas/samples/%s/%s.DHS" % (sample,sample))
     ls.append("analysis/ceas/samples/bamRegionStats.csv")
+    ls.append("analysis/ceas/dhs.csv")
     return ls
 
 rule ceas_all:
@@ -143,3 +144,15 @@ rule collect_BamRegionStats:
         dirs = ["/".join(d.split("/")[:-1]) for d in input.exon]
         d = " -d ".join(dirs)
         shell("chips/modules/scripts/ceas_collectBamRegStats.py -d {d} > {output} 2>>{log}")
+
+rule collect_DHSstats:
+    """collect the DHS stats into a single file"""
+    input:
+        expand("analysis/ceas/{run}/{run}_DHS_stats.txt", run=config["runs"])
+    message: "CEAS: collect DHS stats"
+    log: _logfile
+    output:
+        'analysis/ceas/dhs.csv'
+    run:
+        files = " -f ".join(input)
+        shell("chips/modules/scripts/peaks_getDHSstats.py -f {files} -o {output} 2>>{log}")
