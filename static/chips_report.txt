@@ -25,14 +25,6 @@ PBC Summary
 =================
     .. image:: $pbc_stat
 
-NonChrM Summary
-=================
-    Plotting the % of uniquely mapped reads that were not mapped to chrM.
-    This is an ATAC-seq check.
-    Something here!Something here!
-
-    .. image:: $nonChrM_stat
-
 Contamination Panel
 =====================
 {contaminationPanel}
