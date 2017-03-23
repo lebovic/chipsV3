@@ -20,13 +20,20 @@ _contaminationNames = list(map(extractIndexName, _contaminationPanel))
 _contaminationDict = dict(zip(_contaminationNames, _contaminationPanel))
 ###############################################################################
 
+def contamination_targets(wildcards):
+    """Generates the targets for this module"""
+    ls = []
+    for sample in config["samples"]:
+        for panel in _contaminationNames:
+            ls.append("analysis/contam/%s/%s.%s.sai" % (sample, sample, panel))
+            ls.append("analysis/contam/%s/%s.%s.bam" % (sample, sample, panel))
+            ls.append("analysis/contam/%s/%s.%s.txt" % (sample, sample, panel))
+            ls.append("analysis/contam/%s/%s_contamination.txt" % (sample, sample))
+    return ls
+
 rule contamination_all:
     input:
-        expand("analysis/contam/{sample}/{sample}.{panel}.sai", sample=config['samples'].keys(), panel=_contaminationNames),
-        expand("analysis/contam/{sample}/{sample}.{panel}.bam", sample=config['samples'].keys(), panel=_contaminationNames),
-        expand("analysis/contam/{sample}/{sample}.{panel}.txt", sample=config['samples'].keys(), panel=_contaminationNames),
-        expand("analysis/contam/{sample}/{sample}_contamination.txt", sample=config['samples'].keys()),
-
+        contamination_targets
 
 rule contamination:
     """For each sample, run an alignment for each entry in the 

@@ -49,6 +49,7 @@ def all_targets(wildcards):
     ls.extend(ceas_targets(wildcards))
     ls.extend(frips_targets(wildcards))
     ls.extend(motif_targets(wildcards))
+    ls.extend(contamination_targets(wildcards))
     if _qdnaseq:
         ls.extend(qdnaseq_targets(wildcards))
     ls.extend(report_targets(wildcards))
