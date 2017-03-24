@@ -97,13 +97,11 @@ rule samples_summary_table:
         fastqc = "analysis/fastqc/fastqc.csv",
         mapping = "analysis/align/mapping.csv",
         pbc = "analysis/frips/pbc.csv",
-        frag = "analysis/frag/fragSizes.csv",
-        bam = "analysis/ceas/samples/bamRegionStats.csv"
     output:
         "analysis/report/samplesSummary.csv"
     log: _logfile
     shell:
-        "chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} -r {input.frag} -b {input.bam} > {output} 2>>{log}"
+        "chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} > {output} 2>>{log}"
 
 rule runs_summary_table:
     input:

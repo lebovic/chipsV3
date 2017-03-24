@@ -1,11 +1,5 @@
 #!/usr/bin/env python
-
-"""Given a model from macs2 predictd, calculates the estimated fragment size
-and the avg_sd
-
-NOTE: these fns are directly translated from 
-chilin2/modules/macs2_fragment/qc.py
-"""
+"""Generates the sampleSummary.csv file"""
 import os
 import sys
 from optparse import OptionParser
@@ -53,17 +47,14 @@ def addStat(d, csv, fieldToGet, fieldToStore, readable=False):
     
 
 def main():
-    usage = "USAGE: %prog -f [fastqc.csv] -m [mapping.csv] -p [pbc.csv] -r [fragSizes.csv] -b [bamRegionStats.csv]"
+    usage = "USAGE: %prog -f [fastqc.csv] -m [mapping.csv] -p [pbc.csv]"
     optparser = OptionParser(usage=usage)
     optparser.add_option("-f", "--fastqc", help="fastqc.csv file")
     optparser.add_option("-m", "--mapping", help="mapping.csv file")
     optparser.add_option("-p", "--pbc", help="pbc.csv file")
-    optparser.add_option("-r", "--fragSizes", help="fragSizes.csv file")
-    optparser.add_option("-b", "--bamRegionStats", help="bamRegionStats.csv file")
     (options, args) = optparser.parse_args(sys.argv)
 
-    if (not options.fastqc or not options.mapping or not options.pbc \
-            or not options.fragSizes or not options.bamRegionStats):
+    if (not options.fastqc or not options.mapping or not options.pbc):
         optparser.print_help()
         sys.exit(-1)
 
@@ -100,41 +91,12 @@ def main():
     for s in samples:
         stats[s]['UniqLoc4M'] = humanReadable(int(stats[s]['UniqLoc4M']))
         stats[s]['UniqLoc1read4M'] = humanReadable(int(stats[s]['UniqLoc1read4M']))
-    
-    #HANDLE fragSizes.csv
-    tmp = parseCSV(options.fragSizes)
-    addStat(stats, tmp, 'MedianFrag', 'Fragment')
-
-    #handle bamRegionStats.csv
-    tmp = parseCSV(options.bamRegionStats)
-    #add as percentage
-    for s in samples:
-        tot = int(tmp[s]['Total'])
-        try:
-            dhs = "%.2f" % (float(tmp[s]['DHS']) / tot *100)
-        except:
-            print("WARNING: get_sampleSummary.py: DHS count failed", file=sys.stderr)
-            dhs = "--"
-        
-        try:
-            prom = "%.2f" % (float(tmp[s]['Promoter']) / tot *100)
-        except:
-            print("WARNING: get_sampleSummary.py: Promoter count failed", file=sys.stderr)
-            prom = "--"
-
-        try:
-            exon = "%.2f" % (float(tmp[s]['Exon']) / tot *100)
-        except:
-            print("WARNING: get_sampleSummary.py: Exon count failed", file=sys.stderr)
-            exon = "--"
-            
-        stats[s]['DHS-Promoter-Exon4M'] = "%s/%s/%s" % (dhs, prom, exon)
 
     #print(stats)
 
     #OUTPUT- fields defines the column order
     fields = ['FastQC', 'TotalReads', 'MappedReads', 'UniqMappedReads',
-              'UniqLoc4M', 'UniqLoc1read4M', 'PBC', 'DHS-Promoter-Exon4M']
+              'UniqLoc4M', 'UniqLoc1read4M', 'PBC']
     print(",".join(['Sample'] + fields))
 
     for s in samples:
