@@ -12,6 +12,7 @@ def align_targets(wildcards):
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
         ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
+        ls.append("analysis/align/%s/%s_readsPerChrom.txt" % (sample,sample))
     ls.append("analysis/align/mapping.csv")
     return ls
 
@@ -172,3 +173,21 @@ rule gzipUnmappedFq:
     log: _logfile
     shell:
         "gzip {input} {params} 2>>{log}"
+
+rule readsPerChromStat:
+    """For each sample, generates a _readsPerChrom.txt file, which is:
+    chr1   #readsOnChr1
+    ...
+    chrX   #readsOnChrX
+    """
+    input:
+        "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam"
+    params:
+        awk_call = """awk '{print $1 \"\\t\" $3; s+=$3} END {print \"total reads = \" s}'"""
+    output:
+        "analysis/align/{sample}/{sample}_readsPerChrom.txt"
+    message: "ALIGN: collecting the number of reads per chrom"
+    log: _logfile
+    shell:
+        "samtools idxstats {input} | {params.awk_call} > {output} 2>> {log}"
+    
