@@ -33,7 +33,7 @@ def main():
         f = open(f)
         readsInPeaks = int(f.readline().strip().split("\t")[1])
         totalPeaks = int(f.readline().strip().split("\t")[1])
-        frip = "%.2f" % (float(readsInPeaks)/totalPeaks *100.0)
+        frip = "%.1f" % (float(readsInPeaks)/totalPeaks *100.0)
 
         out.write("%s\n" % ",".join([runID,str(totalPeaks),str(readsInPeaks),str(frip)]))
         f.close()
