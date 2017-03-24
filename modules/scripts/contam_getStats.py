@@ -37,11 +37,12 @@ def main():
         contam[sampleID] = { species : val for (species,val) in tmp}
 
     #OUTPUT
+    samples = sorted(samples)
     assemblies = sorted(list(contam[samples[0]].keys()))
 
     out = open(options.output,"w")
     out.write("%s\n" % ",".join(["Sample"] + assemblies))
-    for s in contam:
+    for s in samples:
         vals = [contam[s][a] for a in assemblies]
         out.write("%s\n" % ",".join([s] + vals))
 
