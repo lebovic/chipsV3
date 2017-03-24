@@ -65,7 +65,7 @@ def main():
         sys.exit(-1)
 
     tmp = parseCSV(options.peaks)
-    runs = list(tmp.keys())
+    runs = sorted(list(tmp.keys()))
 
     #initialize stats table--set keys to samples
     stats = {runID:{} for runID in runs}
