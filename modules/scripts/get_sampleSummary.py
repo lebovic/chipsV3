@@ -62,7 +62,7 @@ def main():
 
     #handle fastqc - get MedianQuality, store as FastQC
     tmp = parseCSV(options.fastqc)
-    samples = list(tmp.keys())
+    samples = sorted(list(tmp.keys()))
 
     #initialize stats table--set keys to samples
     stats = {sampleID:{} for sampleID in samples}
