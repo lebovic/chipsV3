@@ -57,7 +57,7 @@ rule report:
 	contam_panel="analysis/contam/contamination.csv",
     output: html="analysis/report/report.html"
     run:
-        conservPlots = ".. image:: ".join(["%s\n" % data_uri(img) for img in input.conservPlots])
+        conservPlots = "    .. image:: ".join(["%s\n" % data_uri(img) for img in input.conservPlots])
         #NOTE: originally handled the directive here, but after some thought
         #I moved it to chips_report for a cleaner call...may change
         #conservPlots = ".. image:: %s" % conservPlots
