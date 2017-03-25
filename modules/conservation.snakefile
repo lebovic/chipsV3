@@ -1,5 +1,12 @@
 #MODULE: conservation- module to create conservation plots
+import math
+
 _logfile="analysis/logs/conservation.log"
+#_numPngs is used in conservation_plot rule to see how many pngs to expect
+#note: the rule plots 3 runs per png, so for example, 12 runs results in 4 pngs
+_nPerPlot = 3
+_numPngs = math.ceil(len(config['runs'].keys())/float(_nPerPlot))
+_nPngs = [n+1 for n in range(_numPngs)]
 
 def conservation_targets(wildcards):
     """Generates the targets for this module"""
@@ -8,7 +15,10 @@ def conservation_targets(wildcards):
         ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (run,run))
         ls.append("analysis/conserv/%s/%s_conserv.R" % (run,run))
         ls.append("analysis/conserv/%s/%s_conserv.pdf" % (run,run))
-    ls.append("analysis/conserv/conservationPlot.png")
+
+    #add conservation plots
+    for n in _nPngs:
+        ls.append("analysis/conserv/img/conservationPlot%s.png" % n)
     return ls
 
 rule conservation_all:
@@ -52,14 +62,15 @@ rule conservation_plot:
     input:
         expand("analysis/conserv/{run}/{run}_conserv.R", run=config['runs'])
     output:
-        png="analysis/conserv/conservationPlot.png",
+        expand("analysis/conserv/img/conservationPlot{n}.png", n=_nPngs)
     params:
-        rout = "analysis/conserv/conservationPlot.R",
+        img_path = "analysis/conserv/img",
+        rout = "analysis/conserv/img/conservationPlot.R",
         template = "chips/static/conserv_plotConserv.R.txt"
     message: "CONSERVATION: generating OVERALL conservation plot"
     log: _logfile
     run:
         files = " -r ".join(input)
         #Generate and execute analysis/conserv/conservationPlot.R
-        shell("chips/modules/scripts/conserv_plotConserv.py -r {files} -t {params.template} -p {output.png} -o {params.rout} && Rscript {params.rout} 2>>{log}")
+        shell("chips/modules/scripts/conserv_plotConserv.py -r {files} -t {params.template} -p {params.img_path} -o {params.rout} && Rscript {params.rout} 2>>{log}")
 

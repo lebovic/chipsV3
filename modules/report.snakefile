@@ -1,4 +1,4 @@
-#REPORT module
+#REPORT module - must come last in includes!
 import sys
 from string import Template
 from snakemake.utils import report
@@ -50,18 +50,23 @@ rule report:
         run_info="analysis/peaks/run_info.txt",
         map_stat="analysis/align/mapping.png",
         pbc_stat="analysis/align/pbc.png",
-        conservPlot="analysis/conserv/conservationPlot.png",
+        conservPlots=expand("analysis/conserv/img/conservationPlot{n}.png", n=_nPngs),
 	#nonChrM_stat="analysis/frips/nonChrM_stats.png", #REMOVED
 	samples_summary="analysis/report/samplesSummary.csv",
 	runs_summary="analysis/report/runsSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",
     output: html="analysis/report/report.html"
     run:
+        conservPlots = ".. image:: ".join(["%s\n" % data_uri(img) for img in input.conservPlots])
+        #NOTE: originally handled the directive here, but after some thought
+        #I moved it to chips_report for a cleaner call...may change
+        #conservPlots = ".. image:: %s" % conservPlots
+
         (macsVersion, fdr) = processRunInfo(input.run_info)
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
         contaminationPanel = csvToSimpleTable(input.contam_panel)
-        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),conservPlot=data_uri(input.conservPlot))
+        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),conservPlots=conservPlots)
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)
 

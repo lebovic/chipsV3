@@ -16,7 +16,7 @@ Peaks Summary Table
 
 Conservation Plots 
 ==================
-    .. image:: $conservPlot
+    .. image:: $conservPlots
 
 Alignment Summary
 =================

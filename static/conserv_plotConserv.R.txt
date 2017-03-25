@@ -3,16 +3,12 @@
 
 $data
 data_matrix <- matrix($runNames, byrow=T, ncol=99)
-rowLabel <- c($rowLabel)
 
-png("$pngout", width = 8, height = 8, unit="in",res=300)
-icolor = colorRampPalette(c("#7fc97f","#beaed4","#fdc086","#ffff99","#386cb0","#f0027f"))(10)
-layout(matrix(c(1,1,1,2,1,1,1,2,1,1,1,2), 4, 4, byrow = TRUE))
+png("$pngout/conservationPlot%d.png", width = 8, height = 8, unit="in",res=300)
+#color map taken from viper
+icolor = c("#3182bd", "#e6550d", "#31a354", "#756bb1", "#636363", "#BD4931", "#74c476", "#6baed6", "#fd8d3c", "#9e9ac8", "#969696", "#D67D6B", "#9ecae1", "#fdae6b", "#bcbddc", "#bdbdbd", "#E0A89D", "#c6dbef", "#fdd0a2", "#c7e9c0", "#d9d9d9", "#F0CEC7","#006400", "#FFD700","#1874CD","#575757","#FF3030", "#a1d99b","#3182bd", "#e6550d", "#31a354", "#756bb1", "#636363", "#BD4931", "#6baed6", "#fd8d3c", "#74c476", "#9e9ac8", "#969696", "#D67D6B", "#9ecae1", "#fdae6b", "#a1d99b", "#bcbddc", "#bdbdbd", "#E0A89D", "#c6dbef", "#fdd0a2", "#c7e9c0", "#dadaeb", "#d9d9d9", "#F0CEC7","#006400", "#FFD700","#1874CD","#575757","#FF3030")
+
 #x=1:99
 x<-$xvals
-plot(x,$firstElm,type='l',xlab="Conservation at Summits", ylab="Avg. Phastcons",lwd=0.8,col=icolor[1])
-$rest
-par(mar=c(1,0,2,1))
-plot.new()
-legend(0,1,fill=icolor[1:10],legend=c($rowLabel))
+$plots
 junk <- dev.off()
