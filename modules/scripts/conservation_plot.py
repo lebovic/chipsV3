@@ -414,8 +414,8 @@ def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
     #rscript += 'legend("topright",c(%s),col=rainbow(%d),lty=c(%s))\n' % (','.join(legend_list),len(avgValues),','.join(['1']*len(avgValues)))
     rscript += 'dev.off()\n'
 
-    #LEN: adding the thumbnail - fixed at 125x125
-    _wh = 125
+    #LEN: adding the thumbnail - fixed at 85x85
+    _wh = 85
     thumbname = "%s_thumb.png" % fileName
     rscript += "png(\"%s\",height=%d,width=%d, unit='px')\n" %(thumbname,_wh,_wh)
     rscript += "par(mar=c(0,0,0,0))\n"
