@@ -248,8 +248,8 @@ def main():
     description = "Draw conservation plot for many bed files."
 
     optparser = OptionParser(version="%prog 0.1",description=description,usage=usage,add_help_option=False)
-    optparser.add_option('-H','--height', dest='height',type='int',default=10, help="height of plot")
-    optparser.add_option('-W','--width',dest='width',type='int',default=10, help="width of plot")
+    optparser.add_option('-H','--height', dest='height',type='int',default=10, help="height of plot (in inches)")
+    optparser.add_option('-W','--width',dest='width',type='int',default=10, help="width of plot (in inches)")
     optparser.add_option('-w',dest='w',type='int',default=1000, help="window width centered at middle of bed regions,default: 1000")
     optparser.add_option('-t','--title',dest='title',help="title of the figure. Default: 'Average Phastcons around the Center of Sites'",default= 'Average Phastcons around the Center of Sites')
     optparser.add_option('-d','--phasdb',dest='phasdb',help= 'The directory to store phastcons scores in the server')
@@ -386,10 +386,9 @@ def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
     ## outimg should be id/prefix, that is, conf.prefix
     fileName = os.path.join(wd, outimg)
     rFile = open(fileName+'.R','w')
-    bmpname = fileName+'.pdf'
+    bmpname = fileName+'.png'
     rscript = 'sink(file=file("/dev/null", "w"), type="message")\n'
     rscript += 'sink(file=file("/dev/null", "w"), type="output")\n'
-    rscript += 'pdf("%s",height=%d,width=%d)\n' %(bmpname,h,w)
     xInfo = range(int(-width/2),int(width/2), pf_res)
     rscript += 'x<-c('+','.join(map(str,xInfo[:-1]))+')\n' # throw the last point which may be buggy
     for i in range(len(avgValues)):
@@ -404,15 +403,25 @@ def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
     rscript += "ymax <- max("+ ",".join(tmplist) +")\n"
     rscript += "ymin <- min("+ ",".join(tmplist) +")\n"
     rscript += "yquart <- (ymax-ymin)/4\n"
-
+    #LEN: change output to png
+    rscript += "png(\"%s\",height=%d,width=%d, unit='in', res=300)\n" %(bmpname,h,w)
     rscript += 'plot(x,y0,type="l",col=rainbow(%d)[1],main=\"%s\",xlab="Distance from the Center (bp)",ylab="Average Phastcons",ylim=c(ymin-yquart,ymax+yquart))\n' % (len(avgValues),title)
     for i in range(1,len(avgValues)):
         rscript += 'lines(x,y'+str(i)+',col=rainbow(%d)[%d])\n' % (len(avgValues),i+1)
     rscript += 'abline(v=0)\n'
-    legend_list = map(lambda x:"'"+x+"'", bedlabel)
-    rscript += 'legend("topright",c(%s),col=rainbow(%d),lty=c(%s))\n' % (','.join(legend_list),len(avgValues),','.join(['1']*len(avgValues)))
-
+    #LEN: removing the legend
+    #legend_list = map(lambda x:"'"+x+"'", bedlabel)
+    #rscript += 'legend("topright",c(%s),col=rainbow(%d),lty=c(%s))\n' % (','.join(legend_list),len(avgValues),','.join(['1']*len(avgValues)))
     rscript += 'dev.off()\n'
+
+    #LEN: adding the thumbnail - fixed at 125x125
+    _wh = 125
+    thumbname = "%s_thumb.png" % fileName
+    rscript += "png(\"%s\",height=%d,width=%d, unit='px')\n" %(thumbname,_wh,_wh)
+    rscript += "par(mar=c(0,0,0,0))\n"
+    rscript += "plot(x,y0,type='l',col=rainbow(1)[1],bty='n', lwd=5, xaxs='i', yaxs='i', ann=FALSE, xaxt='n', yaxt='n', bty='n')\n"
+    rscript += 'dev.off()\n'
+
     rFile.write(rscript)
     rFile.close()
     #executing the R file and forming the pdf file

@@ -14,11 +14,9 @@ def conservation_targets(wildcards):
     for run in config["runs"].keys():
         ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (run,run))
         ls.append("analysis/conserv/%s/%s_conserv.R" % (run,run))
-        ls.append("analysis/conserv/%s/%s_conserv.pdf" % (run,run))
+        ls.append("analysis/conserv/%s/%s_conserv.png" % (run,run))
+        ls.append("analysis/conserv/%s/%s_conserv_thumb.png" % (run,run))
 
-    #add conservation plots
-    for n in _nPngs:
-        ls.append("analysis/conserv/img/conservationPlot%s.png" % n)
     return ls
 
 rule conservation_all:
@@ -43,7 +41,8 @@ rule conservation:
     input:
         "analysis/peaks/{run}/{run}_sorted_summits.bed"
     output:
-        pdf="analysis/conserv/{run}/{run}_conserv.pdf",
+        png="analysis/conserv/{run}/{run}_conserv.png",
+        thumb="analysis/conserv/{run}/{run}_conserv_thumb.png",
         r="analysis/conserv/{run}/{run}_conserv.R",
         score="analysis/conserv/{run}/{run}_conserv.txt",
     params:
@@ -56,21 +55,4 @@ rule conservation:
     log: _logfile
     shell:
         "{params.pypath} {config[python2]} chips/modules/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
-
-rule conservation_plot:
-    """generate (overall) conservation plot for ALL runs"""
-    input:
-        expand("analysis/conserv/{run}/{run}_conserv.R", run=config['runs'])
-    output:
-        expand("analysis/conserv/img/conservationPlot{n}.png", n=_nPngs)
-    params:
-        img_path = "analysis/conserv/img",
-        rout = "analysis/conserv/img/conservationPlot.R",
-        template = "chips/static/conserv_plotConserv.R.txt"
-    message: "CONSERVATION: generating OVERALL conservation plot"
-    log: _logfile
-    run:
-        files = " -r ".join(input)
-        #Generate and execute analysis/conserv/conservationPlot.R
-        shell("chips/modules/scripts/conserv_plotConserv.py -r {files} -t {params.template} -p {params.img_path} -o {params.rout} && Rscript {params.rout} 2>>{log}")
 
