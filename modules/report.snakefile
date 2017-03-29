@@ -40,6 +40,19 @@ def processRunInfo(run_info_file):
     fdr = f.readline().strip()
     return (ver,fdr)
 
+#NOTE: the name of this fn will change!!
+def generateConservTable(conservPlots):
+    """generates rst formatted table that will contain the conservation plot
+    and motif analysis for ALL runs
+    hdr = array of header/column elms
+    """
+    runs = sorted(list(config["runs"].keys()))
+    #HEADER
+    hdr = ["Run", "Conservation"] #more will be added
+    rest = [[r, ".. image:: %s" % data_uri(img)] for r,img in zip(runs,conservPlots)]
+    ret = tabulate(rest, hdr, tablefmt="rst")
+    return ret
+
 rule report_all:
     input:
         report_targets
@@ -50,23 +63,19 @@ rule report:
         run_info="analysis/peaks/run_info.txt",
         map_stat="analysis/align/mapping.png",
         pbc_stat="analysis/align/pbc.png",
-        conservPlots=expand("analysis/conserv/img/conservationPlot{n}.png", n=_nPngs),
+        conservPlots=expand("analysis/conserv/{run}/{run}_conserv_thumb.png", run=sorted(list(config['runs'].keys()))),
 	#nonChrM_stat="analysis/frips/nonChrM_stats.png", #REMOVED
 	samples_summary="analysis/report/samplesSummary.csv",
 	runs_summary="analysis/report/runsSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",
     output: html="analysis/report/report.html"
     run:
-        conservPlots = "    .. image:: ".join(["%s\n" % data_uri(img) for img in input.conservPlots])
-        #NOTE: originally handled the directive here, but after some thought
-        #I moved it to chips_report for a cleaner call...may change
-        #conservPlots = ".. image:: %s" % conservPlots
-
         (macsVersion, fdr) = processRunInfo(input.run_info)
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
+        conservTable = generateConservTable(input.conservPlots)
         contaminationPanel = csvToSimpleTable(input.contam_panel)
-        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),conservPlots=conservPlots)
+        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),conservTable=conservTable)
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)
 
