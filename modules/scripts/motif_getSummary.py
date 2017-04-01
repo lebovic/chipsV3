@@ -19,17 +19,21 @@ def parseMDseqPos(motifList):
     Actually return just the top z-score
     """
     #KEY in on this string 'var motifList_json = [{...}]
-    
     f = open(motifList)
     #rebuild the motif list
     ret = [json.loads(l.strip()) for l in f]
     f.close()
 
-    #extract just index and zscore so we can return the top hit
-    tmp = sorted([(i,motif["seqpos_results"]["zscore"]) for (i,motif) in enumerate(ret)], key=lambda x: x[1])
-    topHit = ret[tmp[0][0]] #use the index found
-    #print(topHit)
-    return topHit
+    #check for no motifs
+    if ret:
+        #extract just index and zscore so we can return the top hit
+        tmp = sorted([(i,motif["seqpos_results"]["zscore"]) for (i,motif) in enumerate(ret)], key=lambda x: x[1])
+        topHit = ret[tmp[0][0]] #use the index found
+        #print(topHit)
+        return topHit
+    else:
+        #NO MOTIFS found
+        return {}
 
 def main():
     usage = "USAGE: %prog -m [motif_list.json file 1] -m [motif_list.json file 2] ...  -m [motif_list.json file N] -o [output csv file]"
@@ -59,11 +63,17 @@ def main():
     f = open(options.output, "w")
     f.write("Runs,MotifID,MotifName,Logo,Zscore\n")
     for (i, r) in enumerate(runs):
-        iid = data[r]['id']
-        name = data[r]['factors'][0] if data[r]['factors'] else 'NA'
-        #HACK the logo path--found in the results/seqLogo/{id}.png
-        logo = os.path.join(results_dir[i], "seqLogo", "%s.png" % iid)
-        zscore = "%.2f" % float(data[r]['seqpos_results']['zscore'])
+        
+        if data[r]:
+            iid = data[r]['id']
+            name = data[r]['factors'][0] if data[r]['factors'] else 'NA'
+            #HACK the logo path--found in the results/seqLogo/{id}.png
+            logo = os.path.join(results_dir[i], "seqLogo", "%s.png" % iid)
+            zscore = "%.2f" % float(data[r]['seqpos_results']['zscore'])
+        else:
+            #NO motifs found
+            iid = name = logo = zscore = 'NA'
+
         tmp = ",".join([r,iid,name,logo,zscore])
         f.write("%s\n" % tmp)
     f.close()

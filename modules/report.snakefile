@@ -50,8 +50,21 @@ def genPeakSummitsTable(conservPlots,motifSummary):
     motifs = parseMotifSummary(motifSummary)
     #HEADER
     hdr = ["Run", "Conservation","MotifID","MotifName","Logo","Zscore"]
+    #BUILD up the rest of the table
+    rest = []
+    for r,img in zip(runs,conservPlots):
+        #HANDLE null values
+        if img and (img != 'NA'):
+            conserv = ".. image:: %s" % data_uri(img)
+        else:
+            conserv = "NA"
+        #HANDLE null values
+        if motifs[r]['logo'] and (motifs[r]['logo'] != 'NA'):
+            motif_logo = ".. image:: %s" % data_uri(motifs[r]['logo'])
+        else:
+            motif_logo = "NA"
 
-    rest = [[r, ".. image:: %s" % data_uri(img), motifs[r]['motifId'], motifs[r]['motifName'], ".. image:: %s" % data_uri(motifs[r]['logo']), motifs[r]['zscore']] for r,img in zip(runs,conservPlots)]
+        rest.append([r, conserv, motifs[r]['motifId'], motifs[r]['motifName'], motif_logo,  motifs[r]['zscore']])
     ret = tabulate(rest, hdr, tablefmt="rst")
     return ret
 
