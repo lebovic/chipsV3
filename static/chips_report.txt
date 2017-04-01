@@ -4,20 +4,6 @@
 Chips: ChIP-seq Analysis Pipeline for Snakemake
 ========================================================================
 
-Sequence Summary Table
-======================
-{samplesSummaryTable}
-
-Peaks Summary Table 
-===================
-**(called with {macsVersion}, {fdr})**
-
-{runsSummaryTable}
-
-Peak Summits Characterization Table 
-===================================
-$peakSummitsTable
-
 Alignment Summary
 =================
     Something here!
@@ -30,6 +16,26 @@ Alignment Summary
 PBC Summary
 =================
     .. image:: $pbc_stat
+
+Peak FoldChange
+===============
+    TODO!
+    Something here!
+    Something here!
+
+Peak Summits Characterization Table 
+===================================
+$peakSummitsTable
+
+Sequence Summary Table
+======================
+{samplesSummaryTable}
+
+Peaks Summary Table 
+===================
+**(called with {macsVersion}, {fdr})**
+
+{runsSummaryTable}
 
 Contamination Panel
 =====================
