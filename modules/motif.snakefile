@@ -8,6 +8,7 @@ def motif_targets(wildcards):
     for run in config["runs"].keys():
         ls.append("analysis/motif/%s/results/mdseqpos_index.html" % run)
         ls.append("analysis/motif/%s/results/motif_list.json" % run)
+    ls.append("analysis/motif/motifSummary.csv")
     return ls
 
 rule motif_all:
@@ -31,3 +32,15 @@ rule motif:
     log: _logfile
     shell:
         "{params.pypath} {config[mdseqpos_path]} {input} {params.path} -m cistrome.xml -d -O analysis/motif/{params.run}/results 1>>{log}"
+
+rule getMotifSummary:
+    """Summarize the top hits for each run into a file"""
+    input:
+        expand("analysis/motif/{run}/results/motif_list.json", run=config['runs'])
+    output:
+        "analysis/motif/motifSummary.csv"
+    message: "MOTIF: summarizing motif runs"
+    log: _logfile
+    run:
+        files = " -m ".join(input)
+        shell("chips/modules/scripts/motif_getSummary.py -m {files} -o {output} 2>> {log}")

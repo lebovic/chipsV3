@@ -40,17 +40,33 @@ def processRunInfo(run_info_file):
     fdr = f.readline().strip()
     return (ver,fdr)
 
-#NOTE: the name of this fn will change!!
-def generateConservTable(conservPlots):
+def genPeakSummitsTable(conservPlots,motifSummary):
     """generates rst formatted table that will contain the conservation plot
     and motif analysis for ALL runs
     hdr = array of header/column elms
     """
     runs = sorted(list(config["runs"].keys()))
+    #parse MotifSummary
+    motifs = parseMotifSummary(motifSummary)
     #HEADER
-    hdr = ["Run", "Conservation"] #more will be added
-    rest = [[r, ".. image:: %s" % data_uri(img)] for r,img in zip(runs,conservPlots)]
+    hdr = ["Run", "Conservation","MotifID","MotifName","Logo","Zscore"]
+
+    rest = [[r, ".. image:: %s" % data_uri(img), motifs[r]['motifId'], motifs[r]['motifName'], ".. image:: %s" % data_uri(motifs[r]['logo']), motifs[r]['zscore']] for r,img in zip(runs,conservPlots)]
     ret = tabulate(rest, hdr, tablefmt="rst")
+    return ret
+
+def parseMotifSummary(motif_csv):
+    """Given a motifSummary.csv file, parses this into a dictionary 
+    {run: {motifId: , motifName: , logo: , zscore: }}
+    Returns this dictionary
+    """
+    ret = {}
+    f = open(motif_csv)
+    hdr = f.readline().strip().split(",")
+    for l in f:
+        tmp = l.strip().split(",")
+        ret[tmp[0]] = {'motifId': tmp[1], 'motifName': tmp[2], 'logo': tmp[3], 'zscore': tmp[4]}
+    f.close()
     return ret
 
 rule report_all:
@@ -68,14 +84,15 @@ rule report:
 	samples_summary="analysis/report/samplesSummary.csv",
 	runs_summary="analysis/report/runsSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",
+        motif="analysis/motif/motifSummary.csv",
     output: html="analysis/report/report.html"
     run:
         (macsVersion, fdr) = processRunInfo(input.run_info)
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
-        conservTable = generateConservTable(input.conservPlots)
+        peakSummitsTable = genPeakSummitsTable(input.conservPlots, input.motif)
         contaminationPanel = csvToSimpleTable(input.contam_panel)
-        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),conservTable=conservTable)
+        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable)
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)
 

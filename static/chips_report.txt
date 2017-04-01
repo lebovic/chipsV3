@@ -14,9 +14,9 @@ Peaks Summary Table
 
 {runsSummaryTable}
 
-Conservation Plots 
-==================
-$conservTable
+Peak Summits Characterization Table 
+===================================
+$peakSummitsTable
 
 Alignment Summary
 =================
