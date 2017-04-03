@@ -19,9 +19,7 @@ PBC Summary
 
 Peak FoldChange
 ===============
-    TODO!
-    Something here!
-    Something here!
+    .. image:: $peakFoldChange_png
 
 Peak Summits Characterization Table 
 ===================================

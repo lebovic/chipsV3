@@ -92,6 +92,7 @@ rule report:
         run_info="analysis/peaks/run_info.txt",
         map_stat="analysis/align/mapping.png",
         pbc_stat="analysis/align/pbc.png",
+        peakFoldChange_png="analysis/report/peakFoldChange.png",
         conservPlots=expand("analysis/conserv/{run}/{run}_conserv_thumb.png", run=sorted(list(config['runs'].keys()))),
 	#nonChrM_stat="analysis/frips/nonChrM_stats.png", #REMOVED
 	samples_summary="analysis/report/samplesSummary.csv",
@@ -105,7 +106,7 @@ rule report:
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
         peakSummitsTable = genPeakSummitsTable(input.conservPlots, input.motif)
         contaminationPanel = csvToSimpleTable(input.contam_panel)
-        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable)
+        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png))
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)
 
@@ -136,6 +137,15 @@ rule plot_nonChrM_stats:
     log: _logfile
     shell:
         "Rscript chips/modules/scripts/plot_nonChrM.R {input} {output}"
+
+rule plot_peakFoldChange:
+    input: 
+        "analysis/peaks/peakStats.csv"
+    output:
+        "analysis/report/peakFoldChange.png"
+    log: _logfile
+    shell:
+        "Rscript chips/modules/scripts/plot_foldChange.R {input} {output}"
 
 rule samples_summary_table:
     input:
