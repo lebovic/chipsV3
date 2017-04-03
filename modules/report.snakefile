@@ -90,11 +90,10 @@ rule report:
     input:
         cfce_logo="chips/static/CFCE_Logo_Final.jpg",
         run_info="analysis/peaks/run_info.txt",
-        map_stat="analysis/align/mapping.png",
-        pbc_stat="analysis/align/pbc.png",
+        map_stat="analysis/report/mapping.png",
+        pbc_stat="analysis/report/pbc.png",
         peakFoldChange_png="analysis/report/peakFoldChange.png",
         conservPlots=expand("analysis/conserv/{run}/{run}_conserv_thumb.png", run=sorted(list(config['runs'].keys()))),
-	#nonChrM_stat="analysis/frips/nonChrM_stats.png", #REMOVED
 	samples_summary="analysis/report/samplesSummary.csv",
 	runs_summary="analysis/report/runsSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",
@@ -109,43 +108,6 @@ rule report:
         tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png))
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)
-
-rule plot_map_stat:
-    input:
-        "analysis/align/mapping.csv"
-    output:
-        "analysis/align/mapping.png"
-    log: _logfile
-    shell:
-        "Rscript chips/modules/scripts/map_stats.R {input} {output}"
-
-rule plot_pbc_stat:
-    input:
-        #"analysis/align/pbc.csv"
-        "analysis/frips/pbc.csv"
-    output:
-        "analysis/align/pbc.png"
-    log: _logfile
-    shell:
-        "Rscript chips/modules/scripts/plot_pbc.R {input} {output}"
-
-rule plot_nonChrM_stats:
-    input:
-        "analysis/frips/nonChrM_stats.csv"
-    output:
-        "analysis/frips/nonChrM_stats.png"
-    log: _logfile
-    shell:
-        "Rscript chips/modules/scripts/plot_nonChrM.R {input} {output}"
-
-rule plot_peakFoldChange:
-    input: 
-        "analysis/peaks/peakStats.csv"
-    output:
-        "analysis/report/peakFoldChange.png"
-    log: _logfile
-    shell:
-        "Rscript chips/modules/scripts/plot_foldChange.R {input} {output}"
 
 rule samples_summary_table:
     input:
@@ -169,3 +131,43 @@ rule runs_summary_table:
     log: _logfile
     shell:
         "chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -m {input.meta} -o {output} 2>>{log}"
+
+######## PLOTS ######
+rule plot_map_stat:
+    input:
+        "analysis/align/mapping.csv"
+    output:
+        "analysis/report/mapping.png"
+    log: _logfile
+    shell:
+        "Rscript chips/modules/scripts/map_stats.R {input} {output}"
+
+rule plot_pbc_stat:
+    input:
+        #"analysis/align/pbc.csv"
+        "analysis/frips/pbc.csv"
+    output:
+        "analysis/report/pbc.png"
+    log: _logfile
+    shell:
+        "Rscript chips/modules/scripts/plot_pbc.R {input} {output}"
+
+rule plot_peakFoldChange:
+    input: 
+        "analysis/peaks/peakStats.csv"
+    output:
+        "analysis/report/peakFoldChange.png"
+    log: _logfile
+    shell:
+        "Rscript chips/modules/scripts/plot_foldChange.R {input} {output}"
+
+#DEPRECATED!! this plot is no longer used!
+rule plot_nonChrM_stats:
+    input:
+        "analysis/frips/nonChrM_stats.csv"
+    output:
+        "analysis/report/attic/nonChrM_stats.png"
+    log: _logfile
+    shell:
+        "Rscript chips/modules/scripts/plot_nonChrM.R {input} {output}"
+
