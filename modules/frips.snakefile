@@ -18,6 +18,7 @@ def frips_targets(wildcards):
         ls.append("analysis/align/%s/%s_4M_unique_nonChrM.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_nonChrM_stat.txt" % (sample,sample))
         ls.append("analysis/frag/%s/%s_fragModel.R" % (sample,sample))
+        ls.append("analysis/frag/%s/%s_fragModel.R_model.pdf" % (sample,sample))
     for run in config["runs"].keys():
         ls.append("analysis/peaks/%s/%s_4M_peaks.narrowPeak" % (run,run))
         ls.append("analysis/frips/%s/%s_frip.txt" % (run,run))
@@ -220,6 +221,19 @@ rule calculate_FragSizes:
         files = " -f ".join(input)
         shell("chips/modules/scripts/frag_estFragSize.py -f {files} > {output} 2>>{log}")
 
+rule make_FragPlot:
+    """Given a macs2 predictd fragment size model 
+    generate the R plot by running the script
+    """
+    input:
+        "analysis/frag/{sample}/{sample}_fragModel.R"
+    message: "FRiPs: generate fragment size distribution plot"
+    log:_logfile
+    output:
+        "analysis/frag/{sample}/{sample}_fragModel.R_model.pdf"
+    shell:
+        #RUN the R script to get the plot
+        "Rscript {input} 2>>{log}"
     
 rule getFripStats:
     """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
