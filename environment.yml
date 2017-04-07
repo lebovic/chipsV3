@@ -5,6 +5,7 @@ channels:
 - defaults
 dependencies:
 - bedtools=2.25.0=2
+- bioconductor-seqlogo
 - bowtie2=2.2.8=py35_2
 - bwa=0.7.15=0
 - dropbox=5.2.1=py35_0
@@ -12,13 +13,14 @@ dependencies:
 - filechunkio=1.6=py35_0
 - ftputil=3.2=py35_0
 - java-jdk=8.0.92=1
-- jpeg=9b=0
 - libxml2=2.9.3=0
 - perl-threaded=5.22.0=10
+- picard=1.141
 - pysftp=0.2.8=py35_0
 - r-matrixstats=0.51.0=r3.3.1_0
 - samtools=1.3.1=5
 - snakemake=3.9.1=py35_0
+- tabulate
 - ucsc-bedgraphtobigwig=332=0
 - ucsc-bedsort=332=0
 - urllib3=1.12=py35_0
@@ -36,6 +38,7 @@ dependencies:
 - icu=54.1=0
 - idna=2.1=py35_0
 - jbig=2.1=0
+- jpeg=9b=0
 - libffi=3.2.1=0
 - libgcc=5.2.0=0
 - libiconv=1.14=0
@@ -107,6 +110,4 @@ dependencies:
 - r-stringr=1.1.0=r3.3.1_0
 - r-survival=2.39_4=r3.3.1_0
 - r-tibble=1.2=r3.3.1_0
-- picard=1.141
-- tabulate
 prefix: /home/lentaing/local/miniconda3/envs/chips
