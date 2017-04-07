@@ -6,3 +6,4 @@ dependencies:
 - bx-python
 - numpy
 - cython
+- jinja2
