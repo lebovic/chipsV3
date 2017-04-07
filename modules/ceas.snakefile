@@ -96,8 +96,13 @@ rule VELCRO_intersectVelcro:
     log: _logfile
     output:
         'analysis/ceas/{run}/{run}_velcro_peaks.bed'
-    shell:
-        "intersectBed -wa -u -a {input} -b {params.velcro} > {output} 2>>{log}"
+    run:
+        #CHECK for the existence of this file!
+        if params.velcro:
+            shell("intersectBed -wa -u -a {input} -b {params.velcro} > {output} 2>>{log}")
+        else:
+            #No velcro file defined --> empty output
+            shell("touch {output} && echo 'WARNING: no velcro region defined' >>{log}")
     
 rule VELCRO_stat:
     """collect VELCRO stats"""
