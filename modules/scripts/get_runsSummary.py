@@ -83,18 +83,21 @@ def main():
     #HANDLE DHS
     tmp = parseCSV(options.dhs)
     for r in runs:
-        ratio = float(tmp[r]['DHS'])/int(tmp[r]['Total'])
-        stats[r]['DHS_peaks'] = "%s (%.2f%%)" % (tmp[r]['DHS'], ratio*100)
+        #HANDLE zero-counts:
+        dhs = float(tmp[r]['DHS'])
+        tot = int(tmp[r]['Total'])
+        ratio = dhs/tot if tot else 'NA'
+        stats[r]['DHS_peaks'] = "%s (%.2f%%)" % (dhs, ratio*100) if ratio != 'NA' else "NA"
 
     #HANDLE META--only report percentages!
     metaFld = 'Promoter/Exon/Intron/Intergenic' #save key for consistency
     tmp = parseCSV(options.meta)
     for r in runs:
         tot = int(tmp[r]['Total'])
-        prom = "%.1f%%" % (float(tmp[r]['Promoter'])/tot *100)
-        exon = "%.1f%%" % (float(tmp[r]['Exon'])/tot *100)
-        intr = "%.1f%%" % (float(tmp[r]['Intron'])/tot *100)
-        genic = "%.1f%%" % (float(tmp[r]['Intergenic'])/tot *100)
+        prom = "%.1f%%" % (float(tmp[r]['Promoter'])/tot *100) if tot else 'NA'
+        exon = "%.1f%%" % (float(tmp[r]['Exon'])/tot *100) if tot else 'NA'
+        intr = "%.1f%%" % (float(tmp[r]['Intron'])/tot *100) if tot else 'NA'
+        genic = "%.1f%%" % (float(tmp[r]['Intergenic'])/tot *100) if tot else 'NA'
         stats[r][metaFld] = "/".join([prom,exon,intr,genic])
 
     #OUTPUT- fields defines the column order
