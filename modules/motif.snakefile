@@ -38,7 +38,7 @@ def _createEmptyMotif(motif_html, motif_json):
     if not os.path.exists(_path):
         os.makedirs(_path, exist_ok=True)
     f = open(motif_json, 'w')
-    f.write("var motifList_json = []\n")
+    f.write("{}\n")
     f.close()
 
 rule motif:

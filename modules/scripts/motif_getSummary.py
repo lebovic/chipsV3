@@ -25,7 +25,9 @@ def parseMDseqPos(motifList):
     f.close()
 
     #check for no motifs
-    if ret:
+    #NOTE: I know this is weird but for no motifs found, motif_list.json = {}
+    #so we have to check that the first elm is {}
+    if ret and ret[0]:
         #extract just index and zscore so we can return the top hit
         tmp = sorted([(i,motif["seqpos_results"]["zscore"]) for (i,motif) in enumerate(ret)], key=lambda x: x[1])
         topHit = ret[tmp[0][0]] #use the index found
