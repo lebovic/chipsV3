@@ -318,6 +318,10 @@ def main():
     for f in bedfiles:
         info("extract phastcons scores using %s" % f)
         scores = extract_phastcons(f,phas_chrnames, options.w, options.pf_res)
+        #CHECK for empty scores list, which is a result of an empty bed--
+        if not scores:
+            #PRESET to 100 0s
+            scores = [0]*100
         avgValues.append(scores)
     if options.w == 4000:
         ## 100 points for 4000, 40bp resolution
