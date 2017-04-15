@@ -18,7 +18,7 @@ def frips_targets(wildcards):
         ls.append("analysis/align/%s/%s_4M_unique_nonChrM.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_nonChrM_stat.txt" % (sample,sample))
         ls.append("analysis/frag/%s/%s_fragModel.R" % (sample,sample))
-        ls.append("analysis/frag/%s/%s_fragModel.R_model.pdf" % (sample,sample))
+        ls.append("analysis/frag/%s/%s_fragDist.png" % (sample,sample))
     for run in config["runs"].keys():
         ls.append("analysis/peaks/%s/%s_4M_peaks.narrowPeak" % (run,run))
         ls.append("analysis/frips/%s/%s_frip.txt" % (run,run))
@@ -221,19 +221,37 @@ rule calculate_FragSizes:
         files = " -f ".join(input)
         shell("chips/modules/scripts/frag_estFragSize.py -f {files} > {output} 2>>{log}")
 
-rule make_FragPlot:
-    """Given a macs2 predictd fragment size model 
-    generate the R plot by running the script
+rule get_SampleFragLength:
+    """Dump all of the sample's fragment lengths into 
+    frag/{sample}/{sample}_frags.txt, so we can generate the distribution plot in make_FragPlot
     """
     input:
-        "analysis/frag/{sample}/{sample}_fragModel.R"
-    message: "FRiPs: generate fragment size distribution plot"
+        "analysis/align/{sample}/{sample}_unique.sorted.bam"
+    params:
+        awk_cmd = """awk ' $1 <= 1000 && $1 > 0 '"""
+    message: "FRAG: get fragment sizes"
     log:_logfile
     output:
-        "analysis/frag/{sample}/{sample}_fragModel.R_model.pdf"
+        temp("analysis/frag/{sample}/{sample}_frags.txt")
+    shell:
+        #GRAB out the 9th column, ensuring it's in 1-1000
+        "samtools view {input} | cut -f 9 | {params.awk_cmd} > {output} 2>>{log}"
+ 
+rule make_FragPlot:
+    """plot the fragment distribution:
+    generate the R plot by running frag_plotFragDist.R on _frags.txt
+    """
+    input:
+        "analysis/frag/{sample}/{sample}_frags.txt"
+    params:
+        name= lambda wildcards: wildcards.sample
+    message: "FRAG: plot fragment size distribution plot"
+    log:_logfile
+    output:
+        "analysis/frag/{sample}/{sample}_fragDist.png"
     shell:
         #RUN the R script to get the plot
-        "Rscript {input} 2>>{log}"
+        "chips/modules/scripts/frag_plotFragDist.R {input} {output} {params.name} 2>>{log}"
     
 rule getFripStats:
     """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
