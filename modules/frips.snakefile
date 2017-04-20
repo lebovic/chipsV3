@@ -143,7 +143,7 @@ rule frip_pbc:
 rule collect_pbc:
     """Collect and parse out the PBC for the ALL of the samples"""
     input:
-        expand("analysis/frips/{sample}/{sample}_pbc.txt", sample=config["samples"])
+        expand("analysis/frips/{sample}/{sample}_pbc.txt", sample=sorted(config["samples"]))
     output:
         "analysis/frips/pbc.csv"
     message: "ALIGN: collect and parse ALL pbc stats"
@@ -173,7 +173,7 @@ rule nonChrM_stats:
 rule collect_nonChrM_stats:
     """Aggregate all nonChrM stats for ALL of the samples"""
     input:
-        expand("analysis/align/{sample}/{sample}_nonChrM_stat.txt", sample=config["samples"])
+        expand("analysis/align/{sample}/{sample}_nonChrM_stat.txt", sample=sorted(config["samples"]))
     output:
         "analysis/frips/nonChrM_stats.csv"
     message: "FRiPs: collect and parse ALL nonChrM stats"
@@ -207,7 +207,7 @@ rule calculate_FragSizes:
     calculates the estimated fragment sizes
     """
     input:
-        expand("analysis/frag/{sample}/{sample}_fragModel.R", sample=config['samples'])
+        expand("analysis/frag/{sample}/{sample}_fragModel.R", sample=sorted(config['samples']))
     message: "FRiPs: calculate fragment sizes"
     log:_logfile
     output:
@@ -251,7 +251,7 @@ rule make_FragPlot:
 rule getFripStats:
     """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
     input:
-        expand("analysis/frips/{run}/{run}_frip.txt", run=config["runs"])
+        expand("analysis/frips/{run}/{run}_frip.txt", run=sorted(config["runs"]))
     output:
         "analysis/frips/frips.csv"
     message: "FRiPs: collecting frips stats for each run"

@@ -68,7 +68,8 @@ rule map_stats:
 rule collect_map_stats:
     """Collect and parse out the mapping stats for the ALL of the samples"""
     input:
-        expand("analysis/align/{sample}/{sample}_mapping.txt", sample=config["samples"])
+        #samples sorted to match order of rest of report
+        expand("analysis/align/{sample}/{sample}_mapping.txt", sample=sorted(config["samples"]))
     output:
         "analysis/align/mapping.csv"
     message: "ALIGN: collect and parse ALL mapping stats"
