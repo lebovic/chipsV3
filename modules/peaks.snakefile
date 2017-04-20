@@ -11,14 +11,14 @@ _macs_species="hs"
 def getTreats(wildcards):
     r = config['runs'][wildcards.run]
     #convert SAMPLE names to BAMS
-    tmp = ["analysis/align/%s/%s.sorted.bam" % (s,s) for s in r[:2] if s]
+    tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (s,s) for s in r[:2] if s]
     #print("TREATS: %s" % tmp)
     return tmp
 
 def getConts(wildcards):
     r = config['runs'][wildcards.run]
     #convert SAMPLE names to BAMS
-    tmp = ["analysis/align/%s/%s.sorted.bam" % (s,s) for s in r[2:4] if s]
+    tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (s,s) for s in r[2:4] if s]
     #print("CONTS: %s" % tmp)
     return tmp
 
@@ -35,6 +35,18 @@ def peaks_targets(wildcards):
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
     return ls
+
+def checkBAMPE(wildcards):
+    """Fn returns '-f BAMPE' IF the run's FIRST treatment replicate (sample) is
+    Paired-END.
+    NOTE: this flag is required for macs2 callpeak, AUTO detect format does not
+    work with PE bams!
+    """
+    r = config['runs'][wildcards.run]
+    #GET first treatement sample
+    first = config['samples'][r[0]]
+    ret = "-f BAMPE" if len(first) == 2 else ""
+    return ret
 
 rule peaks_all:
     input:
@@ -56,14 +68,16 @@ rule macs2_callpeaks:
         extsize=_macs_extsize,
         species=_macs_species,
         outdir="analysis/peaks/{run}/",
-        name="{run}"
+        name="{run}",
+        #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
+        BAMPE = lambda wildcards: checkBAMPE(wildcards),
     message: "PEAKS: calling peaks with macs2"
     log:_logfile
     run:
         #NOTE: TODO- handle broadPeak calling!
         treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
         control = "-c %s" % " ".join(input.cont) if input.cont else ""
-        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.species} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.species} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 
 rule peakToBed:
