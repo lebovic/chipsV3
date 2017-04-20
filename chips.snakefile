@@ -13,9 +13,14 @@ def getRuns(config):
     f = open(config['metasheet'])
     hdr=f.readline().strip().split(',')
     for l in f:
-        tmp = l.strip().split(",")
-        ret[tmp[0]] = tmp[1:]
+        if not len(l.strip()) or l.startswith("#"): #skip blanklines, comments
+            continue
+        else: #read in the real line
+            tmp = l.strip().split(",")
+            #print(tmp)
+            ret[tmp[0]] = tmp[1:]
 
+    #print(ret)
     config['runs'] = ret
     return config
 

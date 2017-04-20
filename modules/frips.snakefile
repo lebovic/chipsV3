@@ -21,32 +21,12 @@ def frips_targets(wildcards):
         ls.append("analysis/frag/%s/%s_fragModel.R" % (sample,sample))
         ls.append("analysis/frag/%s/%s_fragDist.png" % (sample,sample))
     for run in config["runs"].keys():
-        #4M_peaks is deprecated! --will be removed shortly
-        #ls.append("analysis/peaks/%s/%s_4M_peaks.narrowPeak" % (run,run))
         ls.append("analysis/frips/%s/%s_frip.txt" % (run,run))
     ls.append("analysis/frips/pbc.csv")
     ls.append("analysis/frips/nonChrM_stats.csv")
     ls.append("analysis/frag/fragSizes.csv")
     ls.append("analysis/frips/frips.csv")
     return ls
-
-#DEPRECATED--will be removed shortly
-# def getTreats(wildcards):
-#     r = config['runs'][wildcards.run]
-#     #print(r[:2])
-#     #convert SAMPLE names to BAMS
-#     tmp=["analysis/align/%s/%s_4M_unique_nonChrM.bam" % (s,s) for s in r[:2] if s]
-#     #print(tmp)
-#     return tmp
-
-#DEPRECATED--will be removed shortly
-# def getConts(wildcards):
-#     r = config['runs'][wildcards.run]
-#     #print(r)
-#     #convert SAMPLE names to BAMS
-#     tmp=["analysis/align/%s/%s_4M_unique_nonChrM.bam" % (s,s) for s in r[2:4] if s]
-#     #print(tmp)
-#     return tmp
 
 def frip_getTreatBam(wildcards):
     """RETURNS the associated 4M_nonChrM.bam for the run's treatment sample"""
@@ -110,7 +90,6 @@ rule create_unique_nonChrM:
         #make temp
         'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
     shell:
-        #"samtools view -h -F 4 {input} > {output} 2>>{log}"
         "samtools view -b -h -F 4 {input} > {output} 2>>{log}"
 
 rule sample_4M_from_uniqueNonChrM:
@@ -131,36 +110,6 @@ rule sample_4M_from_uniqueNonChrM:
         """
         chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
         """
-
-###RUlE HAS been deprecated and is marked for deletion--will be removed shortly
-# rule frips_callpeaks:
-#     """CALL PEAKS on the 4M reads so we can calc frips"""
-#     #just handle narrowPeaks for now
-#     input:
-#         treat=getTreats,
-#         cont=getConts
-#     output:
-#         "analysis/peaks/{run}/{run}_4M_peaks.narrowPeak",
-#         "analysis/peaks/{run}/{run}_4M_peaks.xls",
-#         "analysis/peaks/{run}/{run}_4M_summits.bed",
-#     params:
-#         fdr=_macs_fdr,
-#         keepdup=_macs_keepdup,
-#         extsize=_macs_extsize,
-#         species=_macs_species,
-#         outdir="analysis/peaks/{run}/",
-#         name="{run}_4M"
-#     message: "FRiPs: call peaks from sub-sample"
-#     log:_logfile
-#     run:
-#         #NOTE: here's the broadPeak call
-#         #macs2 callpeak -q [fdr=0.01] --keep-dup [keep_dup=1] --broad -g {param[species]} -t [4M.bam] -c [4M.bam optional] -n [description="SAMPLE_4M"]
-#         #DIFF: in narrow, --shiftsize and --nomodel is replace by --broad!
-#         #AND output named broadPeak vs. narrowPeak
-#         #JOIN treatment and control replicate samples
-#         treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
-#         control = "-c %s" % " ".join(input.cont) if input.cont else ""
-#         shell("macs2 callpeak -q {params.fdr} --keep-dup {params.keepdup} --extsize {params.extsize} --nomodel -g {params.species} {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 rule frip_calculate:
     """Calculate the frip score"""
@@ -209,7 +158,7 @@ rule nonChrM_stats:
         #NOTE: uniq_bam is generated in align_common module-
         #HACK- taking advantage that this moulde is loaded AFTER align_common
         uniq_bam="analysis/align/{sample}/{sample}_unique.bam",
-        nonChrM_sam="analysis/align/{sample}/{sample}_unique_nonChrM.sam"
+        nonChrM_bam="analysis/align/{sample}/{sample}_unique_nonChrM.bam"
     output:
         #temp("analysis/align/{sample}/{sample}_mapping.txt")
         "analysis/align/{sample}/{sample}_nonChrM_stat.txt"
@@ -219,7 +168,7 @@ rule nonChrM_stats:
         #FLAGSTATS is the top of the file, and we append the uniquely mapped
         #reads to the end of the file
         "samtools view -c {input.uniq_bam} > {output} 2>>{log}"
-        " && samtools view -c {input.nonChrM_sam} >> {output} 2>> {log}"
+        " && samtools view -c {input.nonChrM_bam} >> {output} 2>> {log}"
 
 rule collect_nonChrM_stats:
     """Aggregate all nonChrM stats for ALL of the samples"""
@@ -302,7 +251,7 @@ rule make_FragPlot:
 rule getFripStats:
     """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
     input:
-        expand("analysis/frips/{run}/{run}_frip.txt", run=config['runs'])
+        expand("analysis/frips/{run}/{run}_frip.txt", run=config["runs"])
     output:
         "analysis/frips/frips.csv"
     message: "FRiPs: collecting frips stats for each run"
