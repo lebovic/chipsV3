@@ -1,29 +1,14 @@
+#NOTE: you won't typically have to change the following two lines!
 metasheet: 'metasheet.csv'
-conservation: /data/static_libraries/conservation/hg19/vertebrate
-geneTable: /data/static_libraries/ucsc/hg19.refGene
-DHS: /data/static_libraries/DHS/DHS_hg19.bed
-#NOTE: I can try to use the geneTable for these, but for now, I'll just define
-exons: /data/static_libraries/ceas/hg19/exon.bed
-promoters: /data/static_libraries/ceas/hg19/promoter.bed
+ref: "chips/ref.yaml"
 
-velcro_regions: /data/static_libraries/vecro/wgEncodeHg19ConsensusSignalArtifactRegions.bed
-chrom_lens: /data/static_libraries/chromLen/hg19.len
+#Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
+assembly: hg19
 
-#MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
-#ref: https://github.com/taoliu/MACS
-genome_size: "2.7e9"
-
-#ALIGNER: if you want to use bowtie2 as your aligner COMMENT out the next two
-#lines, and UNCOMMENT the two lines after
-bwa_index: /data/static_libraries/bwa_indices/hg19/hg19.fa
+#ALIGNER: if you want to use bowtie2, set your aligner as 'bwt2'
+#OTHERWISE leave it as 'bwa' 
 aligner: 'bwa'
-#bwt2_index: /data/static_libraries/bowtie/indexes/hg19
 #aligner: 'bwt2'
-
-
-#NOTE: this should be a path! we need to modify mdseqpos to take paths!
-#NOTE: mdseqpos wants it stored in path/raw|rawgenome/chr...
-motif_path: hg19
 
 #NOTE: optional contamination panel to check sample contamination against
 #Each element should be a path to the INDEX for the aligner you want to use
@@ -39,13 +24,16 @@ contamination_panel:
 #NOTE: optional CNV analysis using QDNAseq R pkg
 cnv_analysis: false
 
+# DEFINE the samples- each sample should have a name, e.g. SAMPLE1
+# and a path to the input file, e.g. data/sample1.fastq.gz
+# VALID INPUTS: fastq, fastq.gz, bam
+# NOTE: for PAIRED-END fastq/fastq.gz, give both pairs to the sample:
+# SAMPLE_1_PE:
+#   - data/sample1_pair1.fastq
+#   - data/sample1_pair2.fastq
+# WARNING: DO not mix Paired-END and Single-End samples!!!
 samples:
-  JG1A_ER:
-    - data/JG1A-ERChIP_9M.R1.fastq.gz
-    - data/JG1A-ERChIP_9M.R2.fastq.gz
-  JG1A_Input:
-    - data/JG1A-Input_7.75M.R1.fastq.gz
-    - data/JG1A-Input_7.75M.R2.fastq.gz
-
-
-
+  SAMPLE1:
+    - data/sample1.fastq.gz
+  SAMPLE2:
+    - data/sample2.fastq.gz
