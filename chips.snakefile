@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 import pandas as pd
+import yaml
 
 def getRuns(config):
     """parse metasheet for Run groupings"""
@@ -36,11 +37,26 @@ def addPy2Paths_Config(config):
     if not "mdseqpos_path" in config or not config["mdseqpos_path"]:
         config["mdseqpos_path"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'MDSeqPos.py')
 
+def loadRef(config):
+    """Adds the static reference paths found in config['ref']
+    NOTE: if the elm is already defined, then we DO NOT clobber the value
+    """
+    f = open(config['ref'])
+    ref_info = yaml.safe_load(f)
+    f.close()
+    #print(ref_info[config['assembly']])
+    for (k,v) in ref_info[config['assembly']].items():
+        #NO CLOBBERING what is user-defined!
+        if k not in config:
+            config[k] = v
 
 #---------  CONFIG set up  ---------------
 configfile: "config.yaml"   # This makes snakemake load up yaml into config 
 config = getRuns(config)
 addPy2Paths_Config(config)
+
+#NOW load ref.yaml - SIDE-EFFECT: loadRef CHANGES config
+loadRef(config)
 #-----------------------------------------
 
 def all_targets(wildcards):

@@ -6,6 +6,7 @@ channels:
 dependencies:
 - bedtools=2.25.0=2
 - bioconductor-seqlogo
+- bioconductor-qdnaseq
 - bowtie2=2.2.8=py35_2
 - bwa=0.7.15=0
 - dropbox=5.2.1=py35_0
@@ -110,4 +111,3 @@ dependencies:
 - r-stringr=1.1.0=r3.3.1_0
 - r-survival=2.39_4=r3.3.1_0
 - r-tibble=1.2=r3.3.1_0
-prefix: /home/lentaing/local/miniconda3/envs/chips
