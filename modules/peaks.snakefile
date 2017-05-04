@@ -71,13 +71,14 @@ rule macs2_callpeaks:
         name="{run}",
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         BAMPE = lambda wildcards: checkBAMPE(wildcards),
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "PEAKS: calling peaks with macs2"
     log:_logfile
     run:
         #NOTE: TODO- handle broadPeak calling!
         treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
         control = "-c %s" % " ".join(input.cont) if input.cont else ""
-        shell("macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.species} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+        shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.species} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 
 rule peakToBed:
@@ -150,11 +151,12 @@ rule macsRunInfo:
     """Dump the current version of macs and the fdr used into a text file 
     for the report"""
     params:
-        fdr = _macs_fdr
+        fdr = _macs_fdr,
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     output:
         #MAKE temp
         "analysis/peaks/run_info.txt"
     message: "PEAKS/REPORT - collection macs version and fdr info"
     shell:
-        "macs2 --version 2> {output} && echo fdr {params.fdr} >> {output}"
+        "{params.pypath} {config[macs2_path]} --version 2> {output} && echo fdr {params.fdr} >> {output}"
     

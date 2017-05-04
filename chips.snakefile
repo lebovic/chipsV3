@@ -37,6 +37,9 @@ def addPy2Paths_Config(config):
     if not "mdseqpos_path" in config or not config["mdseqpos_path"]:
         config["mdseqpos_path"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'MDSeqPos.py')
 
+    if not "macs2_path" in config or not config["macs2_path"]:
+        config["macs2_path"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'macs2')
+
 def loadRef(config):
     """Adds the static reference paths found in config['ref']
     NOTE: if the elm is already defined, then we DO NOT clobber the value

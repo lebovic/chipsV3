@@ -193,14 +193,15 @@ rule generate_FragSizeModel:
         "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
     params:
         #NOTE: this macs2 param can be tricky!
-        genome_size = config['genome_size']
+        genome_size = config['genome_size'],
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "FRiPs: run macs2 fragment size estimation (predictd)"
     log:_logfile
     output:
         #make temp
         "analysis/frag/{samples}/{sample}_fragModel.R"
     shell:
-        "macs2 predictd -i {input} --rfile {output} -g {params.genome_size} 2>>{log}"
+        "{params.pypath} {config[macs2_path]} predictd -i {input} --rfile {output} -g {params.genome_size} 2>>{log}"
 
 rule calculate_FragSizes:
     """Given a macs2 predictd fragment size model (or a set of them)
