@@ -47,7 +47,7 @@ rule create_nonChrM:
     """RULE that will generate the base file for both 
     4M_nonChrM.bam AND 4M_unique_nonChrM.bam so we save some redundancy here"""
     input:
-        "analysis/align/{sample}/{sample}.bam"
+        "analysis/align/{sample}/{sample}.sorted.bam"
     params:
         #hack to get the regex in to filter out chrM, random, chrUn
         regex="\'/chrM/d;/random/d;/chrUn/d\'",
