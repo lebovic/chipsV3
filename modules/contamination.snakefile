@@ -25,7 +25,6 @@ def contamination_targets(wildcards):
     ls = []
     for sample in config["samples"]:
         for panel in _contaminationNames:
-            ls.append("analysis/contam/%s/%s.%s.sai" % (sample, sample, panel))
             ls.append("analysis/contam/%s/%s.%s.bam" % (sample, sample, panel))
             ls.append("analysis/contam/%s/%s.%s.txt" % (sample, sample, panel))
             ls.append("analysis/contam/%s/%s_contamination.txt" % (sample, sample))
@@ -58,7 +57,7 @@ rule contamination:
         get100k_sample
     output:
         #TEMP file
-        "analysis/contam/{sample}/{sample}.{panel}.sai"
+        "analysis/contam/{sample}/{sample}.{panel}.bam"
     params:
         index=lambda wildcards: _contaminationDict[wildcards.panel],
         bwa_q = _bwa_q,
@@ -70,27 +69,7 @@ rule contamination:
     message: "CONTAMINATION: checking {params.sample} against {params.panel}"
     log: _logfile
     shell:
-        "bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output} 2>>{log}"
-
-rule contaminationToBam:
-    """Convert the sai to bams"""
-    input:
-        sai="analysis/contam/{sample}/{sample}.{panel}.sai",
-        #fastq="analysis/align/{sample}/{sample}_100k.fastq"
-        fastq=get100k_sample
-    output:
-        #TEMP file
-        "analysis/contam/{sample}/{sample}.{panel}.bam"
-    params:
-        index=lambda wildcards: _contaminationDict[wildcards.panel],
-        #NOTE: this is a hack b/c snakemake didn't like the - in the shell cmd
-        hack="view -bS -"
-    threads: _bwa_threads
-    message: "CONTAMINATION: Converting BWA alignments (.sai) to BAM"
-    log: _logfile
-    shell:
-        #NOTE: all contamination alignments are SE!
-        "bwa samse {params.index} {input.sai} {input.fastq} 2>>{log} | samtools {params.hack} > {output} 2>>{log}"
+        "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} 2>> {log}"
 
 rule contaminationStats:
     """Extract the mapping stats for each species"""
