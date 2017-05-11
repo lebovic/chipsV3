@@ -31,7 +31,7 @@ done
 total=$(samtools view -c $INPUT)
 frac=$(echo "$NUM / $total" | bc -l)
 #CHECK totals
-if [ $frac '>' 1.0 ]; then
+if [ "$frac" '>' 1.0 ]; then
     frac=1.0
 fi
 
