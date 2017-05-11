@@ -4,7 +4,7 @@ _logfile="analysis/logs/align.log"
 #_bwa_q="5"
 #_bwa_l="32"
 #_bwa_k="2"
-_bwt2_threads=4
+_bwt2_threads=8
 
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]

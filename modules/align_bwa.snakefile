@@ -1,7 +1,7 @@
 #MODULE: Align fastq files to genome - BWA specific calls
 #PARAMETERS:
 _logfile="analysis/logs/align.log"
-_bwa_threads=4
+_bwa_threads=8
 
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]
