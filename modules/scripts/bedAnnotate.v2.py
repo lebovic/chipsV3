@@ -206,6 +206,7 @@ def main():
     optparser = OptionParser()
     optparser.add_option("-g", "--gt", help="UCSC geneTable")
     optparser.add_option("-b", "--bed", help="bed file (of genomic sites)")
+    optparser.add_option("-n", "--basename", help="basename for the output (default: derived from bed file")
     optparser.add_option("-o", "--outpath", help="output path", default="./")
     optparser.add_option("-u", "--up", help="How many bps should we consider upstream of TSS? default: 2000", default=2000)
     optparser.add_option("-d", "--down", help="How many bps should we consider downstream of TTS? default: 0", default=0)
@@ -256,7 +257,10 @@ def main():
     f = open(options.bed)
 
     #output files
-    baseName = options.bed.split("/")[-1].split(".")[0]
+    if options.basename:
+        baseName = options.basename
+    else: #derive the basename--using the filename of the bedfile--drop last
+        baseName = ".".join(options.bed.split("/")[-1].split(".")[:-1])
     promoter_out = open(os.path.join(outpath,"%s_promoter.bed" % baseName),"w")
     exon_out = open(os.path.join(outpath,"%s_exon.bed" % baseName), "w")
     intron_out = open(os.path.join(outpath,"%s_intron.bed" % baseName), "w")

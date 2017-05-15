@@ -45,26 +45,26 @@ def genPeakSummitsTable(conservPlots,motifSummary):
     and motif analysis for ALL runs
     hdr = array of header/column elms
     """
-    runs = sorted(list(config["runs"].keys()))
     #parse MotifSummary
     motifs = parseMotifSummary(motifSummary)
+    runs = sorted(list(motifs.keys()))
     #HEADER
     hdr = ["Run", "Conservation","MotifID","MotifName","Logo","Zscore"]
     #BUILD up the rest of the table
     rest = []
-    for r,img in zip(runs,conservPlots):
+    for run,img in zip(runs,conservPlots):
         #HANDLE null values
         if img and (img != 'NA'):
             conserv = ".. image:: %s" % data_uri(img)
         else:
             conserv = "NA"
         #HANDLE null values
-        if motifs[r]['logo'] and (motifs[r]['logo'] != 'NA'):
-            motif_logo = ".. image:: %s" % data_uri(motifs[r]['logo'])
+        if motifs[run]['logo'] and (motifs[run]['logo'] != 'NA'):
+            motif_logo = ".. image:: %s" % data_uri(motifs[run]['logo'])
         else:
             motif_logo = "NA"
 
-        rest.append([r, conserv, motifs[r]['motifId'], motifs[r]['motifName'], motif_logo,  motifs[r]['zscore']])
+        rest.append([run, conserv, motifs[run]['motifId'], motifs[run]['motifName'], motif_logo,  motifs[run]['zscore']])
     ret = tabulate(rest, hdr, tablefmt="rst")
     return ret
 
@@ -93,7 +93,7 @@ rule report:
         map_stat="analysis/report/mapping.png",
         pbc_stat="analysis/report/pbc.png",
         peakFoldChange_png="analysis/report/peakFoldChange.png",
-        conservPlots=expand("analysis/conserv/{run}/{run}_conserv_thumb.png", run=sorted(list(config['runs'].keys()))),
+        conservPlots = sorted(_getRepInput("analysis/conserv/$runRep/$runRep_conserv_thumb.png")),
 	samples_summary="analysis/report/samplesSummary.csv",
 	runs_summary="analysis/report/runsSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",

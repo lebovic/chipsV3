@@ -7,34 +7,41 @@ _macs_keepdup="1"
 _macs_extsize="146"
 _macs_species="hs"
 
-#TODO: handle control
 def getTreats(wildcards):
+    tmp=[]
+    #print(wildcards)
+    rep_s = wildcards.rep
+    rep_n = int(rep_s[-1])
+    #print(rep_n)
+
+    #USE the formula: treatment = 2^(rep-1); control = treatment+1
+    treat = 2**(rep_n-1) if rep_n > 1 else 0
     r = config['runs'][wildcards.run]
-    #convert SAMPLE names to BAMS
-    tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (s,s) for s in r[:2] if s]
-    #print("TREATS: %s" % tmp)
+    #print(r)
+    #print(treat)
+    if treat < len(r) and r[treat]:
+        tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (r[treat],r[treat])]
+    #print("TREAT: %s" % tmp)
+    if not tmp:
+        #NOTE: I can't figure out a proper kill command so I'll do this
+        tmp=["ERROR! Missing treatment file for run: %s, rep: %s" % (wildcards.run, rep_s)]
     return tmp
 
 def getConts(wildcards):
-    r = config['runs'][wildcards.run]
-    #convert SAMPLE names to BAMS
-    tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (s,s) for s in r[2:4] if s]
-    #print("CONTS: %s" % tmp)
-    return tmp
+    tmp=[]
+    #print(wildcards)
+    rep_s = wildcards.rep
+    rep_n = int(rep_s[-1])
 
-def peaks_targets(wildcards):
-    """Generates the targets for this module"""
-    ls = []
-    for run in config["runs"].keys():
-        #ls.append("analysis/peaks/%s/%s_peaks.bed" % (run,run))
-        ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak" % (run,run))
-        ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak.bed" % (run,run))
-        ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (run,run))
-        ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (run,run))
-        ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (run,run))
-    ls.append("analysis/peaks/peakStats.csv")
-    ls.append("analysis/peaks/run_info.txt")
-    return ls
+    #USE the formula: treatment = 2^(rep-1); control = treatment+1
+    cont = 2**(rep_n-1) + 1 if rep_n > 1 else 1
+    r = config['runs'][wildcards.run]
+    #print(r)
+    #print(cont)
+    if cont < len(r) and r[cont]:
+        tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (r[cont],r[cont])]
+    #print("CONT: %s" % tmp)
+    return tmp
 
 def checkBAMPE(wildcards):
     """Fn returns '-f BAMPE' IF the run's FIRST treatment replicate (sample) is
@@ -48,6 +55,24 @@ def checkBAMPE(wildcards):
     ret = "-f BAMPE" if len(first) == 2 else ""
     return ret
 
+#NOTE: using the _refs from chips.snakefile
+def peaks_targets(wildcards):
+    """Generates the targets for this module"""
+    #print(wildcards)
+    ls = []
+    for run in config["runs"].keys():
+        #NOTE: using the fact that _reps has this info parsed already!
+        for rep in _reps[run]:
+            #GENERATE Run name: concat the run and rep name
+            runRep = "%s.%s" % (run, rep)
+            ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak.bed" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (runRep,runRep))
+    ls.append("analysis/peaks/peakStats.csv")
+    ls.append("analysis/peaks/run_info.txt")
+    return ls
+
 rule peaks_all:
     input:
         peaks_targets
@@ -57,35 +82,32 @@ rule macs2_callpeaks:
         treat=getTreats,
         cont=getConts
     output:
-        "analysis/peaks/{run}/{run}_peaks.narrowPeak",
-        "analysis/peaks/{run}/{run}_peaks.xls",
-        "analysis/peaks/{run}/{run}_summits.bed",
-        "analysis/peaks/{run}/{run}_treat_pileup.bdg",
-        "analysis/peaks/{run}/{run}_control_lambda.bdg",
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed",
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg",
     params:
         fdr=_macs_fdr,
         keepdup=_macs_keepdup,
         extsize=_macs_extsize,
         species=_macs_species,
-        outdir="analysis/peaks/{run}/",
-        name="{run}",
+        outdir="analysis/peaks/{run}.{rep}/",
+        name="{run}.{rep}",
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         BAMPE = lambda wildcards: checkBAMPE(wildcards),
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "PEAKS: calling peaks with macs2"
     log:_logfile
     run:
-        #NOTE: TODO- handle broadPeak calling!
-        treatment = "-t %s" % " ".join(input.treat) if input.treat else "",
-        control = "-c %s" % " ".join(input.cont) if input.cont else ""
+        treatment = "-t %s" % input.treat if input.treat else "",
+        control = "-c %s" % input.cont if input.cont else "",        
         shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.species} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
-
 rule peakToBed:
+    """Convert MACS's narrowPeak format, which is BED12 to BED5"""
     input:
-        "analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
     output:
-        "analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
     message: "PEAKS: Converting peak file to bed file"
     log:_logfile
     shell:
@@ -93,9 +115,9 @@ rule peakToBed:
 
 rule sortSummits:
     input:
-        "analysis/peaks/{run}/{run}_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
     output:
-        "analysis/peaks/{run}/{run}_sorted_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     message: "PEAKS: sorting the summits bed by score"
     log:_logfile
     shell:
@@ -103,9 +125,9 @@ rule sortSummits:
 
 rule sortNarrowPeaks:
     input:
-        "analysis/peaks/{run}/{run}_peaks.narrowPeak"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
     output:
-        "analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
     message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
     log:_logfile
     shell:
@@ -114,9 +136,9 @@ rule sortNarrowPeaks:
 rule sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
     input:
-        "analysis/peaks/{run}/{run}_{suffix}.bdg"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bdg"
     output:
-        "analysis/peaks/{run}/{run}_{suffix}.sorted.bdg"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg"
     message: "PEAKS: sorting bdg pileups"
     log:_logfile
     shell:
@@ -125,9 +147,9 @@ rule sortBedgraphs:
 rule bdgToBw:
     """Convert bedGraphs to BigWig"""
     input:
-        "analysis/peaks/{run}/{run}_{suffix}.sorted.bdg"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg"
     output:
-        "analysis/peaks/{run}/{run}_{suffix}.bw"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bw"
     params:
         chroms=config['chrom_lens']
     message: "PEAKS: Convert bedGraphs to BigWig"
@@ -138,7 +160,8 @@ rule bdgToBw:
 rule getPeaksStats:
     """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
     input:
-        expand("analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak", run=config['runs'])
+        #Generalized INPUT fn defined in chips.snakefile
+        _getRepInput("analysis/peaks/$runRep/$runRep_sorted_peaks.narrowPeak")
     output:
         "analysis/peaks/peakStats.csv"
     message: "PEAKS: collecting peaks stats for each run"

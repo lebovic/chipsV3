@@ -11,6 +11,7 @@ _macs_keepdup="1"
 _macs_extsize="146"
 _macs_species="hs"
 
+#NOTE: using the _refs from chips.snakefile
 def frips_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
@@ -21,13 +22,16 @@ def frips_targets(wildcards):
         ls.append("analysis/frag/%s/%s_fragModel.R" % (sample,sample))
         ls.append("analysis/frag/%s/%s_fragDist.png" % (sample,sample))
     for run in config["runs"].keys():
-        ls.append("analysis/frips/%s/%s_frip.txt" % (run,run))
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ls.append("analysis/frips/%s/%s_frip.txt" % (runRep,runRep))
     ls.append("analysis/frips/pbc.csv")
     ls.append("analysis/frips/nonChrM_stats.csv")
     ls.append("analysis/frag/fragSizes.csv")
     ls.append("analysis/frips/frips.csv")
     return ls
 
+#NOTE: this takes the Treatment of the FIRST replicate!!!--ignores the rest!
 def frip_getTreatBam(wildcards):
     """RETURNS the associated 4M_nonChrM.bam for the run's treatment sample"""
     r = config['runs'][wildcards.run]
@@ -116,9 +120,9 @@ rule frip_calculate:
     #TODO: if there are more than 1 treatment, merge them??!
     input:
         treat=frip_getTreatBam,
-        bed="analysis/peaks/{run}/{run}_sorted_peaks.narrowPeak",
+        bed="analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak",
     output:
-        "analysis/frips/{run}/{run}_frip.txt"
+        "analysis/frips/{run}.{rep}/{run}.{rep}_frip.txt"
     params:
         pval="1E-9"
     message: "FRiPs: calculate frips"
@@ -182,6 +186,7 @@ rule collect_nonChrM_stats:
         files = " -f ".join(input)
         shell("chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
 
+#generate_FragSizeModel and calculate_FragSizes ARE PROBABLY OBSOLETE!!
 rule generate_FragSizeModel:
     """Call macs2 predictd to calculate the fragment size model 
     which will be used to calculate the median fragment sizes for each sample
@@ -252,7 +257,8 @@ rule make_FragPlot:
 rule getFripStats:
     """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
     input:
-        expand("analysis/frips/{run}/{run}_frip.txt", run=sorted(config["runs"]))
+        #Generalized INPUT fn defined in chips.snakefile
+        _getRepInput("analysis/frips/$runRep/$runRep_frip.txt")
     output:
         "analysis/frips/frips.csv"
     message: "FRiPs: collecting frips stats for each run"

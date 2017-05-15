@@ -8,15 +8,18 @@ _nPerPlot = 3
 _numPngs = math.ceil(len(config['runs'].keys())/float(_nPerPlot))
 _nPngs = [n+1 for n in range(_numPngs)]
 
+#NOTE: using the _refs from chips.snakefile
 def conservation_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for run in config["runs"].keys():
-        ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (run,run))
-        ls.append("analysis/conserv/%s/%s_conserv.R" % (run,run))
-        ls.append("analysis/conserv/%s/%s_conserv.png" % (run,run))
-        ls.append("analysis/conserv/%s/%s_conserv_thumb.png" % (run,run))
-
+        for rep in _reps[run]:
+            #GENERATE Run name: concat the run and rep name
+            runRep = "%s.%s" % (run, rep)
+            ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
+            ls.append("analysis/conserv/%s/%s_conserv.R" % (runRep,runRep))
+            ls.append("analysis/conserv/%s/%s_conserv.png" % (runRep,runRep))
+            ls.append("analysis/conserv/%s/%s_conserv_thumb.png" % (runRep,runRep))
     return ls
 
 rule conservation_all:
@@ -26,9 +29,9 @@ rule conservation_all:
 rule top5k_peaks:
     """take the top 5000 peaks, sorted by score"""
     input:
-        "analysis/peaks/{run}/{run}_sorted_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     output:
-        "analysis/peaks/{run}/{run}_sorted_5k_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     params:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
@@ -39,18 +42,18 @@ rule top5k_peaks:
 rule conservation:
     """generate conservation plots"""
     input:
-        "analysis/peaks/{run}/{run}_sorted_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     output:
-        png="analysis/conserv/{run}/{run}_conserv.png",
-        thumb="analysis/conserv/{run}/{run}_conserv_thumb.png",
-        r="analysis/conserv/{run}/{run}_conserv.R",
-        score="analysis/conserv/{run}/{run}_conserv.txt",
+        png="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.png",
+        thumb="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv_thumb.png",
+        r="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.R",
+        score="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.txt",
     params:
         db=config['conservation'],
         width=4000,
-        run = lambda wildcards: wildcards.run,
+        #run = lambda wildcards: wildcards.run,
+        run="{run}.{rep}" ,
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        #name= wildcards.run
     message: "CONSERVATION: calling conservation script"
     log: _logfile
     shell:

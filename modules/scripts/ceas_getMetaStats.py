@@ -25,7 +25,7 @@ def main():
 
     for f in options.files:
         #TRY to infer the RUN NAMES
-        runID = f.strip().split("/")[-1].split('.')[0]
+        runID = ".".join(f.strip().split("/")[-1].split('.')[:-1])
         if runID.endswith('_summary'):
             runID = runID.replace("_summary","")
 

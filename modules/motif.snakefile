@@ -9,8 +9,12 @@ def motif_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for run in config["runs"].keys():
-        ls.append("analysis/motif/%s/results/mdseqpos_index.html" % run)
-        ls.append("analysis/motif/%s/results/motif_list.json" % run)
+        #NOTE: using the fact that _reps has this info parsed already!
+        for rep in _reps[run]:
+            #GENERATE Run name: concat the run and rep name
+            runRep = "%s.%s" % (run, rep)
+            ls.append("analysis/motif/%s/results/mdseqpos_index.html" % runRep)
+            ls.append("analysis/motif/%s/results/motif_list.json" % runRep)
     ls.append("analysis/motif/motifSummary.csv")
     return ls
 
@@ -44,15 +48,16 @@ def _createEmptyMotif(motif_html, motif_json):
 rule motif:
     """call MDSeqpos on top 5k summits"""
     input:
-        bed = "analysis/peaks/{run}/{run}_sorted_5k_summits.bed"
+        #KEY: Since motif analysis is costly, we're only running it on rep1
+        bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
-        results="analysis/motif/{run}/results",
-        html="analysis/motif/{run}/results/mdseqpos_index.html",
-        json="analysis/motif/{run}/results/motif_list.json",
+        results="analysis/motif/{run}.{rep}/results",
+        html="analysis/motif/{run}.{rep}/results/mdseqpos_index.html",
+        json="analysis/motif/{run}.{rep}/results/motif_list.json",
     params:
-        path=config['motif_path'],
+        genome=config['motif_path'],
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        run = lambda wildcards: wildcards.run,
+        runName = "{run}.{rep}"
     message: "MOTIF: calling MDSeqPos on top 5k summits"
     log: _logfile
     run:
@@ -64,7 +69,7 @@ rule motif:
 
         if wc >= _minPeaks:
             #PASS- run motif scan
-            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.path} -m cistrome.xml -d -O analysis/motif/{params.run}/results 1>>{log}")
+            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results 1>>{log}")
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html, output.json)
@@ -72,7 +77,7 @@ rule motif:
 rule getMotifSummary:
     """Summarize the top hits for each run into a file"""
     input:
-        expand("analysis/motif/{run}/results/motif_list.json", run=config['runs'])
+        _getRepInput("analysis/motif/$runRep/results/motif_list.json")
     output:
         "analysis/motif/motifSummary.csv"
     message: "MOTIF: summarizing motif runs"

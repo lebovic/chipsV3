@@ -6,6 +6,8 @@ import subprocess
 import pandas as pd
 import yaml
 
+from string import Template
+
 def getRuns(config):
     """parse metasheet for Run groupings"""
     #metadata = pd.read_table(config['metasheet'], index_col=0, sep=',', comment='#')    
@@ -61,6 +63,48 @@ addPy2Paths_Config(config)
 #NOW load ref.yaml - SIDE-EFFECT: loadRef CHANGES config
 loadRef(config)
 #-----------------------------------------
+
+#------------------------------------------------------------------------------
+# Handle replicates
+#------------------------------------------------------------------------------
+#used to define the replicate structure
+_reps = {}
+for run in config['runs'].keys():
+    r = config['runs'][run]
+    tmp = []
+    for (rep, i) in enumerate(range(0, len(r), 2)):
+        if r[i]: tmp.append("rep%s" % str(rep+1))
+    _reps[run] = tmp
+#print(_reps)
+
+#NOTE: Template class allows for _ in the variable names, we want to DISALLOW
+#that for replicates
+#ref: http://stackoverflow.com/questions/2326757/string-templates-in-python-what-are-legal-characters
+class RepTemplate(Template):
+    idpattern = r'[a-z][a-z0-9]*'
+
+#THIS helper fn is used in several of the modules peaks, ceas, frips
+#Instead of an expand, we need this fn to create the CORRECT input-list
+def _getRepInput(temp, suffix=""):
+    """generalized input fn to get the replicate files
+    CALLER passes in temp: a python string template that has the var runRep
+    e.g. analysis/ceas/$runRep/$runRep_DHS_stats.txt
+    Return: list of the string template filled with the correct runRep names
+    """
+    #print(temp)
+    s = RepTemplate(temp)
+    ls = []
+    for run in config['runs'].keys():
+        for rep in _reps[run]:
+            #GENERATE Run name: concat the run and rep name
+            runRep = "%s.%s" % (run, rep)
+            ls.append(s.substitute(runRep=runRep,))
+    #print(ls)
+    return ls
+
+#------------------------------------------------------------------------------
+# TARGETS
+#------------------------------------------------------------------------------
 
 def all_targets(wildcards):
     _qdnaseq = config["cnv_analysis"]

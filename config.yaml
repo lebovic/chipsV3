@@ -18,8 +18,10 @@ contamination_panel:
   #- /some/path/to/BWA/e_coli.fasta
   #- /some/path/to/BWA/yeast.fasta
   - /data/static_libraries/bwa_indices/hg19/hg19.fa
-  - /data/static_libraries/bwa_indices/e_coli/e_coli.fasta
+  - /data/static_libraries/bwa_indices/mm9/mm9.fa
+  - /data/static_libraries/bwa_indices/dm3/dm3.fa
   - /data/static_libraries/bwa_indices/S_cerevisiae/S_cerevisiae.fa
+  - /data/static_libraries/bwa_indices/e_coli/e_coli.fasta
 
 #NOTE: optional CNV analysis using QDNAseq R pkg
 cnv_analysis: false
@@ -32,8 +34,12 @@ cnv_analysis: false
 #   - data/sample1_pair1.fastq
 #   - data/sample1_pair2.fastq
 # WARNING: DO not mix Paired-END and Single-End samples!!!
+# ALSO: having the string "rep" or '.' in your sample name will throw an ERROR
+# '.' causes Rscripts chop off names; and it's used as replicate splitter
 samples:
   SAMPLE1:
     - data/sample1.fastq.gz
+  SAMPLE1_input:
+    - data/sample1.input.fastq.gz
   SAMPLE2:
     - data/sample2.fastq.gz
