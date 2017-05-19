@@ -128,10 +128,10 @@ rule target:
         all_targets,
 
     message: "Compiling all output"
-if config['aligner'] == 'bwa':
-    include: "./modules/align_bwa.snakefile"     # rules specific to BWA
-else:
+if config['aligner'] == 'bwt2':
     include: "./modules/align_bwt2.snakefile"     # rules specific to Bowtie2
+else:
+    include: "./modules/align_bwa.snakefile"      # rules specific to BWA
 
 include: "./modules/align_common.snakefile"  # common align rules
 include: "./modules/peaks.snakefile"         # peak calling rules
@@ -139,7 +139,12 @@ include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
 include: "./modules/conservation.snakefile"  # generate conservation plot
 include: "./modules/ceas.snakefile"          # annotate peak regions
 include: "./modules/frips.snakefile"         # fraction of reads in peaks
-include: "./modules/motif.snakefile"         # motif module
+
+if config['motif'] == 'mdseqpos':
+    include: "./modules/motif_mdseqpos.snakefile"     # mdseqpos motif module
+else:
+    include: "./modules/motif_homer.snakefile"        # mdseqpos motif module
+
 include: "./modules/contamination.snakefile" # contamination panel module
 include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
 include: "./modules/report.snakefile"        # report module

@@ -3,6 +3,9 @@ channels:
 - r
 - bioconda
 - defaults
+# percyfal and danielballan only used for homer
+- percyfal
+- danielballan
 dependencies:
 - bedtools=2.25.0=2
 - bioconductor-seqlogo
@@ -112,3 +115,6 @@ dependencies:
 - r-survival=2.39_4=r3.3.1_0
 - r-tibble=1.2=r3.3.1_0
 - seqtk
+- perl=5.18.2
+- homer=4.7
+

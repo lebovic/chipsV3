@@ -6,9 +6,14 @@ ref: "chips/ref.yaml"
 assembly: hg19
 
 #ALIGNER: if you want to use bowtie2, set your aligner as 'bwt2'
-#OTHERWISE leave it as 'bwa' 
+#OTHERWISE leave it as 'bwa' (default)
 aligner: 'bwa'
 #aligner: 'bwt2'
+
+#MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'
+#OTHERWISE leave it as 'homer' (default) 
+motif: 'homer'
+#motif: 'mdseqpos'
 
 #NOTE: optional contamination panel to check sample contamination against
 #Each element should be a path to the INDEX for the aligner you want to use

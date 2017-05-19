@@ -48,8 +48,11 @@ def genPeakSummitsTable(conservPlots,motifSummary):
     #parse MotifSummary
     motifs = parseMotifSummary(motifSummary)
     runs = sorted(list(motifs.keys()))
-    #HEADER
-    hdr = ["Run", "Conservation","MotifID","MotifName","Logo","Zscore"]
+    #HEADER- PROCESS the different modules differently
+    if config['motif'] == 'mdseqpos':
+        hdr = ["Run", "Conservation","MotifID","MotifName","Logo","Zscore"]
+    else:
+        hdr = ["Run", "Conservation","Motif","Logo","Pval","LogPval"]
     #BUILD up the rest of the table
     rest = []
     for run,img in zip(runs,conservPlots):
@@ -64,7 +67,12 @@ def genPeakSummitsTable(conservPlots,motifSummary):
         else:
             motif_logo = "NA"
 
-        rest.append([run, conserv, motifs[run]['motifId'], motifs[run]['motifName'], motif_logo,  motifs[run]['zscore']])
+        #PROCESS the different modules differently
+        if config['motif'] == 'mdseqpos':
+            rest.append([run, conserv, motifs[run]['motifId'], motifs[run]['motifName'], motif_logo,  motifs[run]['zscore']])
+        else:
+            rest.append([run, conserv, motifs[run]['motifName'], motif_logo, motifs[run]['pval'],motifs[run]['logp']])
+
     ret = tabulate(rest, hdr, tablefmt="rst")
     return ret
 
@@ -78,7 +86,10 @@ def parseMotifSummary(motif_csv):
     hdr = f.readline().strip().split(",")
     for l in f:
         tmp = l.strip().split(",")
-        ret[tmp[0]] = {'motifId': tmp[1], 'motifName': tmp[2], 'logo': tmp[3], 'zscore': tmp[4]}
+        if config['motif'] == 'mdseqpos':
+            ret[tmp[0]] = {'motifId': tmp[1], 'motifName': tmp[2], 'logo': tmp[3], 'zscore': tmp[4]}
+        else:
+            ret[tmp[0]] = {'motifName':tmp[1], 'logo':tmp[2], 'pval': tmp[3], 'logp': tmp[4]}
     f.close()
     return ret
 
