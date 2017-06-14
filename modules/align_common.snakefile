@@ -43,10 +43,12 @@ rule uniquely_mapped_reads:
         "analysis/align/{sample}/{sample}_unique.bam"
     message: "ALIGN: Filtering for uniquely mapped reads"
     log: _logfile
+    threads: _align_threads
     shell:
         #NOTE: this is the generally accepted way of doing this as multiply 
         #mapped reads have a Quality score of 0
-        "samtools view -bq 1 {input} > {output}"
+        #NOTE: -@ = --threads
+        "samtools view -bq 1 -@ {threads} {input} > {output}"
 
 rule map_stats:
     """Get the mapping stats for each aligment run"""
@@ -59,6 +61,7 @@ rule map_stats:
         "analysis/align/{sample}/{sample}_mapping.txt"
     message: "ALIGN: get mapping stats for each bam"
     log: _logfile
+    #CAN/should samtools view be multi-threaded
     shell:
         #FLAGSTATS is the top of the file, and we append the uniquely mapped
         #reads to the end of the file
@@ -90,7 +93,8 @@ rule sortBams:
     log: _logfile
     threads: _align_threads
     shell:
-        "samtools sort {input} -o {output} 2>>{log}"
+        #NOTE: -@ = --threads
+        "samtools sort {input} -o {output} -@ {threads} 2>>{log}"
 
 rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -103,7 +107,8 @@ rule sortUniqueBams:
     log: _logfile
     threads: _align_threads
     shell:
-        "samtools sort {input} -o {output} --threads {threads} 2>>{log}"
+        #NOTE: -@ = --threads
+        "samtools sort {input} -o {output} -@ {threads} 2>>{log}"
 
 rule dedupSortedUniqueBams:
     """Dedup sorted unique bams using PICARD
@@ -145,7 +150,8 @@ rule extractUnmapped:
         #"samtools view -b -f 4 --threads {threads} {input} >{output} 2>>{log}"
         #THIS extracts all READ (pairs) where at least one in unmapped
         #ref: https://www.biostars.org/p/56246/ search "rgiannico"
-        "samtools view -b -F 2 --threads {threads} {input} > {output} 2>>{log}"
+        #NOTE: -@ = --threads
+        "samtools view -b -F 2 -@ {threads} {input} > {output} 2>>{log}"
 
 rule bamToFastq:
     """Convert the unmapped.bam to fastq"""
