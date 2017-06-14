@@ -10,18 +10,16 @@ from string import Template
 
 def getRuns(config):
     """parse metasheet for Run groupings"""
-    #metadata = pd.read_table(config['metasheet'], index_col=0, sep=',', comment='#')    
-    #config['runs'] = metadata.index
     ret = {}
-    f = open(config['metasheet'])
-    hdr=f.readline().strip().split(',')
-    for l in f:
-        if not len(l.strip()) or l.startswith("#"): #skip blanklines, comments
-            continue
-        else: #read in the real line
-            tmp = l.strip().split(",")
-            #print(tmp)
-            ret[tmp[0]] = tmp[1:]
+
+    #LEN: Weird, but using pandas to handle the comments in the file
+    metadata = pd.read_table(config['metasheet'], index_col=0, sep=',', comment='#')
+    f = metadata.to_csv().split() #make it resemble an actual file with lines
+    #SKIP the hdr
+    for l in f[1:]:
+        tmp = l.strip().split(",")
+        #print(tmp)
+        ret[tmp[0]] = tmp[1:]
 
     #print(ret)
     config['runs'] = ret
