@@ -117,4 +117,4 @@ dependencies:
 - seqtk
 - perl=5.18.2
 - homer=4.7
-
+- weblogo
