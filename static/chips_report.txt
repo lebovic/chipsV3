@@ -38,3 +38,7 @@ Peaks Summary Table
 Contamination Panel
 =====================
 {contaminationPanel}
+
+GC distribution plots
+=====================
+{fastqcGCplots}

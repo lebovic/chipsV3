@@ -10,6 +10,9 @@ def fastqc_targets(wildcards):
         ls.append("analysis/fastqc/%s/%s_perSeqGC.txt" % (sample,sample))
         ls.append("analysis/fastqc/%s/%s_perSeqQual.txt" % (sample,sample))
         ls.append("analysis/fastqc/%s/%s_stats.csv" % (sample,sample))
+        ls.append("analysis/fastqc/%s/%s_perSeqGC.png" % (sample,sample))
+        ls.append("analysis/fastqc/%s/%s_perSeqGC_thumb.png" % (sample,sample))
+
     ls.append("analysis/fastqc/fastqc.csv")
     return ls
 
@@ -160,3 +163,19 @@ rule collect_fastQCStats:
     run:
         files = " -f ".join(input)
         shell("chips/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output} 2>>{log}")
+
+rule plot_fastQC_GC:
+    """Plots the GC distribution of the sample according to data in
+    perSeqGC.txt.  
+    Generates a full-size image and *thumbnail image* (embedded into report)
+    """
+    input:
+        gc = "analysis/fastqc/{sample}/{sample}_perSeqGC.txt",
+    output:
+        png="analysis/fastqc/{sample}/{sample}_perSeqGC.png",
+        thumb="analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png",
+    message:
+        "FASTQC: generating GC content distrib. plots"
+    log: _logfile
+    shell:
+        "Rscript chips/modules/scripts/fastqc_plotGC.R {input.gc} {output.png} {output.thumb}"

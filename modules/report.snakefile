@@ -93,6 +93,26 @@ def parseMotifSummary(motif_csv):
     f.close()
     return ret
 
+def genFastQC_table(samples, fastqc_gc_plots):
+    """generates rst formatted table that will contain the fastqc GC dist. plot
+    for all samples
+    hdr = array of header/column elms
+    NOTE: we use the thumb nail image for the GC content plots
+    """
+    samples = sorted(samples)
+    hdr = ["Sample", "GC distribution"]
+    rest=[]
+
+    for sample,img in zip(samples,fastqc_gc_plots):
+        #HANDLE null values
+        if img and (img != 'NA'):
+            gc_plot = ".. image:: %s" % data_uri(img)
+        else:
+            gc_plot = "NA"
+        rest.append([sample, gc_plot])
+    ret = tabulate(rest, hdr, tablefmt="rst")
+    return ret
+
 rule report_all:
     input:
         report_targets
@@ -109,6 +129,9 @@ rule report:
 	runs_summary="analysis/report/runsSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",
         motif="analysis/motif/motifSummary.csv",
+        fastqc_gc_plots = expand("analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"]),
+    params:
+        samples = config['samples']
     output: html="analysis/report/report.html"
     run:
         (macsVersion, fdr) = processRunInfo(input.run_info)
@@ -116,6 +139,7 @@ rule report:
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
         peakSummitsTable = genPeakSummitsTable(input.conservPlots, input.motif)
         contaminationPanel = csvToSimpleTable(input.contam_panel)
+        fastqcGCplots = genFastQC_table(params.samples, input.fastqc_gc_plots)
         tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png))
         #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)
