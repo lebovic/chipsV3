@@ -7,9 +7,9 @@ def fastqc_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for sample in config["samples"]:
-        ls.append("analysis/fastqc/%s_perSeqGC.txt" % sample)
-        ls.append("analysis/fastqc/%s_perSeqQual.txt" % sample)
-        ls.append("analysis/fastqc/%s_stats.csv" % sample)
+        ls.append("analysis/fastqc/%s/%s_perSeqGC.txt" % (sample,sample))
+        ls.append("analysis/fastqc/%s/%s_perSeqQual.txt" % (sample,sample))
+        ls.append("analysis/fastqc/%s/%s_stats.csv" % (sample,sample))
     ls.append("analysis/fastqc/fastqc.csv")
     return ls
 
@@ -97,22 +97,24 @@ rule call_fastqc:
     output:
         #"analysis/fastqc/{sample}_100k_fastqc"
         #MAKE temp
-        "analysis/fastqc/{sample}_100k_fastqc/fastqc_data.txt",
+        "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt",
         #"analysis/fastqc/{sample}_100k_fastqc/
-        temp("analysis/fastqc/{sample}_100k_fastqc.html"),
-        temp("analysis/fastqc/{sample}_100k_fastqc.zip")
+        temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.html"),
+        temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.zip")
     #threads:
+    params:
+        sample = lambda wildcards: wildcards.sample
     message: "FASTQC: call fastqc"
     log:_logfile
     shell:
-        "fastqc {input} --extract -o analysis/fastqc 2>>{log}"
+        "fastqc {input} --extract -o analysis/fastqc/{params.sample} 2>>{log}"
 
 rule get_PerSequenceQual:
     """extract per sequence quality from fastqc_data.txt"""
     input:
-        "analysis/fastqc/{sample}_100k_fastqc/fastqc_data.txt"
+        "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
     output:
-        "analysis/fastqc/{sample}_perSeqQual.txt"
+        "analysis/fastqc/{sample}/{sample}_perSeqQual.txt"
     params:
         #DON'T forget quotes
         section="'Per sequence quality'"
@@ -124,9 +126,9 @@ rule get_PerSequenceQual:
 rule get_PerSequenceGC:
     """extract per sequence GC contentfrom fastqc_data.txt"""
     input:
-        "analysis/fastqc/{sample}_100k_fastqc/fastqc_data.txt"
+        "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
     output:
-        "analysis/fastqc/{sample}_perSeqGC.txt"
+        "analysis/fastqc/{sample}/{sample}_perSeqGC.txt"
     params:
         #DON'T forget quotes
         section="'Per sequence GC content'"
@@ -138,10 +140,10 @@ rule get_PerSequenceGC:
 rule extract_FastQCStats:
     """extract per sequence GC content, and seq qual stats from fastqc run"""
     input:
-        gc = "analysis/fastqc/{sample}_perSeqGC.txt",
-        qual = "analysis/fastqc/{sample}_perSeqQual.txt"
+        gc = "analysis/fastqc/{sample}/{sample}_perSeqGC.txt",
+        qual = "analysis/fastqc/{sample}/{sample}_perSeqQual.txt"
     output:
-        "analysis/fastqc/{sample}_stats.csv"
+        "analysis/fastqc/{sample}/{sample}_stats.csv"
     message: "FASTQC: extract_FastQCStats"
     log:_logfile
     shell:
@@ -150,7 +152,7 @@ rule extract_FastQCStats:
 rule collect_fastQCStats:
     """Collect and parse out the fastqc stats for the ALL of the samples"""
     input:
-        expand("analysis/fastqc/{sample}_stats.csv", sample=config["samples"])
+        expand("analysis/fastqc/{sample}/{sample}_stats.csv", sample=config["samples"])
     output:
         "analysis/fastqc/fastqc.csv"
     message: "FASTQC: collect and parse ALL mapping stats"
