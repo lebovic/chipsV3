@@ -93,14 +93,38 @@ def parseMotifSummary(motif_csv):
     f.close()
     return ret
 
-def genFastQC_table(samples, fastqc_gc_plots):
+def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
     """generates rst formatted table that will contain the fastqc GC dist. plot
     for all samples
     hdr = array of header/column elms
     NOTE: we use the thumb nail image for the GC content plots
     """
-    samples = sorted(samples)
-    hdr = ["Sample", "GC distribution"]
+    #READ in fastqc_stats
+    f_stats = {}
+    f = open(fastqc_stats)
+    hdr = f.readline().strip().split(",")  #largely ignored
+    for l in f:
+        tmp = l.strip().split(",")
+        #store GC content, 3 col, using sample names as keys
+        f_stats[tmp[0]] = tmp[2]
+    f.close()
+    
+    #READ in contam_panel
+    contam = {}
+    f = open(contam_table)
+    hdr = f.readline().strip().split(',') #We'll use this!
+    species = hdr[1:]
+    for l in f:
+        tmp = l.strip().split(",")
+        #build dict, use sample name as key
+        contam[tmp[0]] = zip(species, tmp[1:]) #dict of tupes, (species, %)
+    f.close()
+    
+    #build output
+    ret=[]
+    samples = sorted(list(f_stats.keys()))
+    hdr = ["Sample", "GC median", "GC distribution"]
+    hdr.extend(species)
     rest=[]
 
     for sample,img in zip(samples,fastqc_gc_plots):
@@ -109,7 +133,12 @@ def genFastQC_table(samples, fastqc_gc_plots):
             gc_plot = ".. image:: %s" % data_uri(img)
         else:
             gc_plot = "NA"
-        rest.append([sample, gc_plot])
+        #get rest of values and compose row
+        contam_values = [v for (s, v) in contam[sample]]
+        row = [sample, f_stats[sample], gc_plot]
+        row.extend(contam_values)
+
+        rest.append(row)
     ret = tabulate(rest, hdr, tablefmt="rst")
     return ret
 
@@ -129,8 +158,10 @@ rule report:
 	runs_summary="analysis/report/runsSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",
         motif="analysis/motif/motifSummary.csv",
+        fastqc_stats="analysis/fastqc/fastqc.csv",
         fastqc_gc_plots = expand("analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"]),
     params:
+        #OBSOLETE, but keeping around
         samples = config['samples']
     output: html="analysis/report/report.html"
     run:
@@ -138,10 +169,8 @@ rule report:
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
         peakSummitsTable = genPeakSummitsTable(input.conservPlots, input.motif)
-        contaminationPanel = csvToSimpleTable(input.contam_panel)
-        fastqcGCplots = genFastQC_table(params.samples, input.fastqc_gc_plots)
+        sampleGCandContam = sampleGCandContam_table(input.fastqc_stats, input.fastqc_gc_plots, input.contam_panel)
         tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png))
-        #report(_ReportTemplate, output.html, metadata="Len Taing", **input)
         report(tmp, output.html, metadata="Len Taing", **input)
 
 rule samples_summary_table:

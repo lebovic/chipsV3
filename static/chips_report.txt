@@ -35,10 +35,6 @@ Peaks Summary Table
 
 {runsSummaryTable}
 
-Contamination Panel
-=====================
-{contaminationPanel}
-
-GC distribution plots
-=====================
-{fastqcGCplots}
+Sample GC information and Contamination Panel
+=============================================
+{sampleGCandContam}

@@ -87,7 +87,7 @@ def main():
         dhs = float(tmp[r]['DHS'])
         tot = int(tmp[r]['Total'])
         ratio = dhs/tot if tot else 'NA'
-        stats[r]['DHS_peaks'] = "%s (%.2f%%)" % (dhs, ratio*100) if ratio != 'NA' else "NA"
+        stats[r]['DHS_peaks'] = "%s (%.2f%%)" % (int(dhs), ratio*100) if ratio != 'NA' else "NA"
 
     #HANDLE META--only report percentages!
     metaFld = 'Promoter/Exon/Intron/Intergenic' #save key for consistency
