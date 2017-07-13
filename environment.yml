@@ -17,7 +17,7 @@ dependencies:
 - filechunkio=1.6=py35_0
 - ftputil=3.2=py35_0
 - java-jdk=8.0.92=1
-- libxml2=2.9.3=0
+- libxml2
 - perl-threaded=5.22.0=10
 - picard=1.141
 - pysftp=0.2.8=py35_0
