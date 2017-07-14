@@ -20,7 +20,7 @@ def main():
 
     print(",".join(["Sample","MedianQuality","MedianGC"]))
 
-    for f in options.files:
+    for f in sorted(options.files):
         #UGH: this script is ugly!!
         #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
         sampleID = f.strip().split("/")[-1].split('.')[0]

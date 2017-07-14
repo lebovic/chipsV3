@@ -155,7 +155,7 @@ rule extract_FastQCStats:
 rule collect_fastQCStats:
     """Collect and parse out the fastqc stats for the ALL of the samples"""
     input:
-        expand("analysis/fastqc/{sample}/{sample}_stats.csv", sample=config["samples"])
+        expand("analysis/fastqc/{sample}/{sample}_stats.csv", sample=sorted(config["samples"]))
     output:
         "analysis/fastqc/fastqc.csv"
     message: "FASTQC: collect and parse ALL mapping stats"

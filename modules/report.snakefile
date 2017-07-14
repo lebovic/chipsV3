@@ -119,6 +119,14 @@ def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
         #build dict, use sample name as key
         contam[tmp[0]] = zip(species, tmp[1:]) #dict of tupes, (species, %)
     f.close()
+
+    #PUT GC plots into a dictionary--keys are sample names
+    plots = {}
+    for p in fastqc_gc_plots:
+        #NOTE the path structure is analysis/fastqc/{sample}/png_filename
+        #we take second to last
+        tmp = p.split("/")[-2]
+        plots[tmp] = p
     
     #build output
     ret=[]
@@ -127,10 +135,10 @@ def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
     hdr.extend(species)
     rest=[]
 
-    for sample,img in zip(samples,fastqc_gc_plots):
+    for sample in samples:
         #HANDLE null values
-        if img and (img != 'NA'):
-            gc_plot = ".. image:: %s" % data_uri(img)
+        if plots[sample] and (plots[sample] != 'NA'):
+            gc_plot = ".. image:: %s" % data_uri(plots[sample])
         else:
             gc_plot = "NA"
         #get rest of values and compose row
