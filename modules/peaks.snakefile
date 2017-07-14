@@ -69,6 +69,7 @@ def peaks_targets(wildcards):
             ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak.bed" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (runRep,runRep))
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
     return ls
@@ -85,6 +86,7 @@ rule macs2_callpeaks:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
         "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed",
         "analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg",
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_control_lambda.bdg",
     params:
         fdr=_macs_fdr,
         keepdup=_macs_keepdup,
