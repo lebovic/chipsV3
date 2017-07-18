@@ -56,8 +56,7 @@ rule contamination:
     input:
         get100k_sample
     output:
-        #TEMP file
-        "analysis/contam/{sample}/{sample}.{panel}.bam"
+        temp("analysis/contam/{sample}/{sample}.{panel}.bam")
     params:
         index=lambda wildcards: _contaminationDict[wildcards.panel],
         bwa_q = _bwa_q,

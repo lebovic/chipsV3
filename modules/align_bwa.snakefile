@@ -10,7 +10,7 @@ rule bwa_mem:
     input:
         getFastq
     output:
-        "analysis/align/{sample}/{sample}.bam"
+        temp("analysis/align/{sample}/{sample}.bam")
     params:
         index=config['bwa_index'],
     threads: _bwa_threads

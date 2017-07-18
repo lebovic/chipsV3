@@ -56,8 +56,7 @@ rule sample_fastq:
     input:
         getFastq3
     output:
-        #MAKE temp
-        "analysis/align/{sample}/{sample}_100k.fastq"
+        temp("analysis/align/{sample}/{sample}_100k.fastq")
     params:
         seed=11,
         #how many to sample
@@ -75,7 +74,7 @@ rule sample_bam:
     params:
         n=100000
     output:
-        "analysis/align/{sample}/{sample}_100k.bam"
+        temp("analysis/align/{sample}/{sample}_100k.bam")
     message: "FASTQC: sampling 100k reads from bam"
     log:_logfile
     shell:
@@ -86,7 +85,7 @@ rule convertBamToFastq:
     input:
         "analysis/align/{sample}/{sample}_100k.bam"
     output:
-        "analysis/align/{sample}/{sample}_100k.bam.fastq"
+        temp("analysis/align/{sample}/{sample}_100k.bam.fastq")
     message: "FASTQC: converting 100k.bam to 100k.fastq"
     log:_logfile
     shell:
@@ -95,13 +94,10 @@ rule convertBamToFastq:
 rule call_fastqc:
     """CALL FASTQC on each sub-sample"""
     input:
-        #"analysis/align/{sample}/{sample}_100k.fastq"
         getFastqcInput
     output:
-        #"analysis/fastqc/{sample}_100k_fastqc"
         #MAKE temp
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt",
-        #"analysis/fastqc/{sample}_100k_fastqc/
         temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.html"),
         temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.zip")
     #threads:

@@ -56,8 +56,7 @@ rule create_nonChrM:
     message: "FRiPs: creating the nonChrM SAM file"
     log:_logfile
     output:
-        #make temp
-        'analysis/align/{sample}/{sample}_nonChrM.sam'
+        temp('analysis/align/{sample}/{sample}_nonChrM.sam')
     shell:
         "samtools view -h {input} | sed -e {params.regex} > {output} 2>>{log}"
 
@@ -73,8 +72,7 @@ rule sample_4M_from_nonChrM:
     message: "FRiPs: sample- 4M from non-chrM reads"
     log:_logfile
     output:
-        #make temp
-        'analysis/align/{sample}/{sample}_4M_nonChrM.bam'
+        temp('analysis/align/{sample}/{sample}_4M_nonChrM.bam')
     shell:
         """
         chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
@@ -89,8 +87,7 @@ rule create_unique_nonChrM:
     message: "FRiPs: create uniquely mapped non-chrM reads"
     log:_logfile
     output:
-        #make temp
-        'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
+        temp('analysis/align/{sample}/{sample}_unique_nonChrM.bam')
     shell:
         "samtools view -b -h -F 4 {input} > {output} 2>>{log}"
 
@@ -106,8 +103,7 @@ rule sample_4M_from_uniqueNonChrM:
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads"
     log:_logfile
     output:
-        #make temp
-        'analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam'
+        temp('analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam')
     shell:
         """
         chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
@@ -158,12 +154,11 @@ rule nonChrM_stats:
     """Get the nonChrM mapping stats for each aligment run"""
     input:
         #NOTE: uniq_bam is generated in align_common module-
-        #HACK- taking advantage that this moulde is loaded AFTER align_common
+        #HACK- taking advantage that this module is loaded AFTER align_common
         uniq_bam="analysis/align/{sample}/{sample}_unique.bam",
         nonChrM_bam="analysis/align/{sample}/{sample}_unique_nonChrM.bam"
     output:
-        #temp("analysis/align/{sample}/{sample}_mapping.txt")
-        "analysis/align/{sample}/{sample}_nonChrM_stat.txt"
+        temp("analysis/align/{sample}/{sample}_nonChrM_stat.txt")
     message: "ALIGN: get nonChrM mapping stats for each bam"
     log: _logfile
     shell:

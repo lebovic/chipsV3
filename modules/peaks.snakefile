@@ -70,6 +70,9 @@ def peaks_targets(wildcards):
             ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_treat_pileup.sorted.bdg.gz" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_control_lambda.sorted.bdg.gz" % (runRep,runRep))
+
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
     return ls
@@ -85,8 +88,8 @@ rule macs2_callpeaks:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
         "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed",
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg",
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_control_lambda.bdg",
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg"),
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}_control_lambda.bdg"),
     params:
         fdr=_macs_fdr,
         keepdup=_macs_keepdup,
@@ -158,6 +161,19 @@ rule bdgToBw:
     log:_logfile
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
+
+rule gzip_bdg:
+    """Space saving rule to compress the bdg output"""
+    input:
+        bdg="analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg",
+        #NOTE: the .bw is NOT used, but it helps ensure rule bdgToBw runs first
+        bw="analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bw"
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg.gz"
+    message: "PEAKS: compressing sorted.bdg"
+    log:_logfile
+    shell:
+        "gzip {input.bdg} 2>> {log}"
 
 rule getPeaksStats:
     """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""

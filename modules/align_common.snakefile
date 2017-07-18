@@ -7,6 +7,7 @@ def align_targets(wildcards):
     ls = []
     for sample in config["samples"]:
         ls.append("analysis/align/%s/%s.sorted.bam" % (sample,sample))
+        ls.append("analysis/align/%s/%s.sorted.bam.bai" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
@@ -40,7 +41,7 @@ rule uniquely_mapped_reads:
         #"analysis/align/{sample}/{sample}.bam"
         getBam
     output:
-        "analysis/align/{sample}/{sample}_unique.bam"
+        temp("analysis/align/{sample}/{sample}_unique.bam")
     message: "ALIGN: Filtering for uniquely mapped reads"
     log: _logfile
     threads: _align_threads
@@ -102,7 +103,7 @@ rule sortUniqueBams:
     input:
         "analysis/align/{sample}/{sample}_unique.bam"
     output:
-        "analysis/align/{sample}/{sample}_unique.sorted.bam"
+        temp("analysis/align/{sample}/{sample}_unique.sorted.bam")
     message: "ALIGN: sort bam file"
     log: _logfile
     threads: _align_threads
@@ -140,8 +141,7 @@ rule extractUnmapped:
         #"analysis/align/{sample}/{sample}.bam"
         getBam
     output:
-        #THIS should be TEMP
-        "analysis/align/{sample}/{sample}.unmapped.bam"
+        temp("analysis/align/{sample}/{sample}.unmapped.bam")
     message: "ALIGN: extract unmapped reads"
     log: _logfile
     threads: _align_threads
