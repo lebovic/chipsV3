@@ -116,8 +116,30 @@ def all_targets(wildcards):
     ls.extend(frips_targets(wildcards))
     ls.extend(motif_targets(wildcards))
     ls.extend(contamination_targets(wildcards))
+
+    #HANDLE CNV/qdnaseq analysis
     if _qdnaseq:
-        ls.extend(qdnaseq_targets(wildcards))
+        #ls.extend(qdnaseq_targets(wildcards))
+
+        #check for some inputs
+        hasInput = False
+
+        #HACK: for some reason, using the following line causes errors
+        #for (run, ls) in config['runs'].items():
+        #SO we call getRuns (from above) using a simplified config
+        tmp_config = {'metasheet': config['metasheet']}
+        runs = getRuns(tmp_config)['runs'].copy()
+        for (run) in runs.keys():
+            #NOTE: if i do this, this is an error!
+            #ls = runs[run]
+            if runs[run][1] or runs[run][3]:
+                #these are the control sample indices
+                hasInput = True
+                break
+
+        if hasInput:
+            ls.extend(qdnaseq_targets(wildcards))
+
     ls.extend(report_targets(wildcards))
     return ls
 

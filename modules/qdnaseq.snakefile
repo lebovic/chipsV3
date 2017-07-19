@@ -12,6 +12,28 @@ def qdnaseq_targets(wildcards):
     ls.append("analysis/qdnaseq/qdnaseq_calls.igv")
     return ls
 
+#NOTE: can not initialize _run_controls to [], otherwise getControls won't run
+_run_controls = None
+def getControls(wildcards):
+    """Tries to grab only the control files for each run.
+    NOTE: one control can be used for multiple runs--we only use it once"""
+    tmp = []
+    for (runs, ls) in config['runs'].items():
+        if ls[1]:
+            tmp.append(ls[1])
+        if ls[3]:
+            tmp.append(ls[3])
+
+    #get only unique by making it a set
+    _run_controls = set(tmp)
+    #print(_run_controls)
+
+    #this is wrong...try the other
+    #ret = ["analysis/align/%s/%s_unique.sorted.bam" % (s, s) for s in _run_controls]
+    ret = [".tmp/%s_unique.sorted.bam" % s for s in _run_controls]
+    #print(ret)
+    return ret
+
 rule qdnaseq_all:
     input:
         qdnaseq_targets
@@ -30,7 +52,7 @@ rule qdnaseq_linkFiles:
 rule qdnaseq:
     """performs qdnaseq analysis on ALL of the samples (made by linkFiles)"""
     input:
-        expand(".tmp/{sample}_unique.sorted.bam", sample=config["samples"]),
+        getControls
     output:
         "analysis/qdnaseq/qdnaseq.bed",
         "analysis/qdnaseq/qdnaseq.igv",

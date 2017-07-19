@@ -103,7 +103,8 @@ rule sortUniqueBams:
     input:
         "analysis/align/{sample}/{sample}_unique.bam"
     output:
-        temp("analysis/align/{sample}/{sample}_unique.sorted.bam")
+        #CANNOT temp this b/c it's used by qdnaseq!
+        "analysis/align/{sample}/{sample}_unique.sorted.bam"
     message: "ALIGN: sort bam file"
     log: _logfile
     threads: _align_threads

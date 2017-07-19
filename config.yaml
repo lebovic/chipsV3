@@ -28,8 +28,8 @@ contamination_panel:
   - /data/static_libraries/bwa_indices/S_cerevisiae/S_cerevisiae.fa
   - /data/static_libraries/bwa_indices/e_coli/e_coli.fasta
 
-#NOTE: optional CNV analysis using QDNAseq R pkg
-cnv_analysis: false
+#NOTE: CNV analysis using QDNAseq R pkg- {true, false}
+cnv_analysis: true
 
 # DEFINE the samples- each sample should have a name, e.g. SAMPLE1
 # and a path to the input file, e.g. data/sample1.fastq.gz
