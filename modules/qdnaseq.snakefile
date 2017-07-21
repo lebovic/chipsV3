@@ -10,6 +10,7 @@ def qdnaseq_targets(wildcards):
     ls.append("analysis/qdnaseq/qdnaseq.pdf")
     ls.append("analysis/qdnaseq/qdnaseq_segmented.igv")
     ls.append("analysis/qdnaseq/qdnaseq_calls.igv")
+    ls.append("analysis/qdnaseq/qdnaseq_genes.igv")
     return ls
 
 #NOTE: can not initialize _run_controls to [], otherwise getControls won't run
@@ -69,3 +70,17 @@ rule qdnaseq:
     shell:
         "R CMD BATCH --vanilla '--args {params.name} .tmp {params.qbin} {params.out}' chips/modules/scripts/qdnaseq.R {log}"
 
+rule qdnaseq_annotate:
+    """Processes the segmented.igv file, which is region-based, and creates
+    genes.igv file which is gene-based."""
+    input:
+        "analysis/qdnaseq/qdnaseq_segmented.igv",
+    output:
+        "analysis/qdnaseq/qdnaseq_genes.igv",
+    message: "QDNASEQ: annotating cnv analysis output"
+    log: _logfile
+    params:
+        geneTable=config['geneTable'],
+        outPath="analysis/qdnaseq/"
+    shell:
+        "chips/modules/scripts/qdnaseq_annotate.py -g {params.geneTable} -i {input} -o {params.outPath}"
