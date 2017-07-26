@@ -6,6 +6,26 @@
 # 
 # !VERY IMPORTANT: you can OVERRIDE any of these values in config.yaml!
 
+hg38:
+  bwa_index: ./ref_files/hg38/bwa_indices/hg38/hg38.fa
+  bwt2_index: ./ref_files/hg38/bowtie/indexes/hg38
+
+  geneTable: ./ref_files/hg38/hg38.refGene
+  conservation: ./ref_files/hg38/conservation/hg38
+
+  DHS: ./ref_files/hg38/regions/DHS_hg38.bed
+  exons: ./ref_files/hg38/regions/exon.bed
+  promoters: ./ref_files/hg38/regions/promoter.bed
+  velcro_regions: 
+
+  chrom_lens: ./ref_files/hg38/regions/chromInfo_hg38.txt
+
+  #MACS2 genome_size param: hs = 2.7e9, mm = 1.87e9, ce = 9e7, dm = 1.2e8
+  genome_size: "2.7e9"
+
+  #LEN: SHOULD MAYBE change to motif_genome
+  motif_path: hg38
+
 hg19:
   bwa_index: ./ref_files/hg19/bwa_indices/hg19/hg19.fa
   bwt2_index: ./ref_files/hg19/bowtie/indexes/hg19
@@ -45,4 +65,3 @@ mm9:
 
   #LEN: SHOULD MAYBE change to motif_genome
   motif_path: mm9
-
