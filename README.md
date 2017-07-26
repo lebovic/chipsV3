@@ -49,6 +49,7 @@ Chips is dependent on two conda environments, *chips* and *chips_py2*.
     `configureHomer.pl -install`
     2. install the required assemblies:
     For human samples: `configureHomer.pl -install hg19`
+    	      	       `configureHomer.pl -install hg38`
     For mouse samples: `configureHomer.pl -install mm9`
 
 ### Downloading the Chips static reference files
