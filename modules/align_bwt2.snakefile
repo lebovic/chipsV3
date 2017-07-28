@@ -5,6 +5,7 @@ _logfile="analysis/logs/align.log"
 #_bwa_l="32"
 #_bwa_k="2"
 _bwt2_threads=8
+_samtools_threads=4
 
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]
@@ -45,8 +46,9 @@ rule bwt2_convert:
         sam="analysis/align/{sample}/{sample}.sam"
     output:
         temp(bam="analysis/align/{sample}/{sample}.bam")
+    threads: _samtools_threads
     message: "ALIGN: convert sam to bam"
     log: _logfile
     shell:
-        "samtools view -Sb {input} > {output}"
+        "samtools view -@ {threads} -Sb {input} > {output}"
 

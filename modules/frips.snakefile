@@ -10,6 +10,7 @@ _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
 _macs_species="hs"
+_samtools_threads=4
 
 #NOTE: using the _refs from chips.snakefile
 def frips_targets(wildcards):
@@ -55,10 +56,11 @@ rule create_nonChrM:
         regex="\'/chrM/d;/random/d;/chrUn/d\'",
     message: "FRiPs: creating the nonChrM SAM file"
     log:_logfile
+    threads: _samtools_threads
     output:
         temp('analysis/align/{sample}/{sample}_nonChrM.sam')
     shell:
-        "samtools view -h {input} | sed -e {params.regex} > {output} 2>>{log}"
+        "samtools view -@ {threads} -h {input} | sed -e {params.regex} > {output} 2>>{log}"
 
 rule sample_4M_from_nonChrM:
     """Sample 4M reads from nonChrM SAM file (from create nonChrM)
@@ -86,10 +88,11 @@ rule create_unique_nonChrM:
         "analysis/align/{sample}/{sample}_nonChrM.sam"
     message: "FRiPs: create uniquely mapped non-chrM reads"
     log:_logfile
+    threads: _samtools_threads
     output:
         temp('analysis/align/{sample}/{sample}_unique_nonChrM.bam')
     shell:
-        "samtools view -b -h -F 4 {input} > {output} 2>>{log}"
+        "samtools view -@ {threads} -b -h -F 4 {input} > {output} 2>>{log}"
 
 rule sample_4M_from_uniqueNonChrM:
     """Sample 4M reads from uniqueNonChrM reads
@@ -161,11 +164,14 @@ rule nonChrM_stats:
         temp("analysis/align/{sample}/{sample}_nonChrM_stat.txt")
     message: "ALIGN: get nonChrM mapping stats for each bam"
     log: _logfile
+    params:
+        sam_th = _samtools_threads / 2
+    threads: _samtools_threads
     shell:
         #FLAGSTATS is the top of the file, and we append the uniquely mapped
         #reads to the end of the file
-        "samtools view -c {input.uniq_bam} > {output} 2>>{log}"
-        " && samtools view -c {input.nonChrM_bam} >> {output} 2>> {log}"
+        "samtools view -@ {params.sam_th} -c {input.uniq_bam} > {output} 2>>{log}"
+        " && samtools view -@ {params.sam_th} -c {input.nonChrM_bam} >> {output} 2>> {log}"
 
 rule collect_nonChrM_stats:
     """Aggregate all nonChrM stats for ALL of the samples"""
@@ -189,11 +195,12 @@ rule get_SampleFragLength:
         awk_cmd = """awk ' $1 <= 1000 && $1 > 0 '"""
     message: "FRAG: get fragment sizes"
     log:_logfile
+    threads: _samtools_threads
     output:
         temp("analysis/frag/{sample}/{sample}_frags.txt")
     shell:
         #GRAB out the 9th column, ensuring it's in 1-1000
-        "samtools view {input} | cut -f 9 | {params.awk_cmd} > {output} 2>>{log}"
+        "samtools view -@ {threads} {input} | cut -f 9 | {params.awk_cmd} > {output} 2>>{log}"
  
 rule make_FragPlot:
     """plot the fragment distribution:

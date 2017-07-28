@@ -60,9 +60,11 @@ rule map_stats:
     output:
         #temp("analysis/align/{sample}/{sample}_mapping.txt")
         "analysis/align/{sample}/{sample}_mapping.txt"
+    threads: _align_threads
     message: "ALIGN: get mapping stats for each bam"
     log: _logfile
-    #CAN/should samtools view be multi-threaded
+    #CAN/should samtools view be multi-threaded--
+    #UPDATE: tricky on how to do this right w/ compounded commands
     shell:
         #FLAGSTATS is the top of the file, and we append the uniquely mapped
         #reads to the end of the file
