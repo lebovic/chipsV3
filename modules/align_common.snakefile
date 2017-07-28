@@ -91,13 +91,13 @@ rule sortBams:
         #"analysis/align/{sample}/{filename}.bam"
         getBam
     output:
-        "analysis/align/{sample}/{sample}.sorted.bam"
+        "analysis/align/{sample}/{sample}.sorted.bam",
+        "analysis/algin/{sample}/{sample}.sorted.bam.bai"
     message: "ALIGN: sort bam file"
     log: _logfile
     threads: _align_threads
     shell:
-        #NOTE: -@ = --threads
-        "samtools sort {input} -o {output} -@ {threads} 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
 
 rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -106,13 +106,13 @@ rule sortUniqueBams:
         "analysis/align/{sample}/{sample}_unique.bam"
     output:
         #CANNOT temp this b/c it's used by qdnaseq!
-        "analysis/align/{sample}/{sample}_unique.sorted.bam"
+        "analysis/align/{sample}/{sample}_unique.sorted.bam",
+        "analysis/align/{sample}/{sample}_unique.sorted.bam.bai"
     message: "ALIGN: sort bam file"
     log: _logfile
     threads: _align_threads
     shell:
-        #NOTE: -@ = --threads
-        "samtools sort {input} -o {output} -@ {threads} 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
 
 rule dedupSortedUniqueBams:
     """Dedup sorted unique bams using PICARD
@@ -136,7 +136,7 @@ rule indexBam:
     message: "ALIGN: indexing bam file"
     log: _logfile
     shell:
-        "samtools index {input} {output}"
+        "sambamba index {input} {output}"
 
 rule extractUnmapped:
     """Extract the unmapped reads and save as {sample}.unmapped.bam"""
