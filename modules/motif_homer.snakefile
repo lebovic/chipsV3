@@ -12,6 +12,7 @@ def motif_targets(wildcards):
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
             ls.append("analysis/motif/%s/results/homerResults.html" % runRep)
+            ls.append("analysis/motif/%s/%s_annotatePeaks.txt" % (runRep,runRep))
     #ls.append("analysis/motif/motifSummary.csv")
     return ls
 
@@ -70,3 +71,18 @@ rule getMotifSummary:
     run:
         files = " -m ".join(input)
         shell("chips/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
+
+rule homer_annotatePeaks:
+    """Annotate peak files.
+    NOTE: only for motif_homer modules
+    """
+    input:
+        bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
+    output:
+        "analysis/motif/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
+    params:
+        genome=config['motif_path'],
+    message: "MOTIF: homer annotatePeaks"
+    log: _logfile
+    shell:
+        "annotatePeaks.pl {input} {params.genome} > {output}"
