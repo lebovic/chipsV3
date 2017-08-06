@@ -81,7 +81,7 @@ rule contaminationStats:
         sample = lambda wildcards: wildcards.sample,
         panel = lambda wildcards: wildcards.panel,
         #READ out the 5th row, the first element (and divide by 100/100000)
-        awk_cmd = "\'NR==5 {print $1 / 1000}\'"
+        awk_cmd = "\'BEGIN {RS=\'\\t\'}{print $23 / $1 * 100}\'"
     message: "CONTAMINATION: get mapping stats {params.sample}:{params.panel}"
     log: _logfile
     shell:
