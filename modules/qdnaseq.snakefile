@@ -10,6 +10,7 @@ def qdnaseq_targets(wildcards):
     ls.append("analysis/qdnaseq/qdnaseq.pdf")
     ls.append("analysis/qdnaseq/qdnaseq_segmented.igv")
     ls.append("analysis/qdnaseq/qdnaseq_calls.igv")
+    ls.append("analysis/qdnaseq/qdnaseq_genes.txt")
     ls.append("analysis/qdnaseq/qdnaseq_genes.igv")
     return ls
 
@@ -76,6 +77,7 @@ rule qdnaseq_annotate:
     input:
         "analysis/qdnaseq/qdnaseq_segmented.igv",
     output:
+        "analysis/qdnaseq/qdnaseq_genes.txt",
         "analysis/qdnaseq/qdnaseq_genes.igv",
     message: "QDNASEQ: annotating cnv analysis output"
     log: _logfile

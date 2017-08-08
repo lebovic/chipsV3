@@ -49,6 +49,8 @@ import sys
 from optparse import OptionParser
 
 import bisect
+import math
+import copy
 
 def inRegion(reg, site):
     """given a region tuple, (start, end) 
@@ -58,7 +60,7 @@ def inRegion(reg, site):
 class Gene():
     """Gene object--will help us store gene information and perform some fns"""
     #should make these command line parameters!
-    upstream = 2000 #promoter = 2kb upstream of TSS
+    upstream = 0 #gene starts at TSS
     downstream = 0 #gene ends at TTS
 
     def __init__(self, line):
@@ -70,8 +72,8 @@ class Gene():
         **WE will keep this 5' orientation**
         """
         tmp = line.strip().split("\t")
-        self.name = tmp[1]
-        self.name2 = tmp[-4]
+        self.name = tmp[1] #UCSC ID
+        self.name2 = tmp[-4] #human readable gene name
         self.chrom = tmp[2]
         self.strand = tmp[3] #can only be "+" or "-"
         self.txStart = int(tmp[4])
@@ -105,54 +107,9 @@ class Gene():
         #return site >= c[0] and site <= c[1]
         return inRegion(c, site)
 
-    def classifySite(self, site):
-        """Given a site, returns 
-        "Intergenic" if it is OUTSIDE of gene--
-        NOTE: since we don't know about other genes, "Intergenic" might not 
-        be the true classification of the site
-
-        "Promoter" if it is in upstream(2kb) - TSS
-        "Exon" if it is in one of the exon regions
-        "Intron" otherwise
-        """
-        def inPromoter(s):
-            #VERSION 1-WHERE 5'UTR is NOT considered in promoter
-            if self.strand == "+":
-                p = (self.txStart - Gene.upstream, self.txStart) 
-            else:
-                p = (self.txEnd, self.txEnd + Gene.upstream)
-            
-            #VERSION 2- Where 5'UTR is in promoter
-            #if self.strand == "+":
-            #    p = (self.txStart - Gene.upstream, self.cdsStart) 
-            #else:
-            #    p = (self.cdsEnd, self.txEnd + Gene.upstream)
-
-            #return s >= p[0] and s <= p[1]
-            return inRegion(p, s)
-
-        def inExons(s):
-            for e in self.exons:
-                #if s >= e[0] and s <= e[1]:
-                if inRegion(e, s):
-                    return True
-            return False
-
-        if not self.siteInGene(site):  ## discuss with len 201486
-            return "Intergenic"
-        elif inPromoter(site):
-            return "Promoter"
-        elif inExons(site):
-            return "Exon"
-        else:
-            return "Intron"
-
     def __str__(self):        
         ls = ["Gene: %s\%s" % (self.name,self.name2),
-              "Loc: %s:%s-%s" % (self.chrom, self.txStart, self.txEnd),
-              "Strand: %s" % self.strand,
-              "Coding: %s-%s" % (self.cdsStart,self.cdsEnd),
-              "Exons: %s" % self.exons]
+              "Loc: %s:%s-%s" % (self.chrom, self.txStart, self.txEnd)]
         return "\n".join(ls)
 
     #Comparisons based on genomic location--assumming other is on same chr
@@ -173,13 +130,21 @@ class Gene():
 
 class Chromosome(list):
     """list of SORTED Gene objects (sorted by gene.chunk()[0])"""
+    #gene ids makes sure we only take the 1st isoform of the gene we encounter
+    #NO redundancies!
+    geneIds = None
+    
     def __init__(self, *args):
         list.__init__(self, *args)
+        self.geneIds = {}
 
     def add(self, gene):
         """adds the gene into the sorted list"""
-        i = bisect.bisect(self, gene)
-        self[i:i] = [gene]
+        if gene.name not in self.geneIds:
+            #NEW gene to add
+            self.geneIds[gene.name] = gene.name2
+            i = bisect.bisect(self, gene)
+            self[i:i] = [gene]
 
     def len(self):
         return len(self)
@@ -188,8 +153,7 @@ class Chromosome(list):
         """Given a site, e.g. 5246835, will return the gene chunk that the site
         falls into, otherwise None"""
         #binary search
-        #if hi < lo or lo >= self.len or hi < 0: ## need discuss with len 201486
-        if hi < lo or lo >= len(self) or hi < 0: ## need discuss with len 201486
+        if hi < lo or lo >= len(self) or hi < 0: 
             return None
         else:
             mid = int((hi + lo)/2)
@@ -203,6 +167,36 @@ class Chromosome(list):
                     return self.findGene(site, mid+1, hi)
                 else:
                     return self.findGene(site, lo, mid-1)
+
+#NOTE: this class is a subclass of GENES (overriding it's init) and reads
+#in qdnaseq regions
+class Qdnaseq(Gene):
+    ct = 0
+
+    #PRIMARY Constructor
+    def __init__(self, line):
+        #NOTE: hdr = chromosome\tstart\tend\tfeature\tCNV_scores--
+        tmp = line.strip().split("\t")
+        #NAME these regions by their current line-count in the file
+        Qdnaseq.ct += 1
+        self.name = self.name2 = Qdnaseq.ct
+        self.chrom = "chr%s" % tmp[0]
+        self.strand = "+" #all + strand
+        self.txStart = int(tmp[1])
+        self.txEnd = int(tmp[2])
+        self.CNV = [float(s) for s in tmp[4:]]
+        #NOTE: cds start is not used so it doesn't matter what we set it to
+        self.cdsStart = int(tmp[1])
+        self.cdsEnd = int(tmp[2])
+        self.exons=[]
+        self.weight = 1
+
+    def getCNV(self):
+        return self.CNV
+
+    #def __str__(self):        
+    #    ls = ["Loc: %s:%s-%s" % (self.chrom, self.txStart, self.txEnd)]
+    #    return "\n".join(ls)
 
 def main():
     optparser = OptionParser()
@@ -227,56 +221,7 @@ def main():
     #l = "625	NM_000518	chr11	-	5246695	5248301	5246827	5248251	3	5246695,5247806,5248159,	5246956,5248029,5248301,	0	HBB	cmpl	cmpl	0,2,0,"
     outpath = options.outpath
 
-    #OBSOLETE- DROP
-    #read the genetable
-    # f = open(options.gt)
-    # genome = {}
-    # for l in f:
-    #     if l.startswith("#"):
-    #         continue
-    #     g = Gene(l)
-    #     if g.chrom not in genome:
-    #         genome[g.chrom] = Chromosome()
-    #     genome[g.chrom].add(g)
-    # f.close()
-
-    #NOT sure what this does
-    # fexon = open(options.exon, 'w')
-    # fgene = open(options.gene, 'w')
-    # for chr in genome:
-    #     for g in genome[chr]:
-    #         print >>fgene, '\t'.join(map(str,[g.chrom, g.txStart, g.txEnd]))
-    #         for s, e in g.exons:
-    #             print >>fexon, '\t'.join(map(str,[g.chrom, s, e]))
-
-    #TEST: find gene
-    #g = genome['chr11'].findGene(5246835, 0, len(genome['chr11'])-1)
-    #g = genome['chr1'].findGene(848100, 0, len(genome['chr11'])-1)
-    #print g
-
-    #NOTE: this class is a subclass of GENES (overriding it's init) and reads
-    #in qdnaseq regions
-    class Qdnaseq(Gene):
-        ct = 0
-        def __init__(self, line):
-            #NOTE: hdr = chromosome\tstart\tend\tfeature\tCNV_scores--
-            tmp = line.strip().split("\t")
-            #NAME these regions by their current line-count in the file
-            Qdnaseq.ct += 1
-            self.name = self.name2 = Qdnaseq
-            self.chrom = "chr%s" % tmp[0]
-            self.strand = "+" #all + strand
-            self.txStart = int(tmp[1])
-            self.txEnd = int(tmp[2])
-            self.CNV = [float(s) for s in tmp[4:]]
-            #NOTE: cds start is not used so it doesn't matter what we set it to
-            self.cdsStart = int(tmp[1])
-            self.cdsEnd = int(tmp[2])
-            self.exons=[]
-
-        def getCNV(self):
-            return self.CNV
-
+    #READ in the segmented igv and the sampleNames (last set of lines in hdr)
     sampleNames = []
     #process the qdnaseq_segmented.igv file
     #NOTE: we assume the regions "tile" or partition the entire genome
@@ -290,6 +235,7 @@ def main():
             sampleNames = l.strip().split('\t')[4:]
             continue
 
+        #MAIN body of qdnaseq_segmented.igv
         q = Qdnaseq(l)
         if q.chrom not in igv_set:
             igv_set[q.chrom] = Chromosome()
@@ -300,8 +246,14 @@ def main():
     chr1 = igv_set['chr1']
     _tileSize = abs(chr1[0].txEnd - chr1[0].txStart) + 1
 
-    out_file = open(os.path.join(outpath,"qdnaseq_genes.igv"),"w")
+    out_file = open(os.path.join(outpath,"qdnaseq_genes.txt"),"w")
     out_file.write("Gene\t%s\n" % "\t".join(sampleNames))
+    igv_file = open(os.path.join(outpath,"qdnaseq_genes.igv"),"w")
+    #compose the igv header
+    igv_file.write("#type=COPY_NUMBER\n#track coords=1\n")
+    igv_file.write("%s\t" % "\t".join(["chromosome","start","end","feature"]))
+    #ADD sample names
+    igv_file.write("%s\n" % "\t".join(sampleNames))
 
     #NOW we have to go through each of the genes and try to find where it fits
     #in the igv_set
@@ -309,105 +261,74 @@ def main():
     for l in f:
         if l.startswith("#"):
             continue
-        tmp = l.strip().split("\t")
-        #NOTE: taken from Gene.__init__
-        name = tmp[-4]
-        chrom = tmp[2]
-        strand = tmp[3]
-        txStart = int(tmp[4])
-        txEnd = int(tmp[5])
-        gene_len = abs(txEnd - txStart)
-        #find the tile that matches--search for both txStart and txEnd
-        
+        gene = Gene(l)
+        gene_len = gene.txEnd - gene.txStart
+
         #GENE is on a chromosome not represented in segmented.igv!--skip
-        if chrom not in igv_set:
+        if gene.chrom not in igv_set:
             continue
 
-        ch = igv_set[chrom]
-        hi = len(ch) - 1
+        chrom = igv_set[gene.chrom]
+        hi = len(chrom) - 1
 
-        #print(name,chrom,txStart,txEnd)
-        #cut up the gene into _tile_size chunks and find all of the tiles that
-        #are covered
-        cuts = [i for i in range(txStart, txEnd, _tileSize)]
-        #ADD in the last elm
-        cuts.append(txEnd)
+        _tiles = Chromosome()
+        start = gene.txStart
+        while start < gene.txEnd:
+            #FIND the IGV segment of the current start
+            t = chrom.findGene(start, 0, hi)
 
-        tiles = [ch.findGene(s,0,hi) for s in cuts]
-        
-        #prove the Nones can occur anywhere in tiles
-        #baz = [not x for (i,x) in enumerate(tiles)]
-        #print(baz)
-
-        #print(tiles)
-        cnvs = []
-        for t in tiles:
-            if t:
-                cnvs.append(t.getCNV())
-            else:
-                cnvs.append([0 for i in range(len(sampleNames))])
-
-        #cnvs = [t.getCNV() for t in tiles if t else None]
-        
-        weights = []
-        start = txStart
-        for t in tiles[:-1]:
-            if t:
-                w = abs(t.txEnd - start) / float(gene_len)
-            else:
-                w = 0.0
-            weights.append(w)
-            if t:
-                start = t.txEnd
-            else:
-                #skip
+            if not t: #skip
                 start += _tileSize
+                continue
+
+            #ADD the tile to _tiles, but make sure we don't clip 
+            #the end of the gene
+            newT = copy.copy(t)
+            #Change the start
+            newT.txStart = start
+            if newT.txEnd >= gene.txEnd:
+                newT.txEnd = gene.txEnd
+            #calc the weight
+            newT.weight = float(newT.txEnd - newT.txStart) / gene_len
+                    
+            _tiles.add(newT)
+
+            #ADVANCE:
+            start = newT.txEnd + 1
             
-        #handle last
-        if tiles[-1]:
-            w = abs(txEnd - tiles[-1].txStart) / float(gene_len)
-        else:
-            w = 0.0
-        weights.append(w)
-        #print(weights)
-
-
-        #NOW we have to weight the CNVS according to txStart and txEnd
-        #NOTE: the middles are known to be _tileSize, just get the ends
-
-        #WRONG
-        # if tiles[0]:
-        #     weight1 = abs(tiles[0].txEnd - txStart) / float(gene_len)
-        # else:
-        #     weight1 = 0
-        # if tiles[-1]:
-        #     weight2 = abs(txEnd - tiles[-1].txStart) / float(gene_len)
-        # else:
-        #     weight2 = 0
-        
-        #WRONG! can't assume that the middles have weights!
-        #build middle first
-        #weights = [_tileSize/float(gene_len) for i in range(len(tiles) - 2)]
-        #weights.insert(0, weight1)
-        #weights.append(weight2)
-        #print(weights)
-        #sys.exit()
-
         #now weight the CNVS:
-        out = [0 for i in range(len(cnvs[0]))] #init-  eq number of samples
-        #print(weights)
-        #print(cnvs)
-        for (i, c) in enumerate(cnvs):
-            weightedCNV = [weights[i]*x for x in c]
-            #update out
-            for (i,w) in enumerate(weightedCNV):
-                out[i] += w
-        #print(out)
-        out_cnvs = ["%.3f" % w for w in out]
+        weightedCNV = [list(map(lambda c: t.weight*c, t.CNV)) for t in _tiles]
+        #for t in _tiles:
+        #    print(t.weight,t.CNV)
+        #for w in weightedCNV:
+        #    print(w)
+
+        #now SUM the weights to find the value for each sample = scores
+        scores = [0 for s in sampleNames]
+
+        for (col, name) in enumerate(sampleNames):
+            s = 0
+            for row in range(len(_tiles)):
+                s += weightedCNV[row][col]
+            scores[col] = s
+        #print(scores)
+
+        #OUTPUT to txt
+        out_cnvs = ["%.3f" % s for s in scores]
         #write to output
-        out_file.write("%s\t%s\n" % (name, "\t".join(out_cnvs)))
+        out_line = [gene.name, gene.name2]
+        out_line.extend(out_cnvs)
+        #print("%s\n" % "\t".join(out_line))
+        out_file.write("%s\n" % "\t".join(out_line))
+
+        #OUTPUT to igv
+        igv_line = [gene.chrom[3:], str(gene.txStart), str(gene.txEnd), "%s:%s" % (gene.name2, gene.name)]
+        igv_line.extend(out_cnvs)
+        igv_file.write("%s\n" % "\t".join(igv_line))
+
     f.close()
     out_file.close()
+    igv_file.close()
 
 if __name__=='__main__':
     main()
