@@ -79,8 +79,16 @@ rule DHS_intersectDHS:
     log: _logfile
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
-    shell:
-        "intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}"
+    run:
+        #HACK! IN the CASE where no DHS is defined/available for species/assemb
+        #USE AN EMPTY FILE.  CONSEQUENCE- everything downstream will count 0 
+        #DHS regions, NOT N/A
+        if config['DHS']:
+            shell("intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}")
+        else:
+            #make empty file
+            shell("touch .snakemake/null.dhs.txt")
+            shell("intersectBed -wa -u -a {input} -b .snakemake/null.dhs.txt > {output} 2>>{log}")
 
 rule DHS_stat:
     """collect DHS stats"""
@@ -93,6 +101,7 @@ rule DHS_stat:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
     shell:
         "wc -l {input.n} {input.dhs} > {output} 2>>{log}"
+
 #------------------------------------------------------------------------------
 rule VELCRO_intersectVelcro:
     """Intersect PEAKS with velcro regions"""
