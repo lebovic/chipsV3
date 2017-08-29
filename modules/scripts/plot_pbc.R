@@ -18,7 +18,13 @@ plot_pbc_f <- function(pbc_in, png_out) {
     x1 <- melt(x, id.var="Sample")
     #print(x1)
 
-    png(png_out, width = 8, height = 8, unit="in",res=300)
+    #CHECK for crowded plots! MAX 50 samples for default
+    if (nrow(x) < 50) {
+        png(png_out, width = 2400, height = 2400, unit="px",res=300)
+    } else {
+        img_h = 50 * nrow(x) #each bar gets 50px height
+        png(png_out, width = 2400, height = img_h, unit="px",res=300)
+    }
 
     upper_limit <- max(x$Nd_count)
     limits <- seq( 0, upper_limit, length.out=10)
