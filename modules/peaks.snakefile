@@ -75,6 +75,7 @@ def peaks_targets(wildcards):
 
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
+    ls.append("analysis/peaks/all_treatments.igv.xml")
     return ls
 
 rule peaks_all:
@@ -201,3 +202,18 @@ rule macsRunInfo:
     shell:
         "{params.pypath} {config[macs2_path]} --version 2> {output} && echo fdr {params.fdr} >> {output}"
     
+rule generate_IGV_session:
+    """Generates analysis/peaks/all_treatments.igv.xml, a igv session of all
+    of the treatment.bw files"""
+    input:
+        _getRepInput("analysis/peaks/$runRep/$runRep_treat_pileup.bw")
+    params:
+        genome=config['assembly']
+    log:_logfile
+    output:
+        "analysis/peaks/all_treatments.igv.xml"
+    message: "PEAKS: generate IGV session for all treatment.bw files"
+    run:
+        treats = " -t ".join(input)
+        shell("chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {treats} -o {output} 2>>{log}")
+        
