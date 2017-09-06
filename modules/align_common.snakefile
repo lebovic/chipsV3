@@ -191,9 +191,9 @@ rule readsPerChromStat:
     chrX   #readsOnChrX
     """
     input:
-        bam = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
+        bam = "analysis/align/{sample}/{sample}.sorted.bam",
         #NOTE: even though we don't use the bai, we need to ensure bam sorted
-        bai = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
+        bai = "analysis/align/{sample}/{sample}.sorted.bam.bai"
     params:
         awk_call = """awk '{print $1 \"\\t\" $3; s+=$3} END {print \"total reads = \" s}'"""
     output:
@@ -201,5 +201,6 @@ rule readsPerChromStat:
     message: "ALIGN: collecting the number of reads per chrom"
     log: _logfile
     shell:
-        "samtools idxstats {input.bam} | {params.awk_call} > {output} 2>> {log}"
+        "chips/modules/scripts/align_readsPerChrom.sh -a {input.bam} > {output} 2>> {log}"
+
     
