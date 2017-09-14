@@ -8,11 +8,15 @@ def humanReadable(n):
     """Given an int, e.g. 52071886 returns a human readable string 5.2M
     ref: http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
     """
-    for unit in ['','K','M','B','T','P','E','Z']:
-        if abs(n) < 1000.0:
-            return "%3.1f%s" % (n, unit)
-        n /= 1000.0
-    return "%.1f%s" % (num, 'Y')
+    #DROPPING the human readable part and just moving to millions
+    # for unit in ['','K','M','B','T','P','E','Z']:
+    #     if abs(n) < 1000.0:
+    #         return "%3.1f%s" % (n, unit)
+    #     n /= 1000.0
+    # return "%.1f%s" % (num, 'Y')
+
+    return "%.1f" % (n/1000000.0)
+    
     
 def parseCSV(csv_file):
     """parses a CSV file, using the first line as a header (of column names)
@@ -72,9 +76,9 @@ def main():
 
     #HANDLE mapping.csv
     tmp = parseCSV(options.mapping)
-    addStat(stats, tmp, 'Total', 'TotalReads', True)
-    addStat(stats, tmp, 'Mapped', 'MappedReads', True)
-    addStat(stats, tmp, 'UniquelyMapped', 'UniqMappedReads', True)
+    addStat(stats, tmp, 'Total', 'TotalReads(M)', True)
+    addStat(stats, tmp, 'Mapped', 'MappedReads(M)', True)
+    addStat(stats, tmp, 'UniquelyMapped', 'UniqMappedReads(M)', True)
 
     #HANDLE pbc.csv
     tmp = parseCSV(options.pbc)
@@ -95,7 +99,7 @@ def main():
     #print(stats)
 
     #OUTPUT- fields defines the column order
-    fields = ['FastQC', 'TotalReads', 'MappedReads', 'UniqMappedReads',
+    fields = ['FastQC', 'TotalReads(M)', 'MappedReads(M)','UniqMappedReads(M)',
               'UniqLoc4M', 'UniqLoc1read4M', 'PBC']
     print(",".join(['Sample'] + fields))
 

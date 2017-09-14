@@ -87,21 +87,21 @@ def main():
         dhs = float(tmp[r]['DHS'])
         tot = int(tmp[r]['Total'])
         ratio = dhs/tot if tot else 'NA'
-        stats[r]['DHS_peaks'] = "%s (%.2f%%)" % (int(dhs), ratio*100) if ratio != 'NA' else "NA"
+        stats[r]['DHS_peaks'] = "%s" % int(dhs)
+        stats[r]['DHS_%'] = "%.2f" % (ratio*100) if ratio != 'NA' else "NA"
 
-    #HANDLE META--only report percentages!
-    metaFld = 'Promoter/Exon/Intron/Intergenic' #save key for consistency
+    #HANDLE META
     tmp = parseCSV(options.meta)
     for r in runs:
         tot = int(tmp[r]['Total'])
-        prom = "%.1f%%" % (float(tmp[r]['Promoter'])/tot *100) if tot else 'NA'
-        exon = "%.1f%%" % (float(tmp[r]['Exon'])/tot *100) if tot else 'NA'
-        intr = "%.1f%%" % (float(tmp[r]['Intron'])/tot *100) if tot else 'NA'
-        genic = "%.1f%%" % (float(tmp[r]['Intergenic'])/tot *100) if tot else 'NA'
-        stats[r][metaFld] = "/".join([prom,exon,intr,genic])
+        stats[r]['Promoter'] = "%.1f" % (float(tmp[r]['Promoter'])/tot *100) if tot else 'NA'
+        stats[r]['Exon'] = "%.1f" % (float(tmp[r]['Exon'])/tot *100) if tot else 'NA'
+        stats[r]['Intron'] = "%.1f" % (float(tmp[r]['Intron'])/tot *100) if tot else 'NA'
+        stats[r]['Intergenic'] = "%.1f" % (float(tmp[r]['Intergenic'])/tot *100) if tot else 'NA'
 
     #OUTPUT- fields defines the column order
-    fields = ['TotalPeaks', 'FC>10', 'FC>20', 'FRiP','DHS_peaks', metaFld]
+    fields = ['TotalPeaks', 'FC>10', 'FC>20', 'FRiP','DHS_peaks', 'DHS_%', 
+              'Promoter','Exon','Intron','Intergenic']
     out = open(options.output,"w")
     out.write("%s\n" % ",".join(['Run'] + fields))
 

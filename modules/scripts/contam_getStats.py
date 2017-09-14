@@ -32,6 +32,8 @@ def main():
 
         f = open(f)
         tmp = [l.strip().split(" ") for l in f]
+        #convert the percentage to only 1-decimal number
+        tmp = [(species, "%.1f" % float(val)) for (species,val) in tmp]
         f.close()
         #CONVERT to dictionary
         contam[sampleID] = { species : val for (species,val) in tmp}

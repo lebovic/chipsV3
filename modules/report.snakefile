@@ -12,9 +12,9 @@ _logfile = "analysis/logs/report.log"
 
 def report_targets(wildcards):
     """Generates the targets for this module"""
-    ls = ['analysis/report/samplesSummary.csv']
-    ls.append('analysis/report/samplesSummary.csv')
-    ls.append('analysis/report/runsSummary.csv')
+    ls = []
+    ls.append('analysis/report/sequencingStatsSummary.csv')
+    ls.append('analysis/report/peaksSummary.csv')
     ls.append('analysis/report/report.html')
     return ls
 
@@ -162,8 +162,8 @@ rule report:
         pbc_stat="analysis/report/pbc.png",
         peakFoldChange_png="analysis/report/peakFoldChange.png",
         conservPlots = sorted(_getRepInput("analysis/conserv/$runRep/$runRep_conserv_thumb.png")),
-	samples_summary="analysis/report/samplesSummary.csv",
-	runs_summary="analysis/report/runsSummary.csv",
+	samples_summary="analysis/report/sequencingStatsSummary.csv",
+	runs_summary="analysis/report/peaksSummary.csv",
 	contam_panel="analysis/contam/contamination.csv",
         motif="analysis/motif/motifSummary.csv",
         fastqc_stats="analysis/fastqc/fastqc.csv",
@@ -187,7 +187,7 @@ rule samples_summary_table:
         mapping = "analysis/align/mapping.csv",
         pbc = "analysis/frips/pbc.csv",
     output:
-        "analysis/report/samplesSummary.csv"
+        "analysis/report/sequencingStatsSummary.csv"
     log: _logfile
     shell:
         "chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} > {output} 2>>{log}"
@@ -199,7 +199,7 @@ rule runs_summary_table:
         dhs = "analysis/ceas/dhs.csv",
         meta = "analysis/ceas/meta.csv",
     output:
-        "analysis/report/runsSummary.csv"
+        "analysis/report/peaksSummary.csv"
     log: _logfile
     shell:
         "chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -m {input.meta} -o {output} 2>>{log}"
