@@ -12,7 +12,9 @@ def motif_targets(wildcards):
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
             ls.append("analysis/motif/%s/results/homerResults.html" % runRep)
-            ls.append("analysis/motif/%s/%s_annotatePeaks.txt" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_annotatePeaks.txt" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_annotatePeaks.tsv" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_annotatePeaks.csv" % (runRep,runRep))
     #ls.append("analysis/motif/motifSummary.csv")
     return ls
 
@@ -79,10 +81,22 @@ rule homer_annotatePeaks:
     input:
         bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
     output:
-        "analysis/motif/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
     params:
         genome=config['motif_path'],
     message: "MOTIF: homer annotatePeaks"
     log: _logfile
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
+
+rule homer_processAnnPeaks:
+    """Process peaks/{run}/{run}_annotatePeaks.txt files"""
+    input:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
+    output:
+        tsv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.tsv",
+        csv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.csv",
+    message: "MOTIF: Post-process homer annotatePeaks.txt file"
+    log: _logfile
+    shell:
+        "chips/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"
