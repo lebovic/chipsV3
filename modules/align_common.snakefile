@@ -8,8 +8,8 @@ def align_targets(wildcards):
     for sample in config["samples"]:
         ls.append("analysis/align/%s/%s.sorted.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s.sorted.bam.bai" % (sample,sample))
-        ls.append("analysis/align/%s/%s_unique.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.bam" % (sample,sample))
+        ls.append("analysis/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
         ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
@@ -133,7 +133,7 @@ rule indexBam:
         "analysis/align/{sample}/{prefix}.bam"
     output:
         "analysis/align/{sample}/{prefix}.bam.bai"
-    message: "ALIGN: indexing bam file"
+    message: "ALIGN: indexing bam file {input}"
     log: _logfile
     shell:
         "sambamba index {input} {output}"

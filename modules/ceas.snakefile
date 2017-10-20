@@ -139,8 +139,10 @@ rule bam_regionStat:
     input:
         "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
     params:
-        bed = lambda wildcards: config[wildcards.region]
-    message: "CEAS: bam stat region"
+        bed = lambda wildcards: config[wildcards.region],
+        #for use in message only
+        msg = lambda wildcards: "%s:%s" % (wildcards.sample, wildcards.region)
+    message: "CEAS: bam stat region {params.msg}"
     log: _logfile
     output:
         #make temp

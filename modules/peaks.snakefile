@@ -145,7 +145,10 @@ rule sortBedgraphs:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bdg"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg"
-    message: "PEAKS: sorting bdg pileups"
+    params:
+        #msg just for message below
+        msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
+    message: "PEAKS: sorting bdg pileups {params.msg}"
     log:_logfile
     shell:
         "bedSort {input} {output} 2>>{log}"
@@ -157,8 +160,10 @@ rule bdgToBw:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bw"
     params:
-        chroms=config['chrom_lens']
-    message: "PEAKS: Convert bedGraphs to BigWig"
+        chroms=config['chrom_lens'],
+        #msg just for message below
+        msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
+    message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
     log:_logfile
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
@@ -171,7 +176,10 @@ rule gzip_bdg:
         bw="analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bw"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg.gz"
-    message: "PEAKS: compressing sorted.bdg"
+    params:
+        #msg just for message below
+        msg= lambda wildcards: "%s.%s" % (wildcards.run, wildcards.rep)
+    message: "PEAKS: compressing sorted.bdg {params.msg}"
     log:_logfile
     shell:
         "gzip {input.bdg} 2>> {log}"

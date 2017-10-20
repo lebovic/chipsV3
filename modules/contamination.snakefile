@@ -25,7 +25,6 @@ def contamination_targets(wildcards):
     ls = []
     for sample in config["samples"]:
         for panel in _contaminationNames:
-            ls.append("analysis/contam/%s/%s.%s.bam" % (sample, sample, panel))
             ls.append("analysis/contam/%s/%s.%s.txt" % (sample, sample, panel))
             ls.append("analysis/contam/%s/%s_contamination.txt" % (sample, sample))
     ls.append("analysis/contam/contamination.csv")

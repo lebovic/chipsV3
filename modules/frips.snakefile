@@ -17,10 +17,8 @@ def frips_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for sample in config["samples"]:
-        ls.append("analysis/align/%s/%s_4M_nonChrM.bam" % (sample,sample))
-        ls.append("analysis/align/%s/%s_4M_unique_nonChrM.bam" % (sample,sample))
-        ls.append("analysis/align/%s/%s_nonChrM_stat.txt" % (sample,sample))
         ls.append("analysis/frag/%s/%s_fragDist.png" % (sample,sample))
+        ls.append("analysis/frips/%s/%s_pbc.txt" % (sample,sample))
     for run in config["runs"].keys():
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
@@ -54,7 +52,9 @@ rule create_nonChrM:
     params:
         #hack to get the regex in to filter out chrM, random, chrUn
         regex="\'/chrM/d;/random/d;/chrUn/d\'",
-    message: "FRiPs: creating the nonChrM SAM file"
+        #msg just for message below
+        msg= lambda wildcards: wildcards.sample
+    message: "FRiPs: creating the nonChrM SAM file {params.msg}"
     log:_logfile
     threads: _samtools_threads
     output:
@@ -86,7 +86,10 @@ rule create_unique_nonChrM:
     """
     input:
         "analysis/align/{sample}/{sample}_nonChrM.sam"
-    message: "FRiPs: create uniquely mapped non-chrM reads"
+    params:
+        #msg just for message below
+        msg= lambda wildcards: wildcards.sample
+    message: "FRiPs: create uniquely mapped non-chrM reads {params.msg}"
     log:_logfile
     threads: _samtools_threads
     output:
@@ -102,8 +105,10 @@ rule sample_4M_from_uniqueNonChrM:
     input:
         'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
     params:
-        n="4000000"
-    message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads"
+        n="4000000",
+        #msg just for message below
+        msg= lambda wildcards: wildcards.sample
+    message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads {params.msg}"
     log:_logfile
     output:
         temp('analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam')
@@ -134,9 +139,11 @@ rule frip_pbc:
     input:
         "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
     output:
-        #make temp
         "analysis/frips/{sample}/{sample}_pbc.txt"
-    message: "FRiP: generate PBC histogram for each sample/bam"
+    params:
+        #msg just for message below
+        msg= lambda wildcards: wildcards.sample
+    message: "FRiP: generate PBC histogram for each sample/bam {params.msg}"
     log: _logfile
     shell:
         "chips/modules/scripts/frips_pbc.sh -i {input} -o {output} 2>> {log}"
@@ -161,7 +168,9 @@ rule nonChrM_stats:
         uniq_bam="analysis/align/{sample}/{sample}_unique.bam",
         nonChrM_bam="analysis/align/{sample}/{sample}_unique_nonChrM.bam"
     output:
-        temp("analysis/align/{sample}/{sample}_nonChrM_stat.txt")
+        #NOTE: CHIPS-RESUME- IT's better to keep this file around, b/c
+        #it's inputs are both temp files that are hard to generate
+        "analysis/align/{sample}/{sample}_nonChrM_stat.txt"
     message: "ALIGN: get nonChrM mapping stats for each bam"
     log: _logfile
     params:
