@@ -13,7 +13,8 @@ def getRuns(config):
     ret = {}
 
     #LEN: Weird, but using pandas to handle the comments in the file
-    metadata = pd.read_table(config['metasheet'], index_col=0, sep=',', comment='#')
+    #KEY: need skipinitialspace to make it fault tolerant to spaces!
+    metadata = pd.read_table(config['metasheet'], index_col=0, sep=',', comment='#', skipinitialspace=True)
     f = metadata.to_csv().split() #make it resemble an actual file with lines
     #SKIP the hdr
     for l in f[1:]:
