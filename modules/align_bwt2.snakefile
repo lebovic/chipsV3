@@ -26,7 +26,7 @@ rule bwt2_aln:
     input:
         getFastq
     output:
-        temp(sam="analysis/align/{sample}/{sample}.sam")
+        temp("analysis/align/{sample}/{sample}.sam")
     params:
         index=config['bwt2_index'],
     threads: _bwt2_threads
@@ -39,13 +39,13 @@ rule bwt2_aln:
         else:
             #SE
             _inputs="-U %s" % input
-        shell("bowtie2 -p {threads} -x {params.index} {_inputs} -S {output.sam} 2>>{log}")
+        shell("bowtie2 -p {threads} -x {params.index} {_inputs} -S {output} 2>>{log}")
 
 rule bwt2_convert:
     input:
         sam="analysis/align/{sample}/{sample}.sam"
     output:
-        temp(bam="analysis/align/{sample}/{sample}.bam")
+        temp("analysis/align/{sample}/{sample}.bam")
     threads: _samtools_threads
     message: "ALIGN: convert sam to bam"
     log: _logfile
