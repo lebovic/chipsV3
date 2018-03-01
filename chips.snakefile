@@ -117,6 +117,7 @@ def all_targets(wildcards):
     ls.extend(frips_targets(wildcards))
     ls.extend(motif_targets(wildcards))
     ls.extend(contamination_targets(wildcards))
+    ls.extend(mapmaker_targets(wildcards))
 
     #HANDLE CNV/qdnaseq analysis
     if _qdnaseq:
@@ -168,4 +169,5 @@ else:
 
 include: "./modules/contamination.snakefile" # contamination panel module
 include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
+include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
 include: "./modules/report.snakefile"        # report module

@@ -119,3 +119,4 @@ dependencies:
 - homer=4.7
 - weblogo
 - sambamba
+- ruamel.yaml
