@@ -5,7 +5,6 @@ _logfile="analysis/logs/peaks.log"
 _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
-_macs_species="hs"
 
 def getTreats(wildcards):
     tmp=[]
@@ -95,7 +94,7 @@ rule macs2_callpeaks:
         fdr=_macs_fdr,
         keepdup=_macs_keepdup,
         extsize=_macs_extsize,
-        species=_macs_species,
+        genome_size=config['genome_size'],
         outdir="analysis/peaks/{run}.{rep}/",
         name="{run}.{rep}",
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
@@ -106,7 +105,7 @@ rule macs2_callpeaks:
     run:
         treatment = "-t %s" % input.treat if input.treat else "",
         control = "-c %s" % input.cont if input.cont else "",        
-        shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.species} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+        shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 rule peakToBed:
     """Convert MACS's narrowPeak format, which is BED12 to BED5"""
