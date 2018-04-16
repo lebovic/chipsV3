@@ -33,6 +33,7 @@ def main():
     optparser.add_option("-t", "--treats", action="append", help="list of paths to treatment bw files")
     optparser.add_option("-x", "--xml", help="xml template to use")
     optparser.add_option("-o", "--out", help="output file")
+    optparser.add_option("-l", "--treatIsLocal", help="treatment.bw are in local dir", action="store_true")    
     (options, args) = optparser.parse_args(sys.argv)
 
     if not options.genome or not options.treats or not options.out:
@@ -76,14 +77,14 @@ def main():
 
         #ADD new resource .bw file
         res = ET.Element('Resource') #singular of Resources
-        res.attrib['path'] = relative_path
+        res.attrib['path'] = name if options.treatIsLocal else relative_path 
         resources.append(res)
         
         #ADD new track to panel
         new_track = copy.deepcopy(track)
         #fixed attribs
     
-        new_track.attrib['id'] = relative_path
+        new_track.attrib['id'] = name if options.treatIsLocal else relative_path
         new_track.attrib['name'] = name
         
         #create sub-elm: DataRange

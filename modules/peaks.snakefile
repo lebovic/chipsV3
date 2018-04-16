@@ -71,6 +71,7 @@ def peaks_targets(wildcards):
             ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_treat_pileup.sorted.bdg.gz" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_control_lambda.sorted.bdg.gz" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_treatment.igv.xml" % (runRep,runRep))
 
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
@@ -224,3 +225,19 @@ rule generate_IGV_session:
         treats = " -t ".join(input)
         shell("chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {treats} -o {output} 2>>{log}")
         
+rule generate_IGV_perTrack:
+    """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
+    the treatment.bw file
+    **VERY similar to generate_IGV_session, but this is for each individual
+    treatment"""
+    input:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bw"
+    params:
+        genome=config['assembly']
+    log:_logfile
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_treatment.igv.xml"
+    message: "PEAKS: generate IGV session for {run}.{rep} treatment.bw file"
+    run:
+        #NOTE: difference with this call and with generate_IGV_session is we pass the -l param which changes the file path
+        shell("chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l 2>>{log}")

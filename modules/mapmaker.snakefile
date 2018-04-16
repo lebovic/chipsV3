@@ -48,6 +48,7 @@ rule mapmaker_config:
         bed_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_sorted_peaks.narrowPeak.bed", run=config['runs']),
         bw_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_treat_pileup.bw", run=config['runs']),
         bam_files = expand("analysis/align/{sample}/{sample}_unique.sorted.dedup.bam", sample=[getTreat(r) for r in config['runs']]),
+        igv_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_treatment.igv.xml", run=config['runs']),
         config="analysis/mapmaker/.config.yaml"
     params:
         run_names=config['runs']
@@ -61,9 +62,10 @@ rule mapmaker_config:
         bed_files = " -b ".join([make_relative(b) for b in input.bed_files])
         bw_files = " -w ".join([make_relative(bw) for bw in input.bw_files])
         bam_files= " -a ".join([make_relative(bam) for bam in input.bam_files])
+        igv_files= " -i ".join([make_relative(igv) for igv in input.igv_files])
         names = " -n ".join(params.run_names)
 
-        shell("chips/modules/scripts/mapmaker_config.py -n {names} -b {bed_files} -w {bw_files} -a {bam_files} -c {input.config} -o {output}")
+        shell("chips/modules/scripts/mapmaker_config.py -n {names} -b {bed_files} -w {bw_files} -a {bam_files} -i {igv_files} -c {input.config} -o {output}")
 
 rule mapmaker_meta:
     """Tries to configure the mapmaker meta based on the chips run info"""

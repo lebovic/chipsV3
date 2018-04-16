@@ -14,6 +14,7 @@ def main():
     optparser.add_option("-b", "--bed_files", action="append", help="list of _sorted_peaks.narrowPeak.bed files")
     optparser.add_option("-w", "--bw_files", action="append", help="list of _treat_pileup.bw files")
     optparser.add_option("-a", "--bam_files", action="append", help="list of _unique.sorted.dedup.bam files")
+    optparser.add_option("-i", "--igv_files", action="append", help="list of _treatment.igv.xml files")
     optparser.add_option("-c", "--config", help="mapmaker config file (to use as a template)")
     optparser.add_option("-o", "--output", help="output file")
 
@@ -40,6 +41,10 @@ def main():
     #BAM files
     bam = dict(zip(options.names, options.bam_files))
     config['samples'] = bam
+
+    if options.igv_files:
+        igv = dict(zip(options.names, options.igv_files))
+        config['cnv'] = igv
 
     #OUTPUT
     out = open(options.output,"w")
