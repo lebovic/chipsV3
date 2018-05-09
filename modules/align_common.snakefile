@@ -1,6 +1,6 @@
 #MODULE: Align fastq files to genome - common rules
 #import os
-_align_threads=4
+_align_threads=8
 
 def align_targets(wildcards):
     """Generates the targets for this module"""
