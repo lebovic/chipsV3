@@ -37,6 +37,7 @@ rule mapmaker:
         "analysis/mapmaker/.metasheet.csv"
     shell:
         "git clone git@bitbucket.org:cfce/mapmaker analysis/mapmaker > {log} 2>&1 && "
+        "sleep 5 && "
         #NOTE: the two files below are OTHER targets of this snakefile, so
         #we trick snakemake into thinking they don't exist by renaming them
         "mv analysis/mapmaker/config.yaml analysis/mapmaker/.config.yaml && "
