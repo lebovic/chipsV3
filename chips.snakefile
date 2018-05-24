@@ -142,6 +142,9 @@ def all_targets(wildcards):
         if hasInput:
             ls.extend(qdnaseq_targets(wildcards))
 
+    if "epicypher_analysis" in config and config["epicypher_analysis"]:
+        ls.extend(epicypher_targets(wildcards))
+        
     ls.extend(report_targets(wildcards))
     return ls
 
@@ -170,4 +173,5 @@ else:
 include: "./modules/contamination.snakefile" # contamination panel module
 include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
 include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
+include: "./modules/epicypher.snakefile"     # epicypher spike-in module
 include: "./modules/report.snakefile"        # report module
