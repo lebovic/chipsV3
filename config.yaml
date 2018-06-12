@@ -11,7 +11,9 @@ aligner: 'bwa'
 #aligner: 'bwt2'
 
 #MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'
-#OTHERWISE leave it as 'homer' (default) 
+#OTHERWISE leave it as 'homer' (default)
+#
+#To skip motif scanning, simply comment out BOTH lines
 motif: 'homer'
 #motif: 'mdseqpos'
 

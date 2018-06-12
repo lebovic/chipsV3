@@ -46,10 +46,10 @@ def genPeakSummitsTable(conservPlots,motifSummary):
     hdr = array of header/column elms
     """
     #parse MotifSummary
-    motifs = parseMotifSummary(motifSummary)
-    runs = sorted(list(motifs.keys()))
+    motifs = parseMotifSummary(motifSummary) if motifSummary else {}
+    runs = sorted(_getRepInput("$runRep"))
     #HEADER- PROCESS the different modules differently
-    if config['motif'] == 'mdseqpos':
+    if 'motif' in config and config['motif'] == 'mdseqpos':
         hdr = ["Run", "Conservation","MotifID","MotifName","Logo","Zscore"]
     else:
         hdr = ["Run", "Conservation","Motif","Logo","Pval","LogPval"]
@@ -61,17 +61,21 @@ def genPeakSummitsTable(conservPlots,motifSummary):
             conserv = ".. image:: %s" % data_uri(img)
         else:
             conserv = "NA"
-        #HANDLE null values
-        if motifs[run]['logo'] and (motifs[run]['logo'] != 'NA'):
+        #HANDLE null values--Also check that we're doing motif analysis
+        if 'motif' in config and motifs[run]['logo'] and (motifs[run]['logo'] != 'NA'):
             motif_logo = ".. image:: %s" % data_uri(motifs[run]['logo'])
         else:
             motif_logo = "NA"
 
         #PROCESS the different modules differently
-        if config['motif'] == 'mdseqpos':
-            rest.append([run, conserv, motifs[run]['motifId'], motifs[run]['motifName'], motif_logo,  motifs[run]['zscore']])
+        if 'motif' in config:
+            if config['motif'] == 'mdseqpos':
+                rest.append([run, conserv, motifs[run]['motifId'], motifs[run]['motifName'], motif_logo,  motifs[run]['zscore']])
+            else:
+                rest.append([run, conserv, motifs[run]['motifName'], motif_logo, motifs[run]['pval'],motifs[run]['logp']])
         else:
-            rest.append([run, conserv, motifs[run]['motifName'], motif_logo, motifs[run]['pval'],motifs[run]['logp']])
+            #motif analysis was skipped
+            rest.append([run, conserv, 'NA', 'NA', 'NA','NA'])
 
     ret = tabulate(rest, hdr, tablefmt="rst")
     return ret
@@ -126,7 +130,7 @@ def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
         #NOTE the path structure is analysis/fastqc/{sample}/png_filename
         #we take second to last
         tmp = p.split("/")[-2]
-        plots[tmp] = p
+        plots[tmp] = str(p)
     
     #build output
     ret=[]
@@ -150,24 +154,32 @@ def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
     ret = tabulate(rest, hdr, tablefmt="rst")
     return ret
 
+def getReportInputs(wildcards):
+    """Input function created just so we can switch-off motif analysis"""
+    ret = {'cfce_logo':"chips/static/CFCE_Logo_Final.jpg",
+           'run_info':"analysis/peaks/run_info.txt",
+           'map_stat':"analysis/report/mapping.png",
+           'pbc_stat':"analysis/report/pbc.png",
+           'peakFoldChange_png':"analysis/report/peakFoldChange.png",
+           'conservPlots': sorted(_getRepInput("analysis/conserv/$runRep/$runRep_conserv_thumb.png")),
+           'samples_summary':"analysis/report/sequencingStatsSummary.csv",
+           'runs_summary':"analysis/report/peaksSummary.csv",
+           'contam_panel':"analysis/contam/contamination.csv",
+           #MOTIF handled after
+           'fastqc_stats':"analysis/fastqc/fastqc.csv",
+           'fastqc_gc_plots': expand("analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"])
+           }
+    if 'motif' in config:
+        ret['motif'] = "analysis/motif/motifSummary.csv"
+    return ret
+           
 rule report_all:
     input:
         report_targets
 
 rule report:
     input:
-        cfce_logo="chips/static/CFCE_Logo_Final.jpg",
-        run_info="analysis/peaks/run_info.txt",
-        map_stat="analysis/report/mapping.png",
-        pbc_stat="analysis/report/pbc.png",
-        peakFoldChange_png="analysis/report/peakFoldChange.png",
-        conservPlots = sorted(_getRepInput("analysis/conserv/$runRep/$runRep_conserv_thumb.png")),
-	samples_summary="analysis/report/sequencingStatsSummary.csv",
-	runs_summary="analysis/report/peaksSummary.csv",
-	contam_panel="analysis/contam/contamination.csv",
-        motif="analysis/motif/motifSummary.csv",
-        fastqc_stats="analysis/fastqc/fastqc.csv",
-        fastqc_gc_plots = expand("analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"]),
+        unpack(getReportInputs)
     params:
         #OBSOLETE, but keeping around
         samples = config['samples']
@@ -176,8 +188,17 @@ rule report:
         (macsVersion, fdr) = processRunInfo(input.run_info)
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
-        peakSummitsTable = genPeakSummitsTable(input.conservPlots, input.motif)
-        sampleGCandContam = sampleGCandContam_table(input.fastqc_stats, input.fastqc_gc_plots, input.contam_panel)
+        #HACK b/c unpack is ruining the input.fastqc_gc_plots element--the list
+        #becomes a singleton
+        conservPlots = sorted(_getRepInput("analysis/conserv/$runRep/$runRep_conserv_thumb.png"))
+        if 'motif' in config:
+            peakSummitsTable = genPeakSummitsTable(conservPlots, input.motif)
+        else:
+            peakSummitsTable = genPeakSummitsTable(conservPlots, None)
+        #HACK b/c unpack is ruining the input.fastqc_gc_plots element--the list
+        #becomes a singleton
+        fastqc_gc_plots = ["analysis/fastqc/%s/%s_perSeqGC_thumb.png" % (s,s) for s in config['samples']]
+        sampleGCandContam = sampleGCandContam_table(input.fastqc_stats, fastqc_gc_plots, input.contam_panel)
         tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png))
         report(tmp, output.html, metadata="Len Taing", **input)
 

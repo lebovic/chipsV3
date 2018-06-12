@@ -115,9 +115,12 @@ def all_targets(wildcards):
     ls.extend(conservation_targets(wildcards))
     ls.extend(ceas_targets(wildcards))
     ls.extend(frips_targets(wildcards))
-    ls.extend(motif_targets(wildcards))
     ls.extend(contamination_targets(wildcards))
     ls.extend(mapmaker_targets(wildcards))
+
+    #Check to see if motif is enabled
+    if 'motif' in config:
+        ls.extend(motif_targets(wildcards))
 
     #HANDLE CNV/qdnaseq analysis
     if _qdnaseq:
@@ -165,7 +168,7 @@ include: "./modules/conservation.snakefile"  # generate conservation plot
 include: "./modules/ceas.snakefile"          # annotate peak regions
 include: "./modules/frips.snakefile"         # fraction of reads in peaks
 
-if config['motif'] == 'mdseqpos':
+if 'motif' in config and config['motif'] == 'mdseqpos':
     include: "./modules/motif_mdseqpos.snakefile"     # mdseqpos motif module
 else:
     include: "./modules/motif_homer.snakefile"        # mdseqpos motif module
