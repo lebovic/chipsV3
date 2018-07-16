@@ -38,7 +38,31 @@ _SPIKE=['WT-A',
         'H4K20me2-A',
         'H4K20me2-B',
         'H4K20me3-A',
-        'H4K20me3-B']
+        'H4K20me3-B',
+	'Unmodified-100',
+	'Unmodified-80',
+	'Unmodified-60',
+	'Unmodified-40',
+	'Unmodified-20',
+	'Unmodified-10',
+	'H3K4me1-100',
+	'H3K4me1-80',
+	'H3K4me1-60',
+	'H3K4me1-40',
+	'H3K4me1-20',
+	'H3K4me1-10',
+	'H3K4me2-100',
+	'H3K4me2-80',
+	'H3K4me2-60',
+	'H3K4me2-40',
+	'H3K4me2-20',
+	'H3K4me2-10',
+	'H3K4me3-100',
+	'H3K4me3-80',
+	'H3K4me3-60',
+	'H3K4me3-40',
+	'H3K4me3-20',
+	'H3K4me3-10']
 
 def main():
     usage = "USAGE: %prog -b <epicypher bam file>"
@@ -54,7 +78,8 @@ def main():
     _START = 100
     _STEP = 1000
     _SIZE = 148 #length of the spike-in sequences
-    _STOP = 32*_STEP + _START
+    #_STOP = 32*_STEP + _START
+    _STOP = len(_SPIKE)*_STEP+_START
 
     #cts = []
     total = 0
@@ -70,7 +95,7 @@ def main():
         total += ct
     #printout
     
-    print(total)
+    #print(total)
         
 if __name__=='__main__':
     main()
