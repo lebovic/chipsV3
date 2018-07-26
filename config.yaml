@@ -43,8 +43,9 @@ contamination_panel:
 #NOTE: CNV analysis using QDNAseq R pkg- {true, false}
 cnv_analysis: true
 
-#Uncomment and set to true if using epicypher spike-ins
-#epicypher_analysis: false
+#Uncomment and set to 'SNAP' or 'CAP' for your type of epicypher spike-ins
+#default: 'SNAP'
+#epicypher_analysis: 'SNAP'
 
 # DEFINE the samples- each sample should have a name, e.g. SAMPLE1
 # and a path to the input file, e.g. data/sample1.fastq.gz
