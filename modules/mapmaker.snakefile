@@ -70,7 +70,8 @@ rule mapmaker_config:
 
 rule mapmaker_meta:
     """Tries to configure the mapmaker meta based on the chips run info"""
-    #input:
+    input:
+        meta="analysis/mapmaker/.metasheet.csv"
     params:
         run_names=config['runs']
     message: "MAPMAKER: configuring mapmaker"
