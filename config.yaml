@@ -43,7 +43,8 @@ contamination_panel:
 #NOTE: CNV analysis using QDNAseq R pkg- {true, false}
 cnv_analysis: true
 
-#Uncomment and set to 'SNAP' or 'CAP' for your type of epicypher spike-ins
+#Uncomment and set to 'SNAP', 'CAP', or 'KACYL' for your type of epicypher
+#spike-ins
 #default: 'SNAP'
 #epicypher_analysis: 'SNAP'
 

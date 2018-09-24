@@ -11,8 +11,11 @@ def epicypher_targets(wildcards):
     elif 'epicypher_analysis' in config and config['epicypher_analysis'] == 'CAP':
         for sample in config["samples"]:
             ls.append("analysis/epicypher.cap/%s/%s.epicypher.quant.txt" % (sample,sample))
+    elif 'epicypher_analysis' in config and config['epicypher_analysis'] == 'KACYL':
+        for sample in config["samples"]:
+            ls.append("analysis/epicypher.kacyl/%s/%s.epicypher.quant.txt" % (sample,sample))
     else:
-        print("ERROR: epicypher_analysis not specified to either 'SNAP' or 'CAP")
+        print("ERROR: epicypher_analysis not specified to either 'SNAP', 'CAP', or 'KACYL'")
         sys.exit()
     return ls
 
@@ -33,7 +36,7 @@ rule align_to_epicypher:
     input:
         "analysis/align/{sample}/{sample}.unmapped.fq.gz"
     params:
-        epicypher_index=lambda wildcards: "chips/static/epicypher_%s/epicypher.fa" % wildcards.ttype,
+        epicypher_index=lambda wildcards: "chips/static/epicypher/%s/epicypher.fa" % wildcards.ttype,
         #check for PE mate
         mate2 =  lambda wildcards: "analysis/align/{sample}/{sample}.unmapped.fq2.gz" if len(config["samples"][wildcards.sample]) == 2 else ""
     output:
