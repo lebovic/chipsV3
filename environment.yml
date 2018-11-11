@@ -18,6 +18,9 @@ dependencies:
 - picard>=2.18.4
 - bedtools>=2.25.0 #for bamToFastq
 
+#bam_snapshot
+- bioconductor-gviz
+
 #meta aka ceas.snakefile
 
 #conservation.snakefile
