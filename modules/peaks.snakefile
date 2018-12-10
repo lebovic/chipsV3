@@ -195,7 +195,7 @@ rule getPeaksStats:
     log:_logfile
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/peaks_getPeakStats.py -f {files} -o {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/peaks_getPeakStats.py -f {files} -o {output} 2>>{log}")
 
 rule macsRunInfo:
     """Dump the current version of macs and the fdr used into a text file 
@@ -223,7 +223,7 @@ rule generate_IGV_session:
     message: "PEAKS: generate IGV session for all treatment.bw files"
     run:
         treats = " -t ".join(input)
-        shell("chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {treats} -o {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {treats} -o {output} 2>>{log}")
         
 rule generate_IGV_perTrack:
     """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
@@ -240,4 +240,4 @@ rule generate_IGV_perTrack:
     message: "PEAKS: generate IGV session for {run}.{rep} treatment.bw file"
     run:
         #NOTE: difference with this call and with generate_IGV_session is we pass the -l param which changes the file path
-        shell("chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l 2>>{log}")
+        shell("cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l 2>>{log}")

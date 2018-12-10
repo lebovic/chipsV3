@@ -7,7 +7,7 @@ from snakemake.report import data_uri
 #DEPENDENCIES
 from tabulate import tabulate
 
-_ReportTemplate = Template(open("chips/static/chips_report.txt").read())
+_ReportTemplate = Template(open("cidc_chips/static/chips_report.txt").read())
 _logfile = "analysis/logs/report.log"
 
 def report_targets(wildcards):
@@ -156,7 +156,7 @@ def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
 
 def getReportInputs(wildcards):
     """Input function created just so we can switch-off motif analysis"""
-    ret = {'cfce_logo':"chips/static/CFCE_Logo_Final.jpg",
+    ret = {'cfce_logo':"cidc_chips/static/CFCE_Logo_Final.jpg",
            'run_info':"analysis/peaks/run_info.txt",
            'map_stat':"analysis/report/mapping.png",
            'pbc_stat':"analysis/report/pbc.png",
@@ -211,7 +211,7 @@ rule samples_summary_table:
         "analysis/report/sequencingStatsSummary.csv"
     log: _logfile
     shell:
-        "chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} > {output} 2>>{log}"
+        "cidc_chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} > {output} 2>>{log}"
 
 rule runs_summary_table:
     input:
@@ -223,7 +223,7 @@ rule runs_summary_table:
         "analysis/report/peaksSummary.csv"
     log: _logfile
     shell:
-        "chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -m {input.meta} -o {output} 2>>{log}"
+        "cidc_chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -m {input.meta} -o {output} 2>>{log}"
 
 ######## PLOTS ######
 rule plot_map_stat:
@@ -233,7 +233,7 @@ rule plot_map_stat:
         "analysis/report/mapping.png"
     log: _logfile
     shell:
-        "Rscript chips/modules/scripts/map_stats.R {input} {output}"
+        "Rscript cidc_chips/modules/scripts/map_stats.R {input} {output}"
 
 rule plot_pbc_stat:
     input:
@@ -243,7 +243,7 @@ rule plot_pbc_stat:
         "analysis/report/pbc.png"
     log: _logfile
     shell:
-        "Rscript chips/modules/scripts/plot_pbc.R {input} {output}"
+        "Rscript cidc_chips/modules/scripts/plot_pbc.R {input} {output}"
 
 rule plot_peakFoldChange:
     input: 
@@ -252,7 +252,7 @@ rule plot_peakFoldChange:
         "analysis/report/peakFoldChange.png"
     log: _logfile
     shell:
-        "Rscript chips/modules/scripts/plot_foldChange.R {input} {output}"
+        "Rscript cidc_chips/modules/scripts/plot_foldChange.R {input} {output}"
 
 #DEPRECATED!! this plot is no longer used!
 rule plot_nonChrM_stats:
@@ -262,5 +262,5 @@ rule plot_nonChrM_stats:
         "analysis/report/attic/nonChrM_stats.png"
     log: _logfile
     shell:
-        "Rscript chips/modules/scripts/plot_nonChrM.R {input} {output}"
+        "Rscript cidc_chips/modules/scripts/plot_nonChrM.R {input} {output}"
 

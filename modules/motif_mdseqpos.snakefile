@@ -84,4 +84,4 @@ rule getMotifSummary:
     log: _logfile
     run:
         files = " -m ".join(input)
-        shell("chips/modules/scripts/motif_getSummary.py -m {files} -o {output} 2>> {log}")
+        shell("cidc_chips/modules/scripts/motif_getSummary.py -m {files} -o {output} 2>> {log}")

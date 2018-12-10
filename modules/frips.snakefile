@@ -77,7 +77,7 @@ rule sample_4M_from_nonChrM:
         temp('analysis/align/{sample}/{sample}_4M_nonChrM.bam')
     shell:
         """
-        chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
+        cidc_chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
         """
 
 rule create_unique_nonChrM:
@@ -114,7 +114,7 @@ rule sample_4M_from_uniqueNonChrM:
         temp('analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam')
     shell:
         """
-        chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
+        cidc_chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
         """
 
 rule frip_calculate:
@@ -130,7 +130,7 @@ rule frip_calculate:
     message: "FRiPs: calculate frips"
     log:_logfile
     shell:
-        "chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} 2>>{log}"
+        "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} 2>>{log}"
 
 rule frip_pbc:
     """Generate the PBC histogram for each normalized sample, which will be 
@@ -146,7 +146,7 @@ rule frip_pbc:
     message: "FRiP: generate PBC histogram for each sample/bam {params.msg}"
     log: _logfile
     shell:
-        "chips/modules/scripts/frips_pbc.sh -i {input} -o {output} 2>> {log}"
+        "cidc_chips/modules/scripts/frips_pbc.sh -i {input} -o {output} 2>> {log}"
 
 rule collect_pbc:
     """Collect and parse out the PBC for the ALL of the samples"""
@@ -158,7 +158,7 @@ rule collect_pbc:
     log: _logfile
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")
 
 rule nonChrM_stats:
     """Get the nonChrM mapping stats for each aligment run"""
@@ -192,7 +192,7 @@ rule collect_nonChrM_stats:
     log: _logfile
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
 
 rule get_SampleFragLength:
     """Dump all of the sample's fragment lengths into 
@@ -225,7 +225,7 @@ rule make_FragPlot:
         "analysis/frag/{sample}/{sample}_fragDist.png"
     shell:
         #RUN the R script to get the plot
-        "chips/modules/scripts/frag_plotFragDist.R {input} {output} {params.name} 2>>{log}"
+        "cidc_chips/modules/scripts/frag_plotFragDist.R {input} {output} {params.name} 2>>{log}"
     
 rule getFripStats:
     """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
@@ -238,4 +238,4 @@ rule getFripStats:
     log:_logfile
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/frips_getFrips.py -f {files} -o {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/frips_getFrips.py -f {files} -o {output} 2>>{log}")

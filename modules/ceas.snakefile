@@ -51,8 +51,8 @@ rule ceas:
     shell:
         #TWO ways to run bedAnnotate: w/ basename param (-n) or w/o
         #For now we keep the -n explictly defined
-        "chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} -n {params.name} > {output.summary} 2>>{log}"
-        #"chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} > {output.summary} 2>>{log}"
+        "cidc_chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} -n {params.name} > {output.summary} 2>>{log}"
+        #"cidc_chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} > {output.summary} 2>>{log}"
 
 
 rule takeTop5k:
@@ -148,7 +148,7 @@ rule bam_regionStat:
         #make temp
         'analysis/ceas/samples/{sample}/{sample}.{region}'
     shell:
-        "chips/modules/scripts/meta_bamRegionCount.sh -i {input} -b {params.bed} -o {output} 2>> {log}"
+        "cidc_chips/modules/scripts/meta_bamRegionCount.sh -i {input} -b {params.bed} -o {output} 2>> {log}"
 
 rule collect_BamRegionStats:
     """collect the BAM region stats into a single file"""
@@ -168,7 +168,7 @@ rule collect_BamRegionStats:
         #Aribitrarily USE only the exon list
         dirs = ["/".join(d.split("/")[:-1]) for d in input.exon]
         d = " -d ".join(dirs)
-        shell("chips/modules/scripts/ceas_collectBamRegStats.py -d {d} > {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/ceas_collectBamRegStats.py -d {d} > {output} 2>>{log}")
 
 rule collect_DHSstats:
     """collect the DHS stats into a single file"""
@@ -181,7 +181,7 @@ rule collect_DHSstats:
         'analysis/ceas/dhs.csv'
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/peaks_getDHSstats.py -f {files} -o {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/peaks_getDHSstats.py -f {files} -o {output} 2>>{log}")
 
 rule collect_CEASstats:
     """collect the CEAS stats into a single file"""
@@ -194,4 +194,4 @@ rule collect_CEASstats:
         'analysis/ceas/meta.csv'
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/ceas_getMetaStats.py -f {files} -o {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/ceas_getMetaStats.py -f {files} -o {output} 2>>{log}")

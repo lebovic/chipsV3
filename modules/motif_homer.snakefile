@@ -72,7 +72,7 @@ rule getMotifSummary:
     log: _logfile
     run:
         files = " -m ".join(input)
-        shell("chips/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
+        shell("cidc_chips/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
 
 rule homer_annotatePeaks:
     """Annotate peak files.
@@ -99,4 +99,4 @@ rule homer_processAnnPeaks:
     message: "MOTIF: Post-process homer annotatePeaks.txt file"
     log: _logfile
     shell:
-        "chips/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"
+        "cidc_chips/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"

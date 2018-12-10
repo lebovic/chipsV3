@@ -106,4 +106,4 @@ rule collect_allContamination:
         "analysis/contam/contamination.csv"
     run:
         files = " -f ".join(input)
-        shell("chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")
