@@ -45,6 +45,7 @@ rule uniquely_mapped_reads:
     message: "ALIGN: Filtering for uniquely mapped reads"
     log: _logfile
     threads: _align_threads
+    conda: "../envs/align/align_common.yaml"
     shell:
         #NOTE: this is the generally accepted way of doing this as multiply 
         #mapped reads have a Quality score of 0
@@ -63,6 +64,7 @@ rule map_stats:
     threads: _align_threads
     message: "ALIGN: get mapping stats for each bam"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     #CAN/should samtools view be multi-threaded--
     #UPDATE: tricky on how to do this right w/ compounded commands
     shell:
@@ -78,11 +80,17 @@ rule collect_map_stats:
         expand("analysis/align/{sample}/{sample}_mapping.txt", sample=sorted(config["samples"]))
     output:
         "analysis/align/mapping.csv"
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "ALIGN: collect and parse ALL mapping stats"
     log: _logfile
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/align_getMapStats.py -f {files} > {output} 2>>{log}")
+    conda: "../envs/align/align_common.yaml"
+    #NOTE: can't do conda envs with run
+    #run:
+    #    files = " -f ".join(input)
+    #    shell("cidc_chips/modules/scripts/align_getMapStats.py -f {files} > {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/align_getMapStats.py {params.files} > {output} 2>>{log}"
 
 rule sortBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -95,6 +103,7 @@ rule sortBams:
         #"analysis/align/{sample}/{sample}.sorted.bam.bai"
     message: "ALIGN: sort bam file"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
         "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
@@ -110,6 +119,7 @@ rule sortUniqueBams:
         #"analysis/align/{sample}/{sample}_unique.sorted.bam.bai"
     message: "ALIGN: sort bam file"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
         "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
@@ -123,6 +133,7 @@ rule dedupSortedUniqueBams:
         "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam"
     message: "ALIGN: dedup sorted unique bam file"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
         "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
@@ -135,6 +146,7 @@ rule indexBam:
         "analysis/align/{sample}/{prefix}.bam.bai"
     message: "ALIGN: indexing bam file {input}"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     shell:
         "sambamba index {input} {output}"
 
@@ -147,6 +159,7 @@ rule extractUnmapped:
         temp("analysis/align/{sample}/{sample}.unmapped.bam")
     message: "ALIGN: extract unmapped reads"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
         #THIS extracts all unmapped reads
@@ -167,6 +180,7 @@ rule bamToFastq:
         mate2 = lambda wildcards: "-fq2 analysis/align/{sample}/{sample}.unmapped.fq2" if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: convert unmapped bam to fastq"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} {params.mate2}"
 
@@ -181,6 +195,7 @@ rule gzipUnmappedFq:
         mate2 = lambda wildcards: "analysis/align/{sample}/{sample}.unmapped.fq2" if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: gzip unmapped fq files"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     shell:
         "gzip {input} {params} 2>>{log}"
 
@@ -200,6 +215,7 @@ rule readsPerChromStat:
         "analysis/align/{sample}/{sample}_readsPerChrom.txt"
     message: "ALIGN: collecting the number of reads per chrom"
     log: _logfile
+    conda: "../envs/align/align_common.yaml"
     shell:
         "cidc_chips/modules/scripts/align_readsPerChrom.sh -a {input.bam} > {output} 2>> {log}"
 

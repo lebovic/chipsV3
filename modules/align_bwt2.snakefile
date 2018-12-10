@@ -32,6 +32,7 @@ rule bwt2_aln:
     threads: _bwt2_threads
     message: "ALIGN: Running Bowtie2 alignment"
     log: _logfile
+    conda: "../envs/align/align_bwt2.yaml"
     run:
         if len(input) > 1:
             #PE
@@ -49,6 +50,7 @@ rule bwt2_convert:
     threads: _samtools_threads
     message: "ALIGN: convert sam to bam"
     log: _logfile
+    conda: "../envs/align/align_bwt2.yaml"
     shell:
         "samtools view -@ {threads} -Sb {input} > {output}"
 

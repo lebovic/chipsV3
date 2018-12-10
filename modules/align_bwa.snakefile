@@ -16,6 +16,7 @@ rule bwa_mem:
     threads: _bwa_threads
     message: "ALIGN: Running BWA mem for alignment"
     log: _logfile
+    conda: "../envs/align/align_bwa.yaml"
     shell:
         "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
 

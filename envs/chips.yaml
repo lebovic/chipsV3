@@ -1,11 +1,12 @@
-name: align_common
+name: chips
 channels:
 - bioconda
 - conda-forge
 - defaults
 dependencies:
-- sambamba
-- picard>=2.18.4
-- bedtools>=2.25.0
+#GENERAL
+- snakemake=4.8.1
 - samtools>=1.8
 - python>=3.5.2
+- r>=3.4.1
+- numpy
