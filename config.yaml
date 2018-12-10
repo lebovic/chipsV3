@@ -1,6 +1,6 @@
 #NOTE: you won't typically have to change the following two lines!
 metasheet: 'metasheet.csv'
-ref: "chips/ref.yaml"
+ref: "cidc_chips/ref.yaml"
 
 #Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
 assembly: hg19

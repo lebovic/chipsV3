@@ -35,4 +35,4 @@ rule bam_snapshot:
         species= config['motif_path'],
         zoom= lambda wildcards: wildcards.zoom_f
     shell:
-        "Rscript chips/modules/scripts/bam_snapshot.R {input} {params.isPaired} {params.name} {params.gene} {params.species} {params.zoom} {output}"
+        "Rscript cidc_chips/modules/scripts/bam_snapshot.R {input} {params.isPaired} {params.name} {params.gene} {params.species} {params.zoom} {output}"
