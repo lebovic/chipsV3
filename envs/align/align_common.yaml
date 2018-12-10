@@ -1,0 +1,14 @@
+name: align_common
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- bwa>=0.7.15
+- bowtie2>=2.3.4.1
+- sambamba
+- picard>=2.18.4
+- bedtools>=2.25.0
+- samtools>=1.8
+- python>=3.5.2
+- snakemake=4.8.1

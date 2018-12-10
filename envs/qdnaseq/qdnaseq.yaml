@@ -1,0 +1,9 @@
+name: qdnaseq
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- r>=3.4.1
+- python>=3.5.2
+- bioconductor-qdnaseq
