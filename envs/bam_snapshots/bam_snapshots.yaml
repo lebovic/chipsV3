@@ -4,6 +4,4 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- r>=3.4.1
 - bioconductor-gviz
-- snakemake=4.8.1

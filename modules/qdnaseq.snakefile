@@ -48,6 +48,7 @@ rule qdnaseq_linkFiles:
         temp(".tmp/{sample}_unique.sorted.bam")
     message: "QDNAseq: linking files"
     log: _logfile
+    conda: "../envs/qdnaseq/qdnaseq.yaml"
     shell:
         "ln -s ../{input} {output} 2>>{log}"
 
@@ -64,6 +65,7 @@ rule qdnaseq:
         "analysis/qdnaseq/qdnaseq_calls.igv",
     message: "QDNAseq: performing cnv analysis"
     log: _logfile
+    conda: "../envs/qdnaseq/qdnaseq.yaml"
     params:
         name="qdnaseq",
         qbin="cidc_chips/static/qdnaseq/qdnaseq_hg19_50.bin",
@@ -81,6 +83,7 @@ rule qdnaseq_annotate:
         "analysis/qdnaseq/qdnaseq_genes.igv",
     message: "QDNASEQ: annotating cnv analysis output"
     log: _logfile
+    conda: "../envs/qdnaseq/qdnaseq.yaml"
     params:
         geneTable=config['geneTable'],
         outPath="analysis/qdnaseq/"

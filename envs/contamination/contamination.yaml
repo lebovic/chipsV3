@@ -4,6 +4,3 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- python>=3.5.2
-- samtools>=1.8
-- snakemake=4.8.1

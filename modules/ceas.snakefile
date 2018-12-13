@@ -44,6 +44,7 @@ rule ceas:
         summary="analysis/ceas/{run}.{rep}/{run}.{rep}_summary.txt",
     message: "CEAS: annotating peak regions"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     params:
         db=config['geneTable'],
         path="analysis/ceas/{run}.{rep}/",
@@ -63,6 +64,7 @@ rule takeTop5k:
         n=5000
     message: "DHS: Take top sites"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         temp('analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed')
     shell:
@@ -77,6 +79,7 @@ rule DHS_intersectDHS:
         dhs=config['DHS']
     message: "DHS: intersect PEAKS with DHS regions"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
     run:
@@ -97,6 +100,7 @@ rule DHS_stat:
         dhs='analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
     message: "DHS: collecting stats"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
     shell:
@@ -111,6 +115,7 @@ rule VELCRO_intersectVelcro:
         velcro=config['velcro_regions']
     message: "VELCRO: intersect PEAKS with velcro regions"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
     run:
@@ -128,6 +133,7 @@ rule VELCRO_stat:
         velcro='analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
     message: "VELCRO: collecting stats"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_stats.txt'
     shell:
@@ -144,6 +150,7 @@ rule bam_regionStat:
         msg = lambda wildcards: "%s:%s" % (wildcards.sample, wildcards.region)
     message: "CEAS: bam stat region {params.msg}"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         #make temp
         'analysis/ceas/samples/{sample}/{sample}.{region}'
@@ -161,6 +168,7 @@ rule collect_BamRegionStats:
         exon = expand("analysis/ceas/samples/{sample}/{sample}.exons", sample=config['samples'])
     message: "CEAS: collect bam region stats"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/samples/bamRegionStats.csv'
     run:
@@ -177,6 +185,7 @@ rule collect_DHSstats:
         _getRepInput("analysis/ceas/$runRep/$runRep_DHS_stats.txt")
     message: "CEAS: collect DHS stats"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/dhs.csv'
     run:
@@ -190,6 +199,7 @@ rule collect_CEASstats:
         _getRepInput("analysis/ceas/$runRep/$runRep_summary.txt")
     message: "CEAS: collect CEAS stats"
     log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/meta.csv'
     run:

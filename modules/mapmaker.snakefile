@@ -35,6 +35,7 @@ rule mapmaker:
         "analysis/mapmaker",
         "analysis/mapmaker/.config.yaml",
         "analysis/mapmaker/.metasheet.csv"
+    conda: "../envs/mapmaker/mapmaker.yaml"
     shell:
         "git clone git@bitbucket.org:cfce/mapmaker analysis/mapmaker > {log} 2>&1 && "
         "sleep 20 && "
@@ -55,6 +56,7 @@ rule mapmaker_config:
         run_names=config['runs']
     message: "MAPMAKER: configuring mapmaker"
     log: _logfile
+    conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         "analysis/mapmaker/config.yaml"
     run:
@@ -76,6 +78,7 @@ rule mapmaker_meta:
         run_names=config['runs']
     message: "MAPMAKER: configuring mapmaker"
     log: _logfile
+    conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         "analysis/mapmaker/metasheet.csv"
     run:

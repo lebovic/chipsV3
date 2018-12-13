@@ -57,6 +57,7 @@ rule create_nonChrM:
     message: "FRiPs: creating the nonChrM SAM file {params.msg}"
     log:_logfile
     threads: _samtools_threads
+    conda: "../envs/frips/frips.yaml"
     output:
         temp('analysis/align/{sample}/{sample}_nonChrM.sam')
     shell:
@@ -73,6 +74,7 @@ rule sample_4M_from_nonChrM:
         n="4000000"
     message: "FRiPs: sample- 4M from non-chrM reads"
     log:_logfile
+    conda: "../envs/frips/frips.yaml"
     output:
         temp('analysis/align/{sample}/{sample}_4M_nonChrM.bam')
     shell:
@@ -92,6 +94,7 @@ rule create_unique_nonChrM:
     message: "FRiPs: create uniquely mapped non-chrM reads {params.msg}"
     log:_logfile
     threads: _samtools_threads
+    conda: "../envs/frips/frips.yaml"
     output:
         temp('analysis/align/{sample}/{sample}_unique_nonChrM.bam')
     shell:
@@ -110,6 +113,7 @@ rule sample_4M_from_uniqueNonChrM:
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads {params.msg}"
     log:_logfile
+    conda: "../envs/frips/frips.yaml"
     output:
         temp('analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam')
     shell:
@@ -129,6 +133,7 @@ rule frip_calculate:
         pval="1E-9"
     message: "FRiPs: calculate frips"
     log:_logfile
+    conda: "../envs/frips/frips.yaml"
     shell:
         "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} 2>>{log}"
 
@@ -145,6 +150,7 @@ rule frip_pbc:
         msg= lambda wildcards: wildcards.sample
     message: "FRiP: generate PBC histogram for each sample/bam {params.msg}"
     log: _logfile
+    conda: "../envs/frips/frips.yaml"
     shell:
         "cidc_chips/modules/scripts/frips_pbc.sh -i {input} -o {output} 2>> {log}"
 
@@ -156,6 +162,7 @@ rule collect_pbc:
         "analysis/frips/pbc.csv"
     message: "ALIGN: collect and parse ALL pbc stats"
     log: _logfile
+    conda: "../envs/frips/frips.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")
@@ -176,6 +183,7 @@ rule nonChrM_stats:
     params:
         sam_th = _samtools_threads / 2
     threads: _samtools_threads
+    conda: "../envs/frips/frips.yaml"
     shell:
         #FLAGSTATS is the top of the file, and we append the uniquely mapped
         #reads to the end of the file
@@ -190,6 +198,7 @@ rule collect_nonChrM_stats:
         "analysis/frips/nonChrM_stats.csv"
     message: "FRiPs: collect and parse ALL nonChrM stats"
     log: _logfile
+    conda: "../envs/frips/frips.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
@@ -205,6 +214,7 @@ rule get_SampleFragLength:
     message: "FRAG: get fragment sizes"
     log:_logfile
     threads: _samtools_threads
+    conda: "../envs/frips/frips.yaml"
     output:
         temp("analysis/frag/{sample}/{sample}_frags.txt")
     shell:
@@ -221,6 +231,7 @@ rule make_FragPlot:
         name= lambda wildcards: wildcards.sample
     message: "FRAG: plot fragment size distribution plot"
     log:_logfile
+    conda: "../envs/frips/frips.yaml"
     output:
         "analysis/frag/{sample}/{sample}_fragDist.png"
     shell:
@@ -236,6 +247,7 @@ rule getFripStats:
         "analysis/frips/frips.csv"
     message: "FRiPs: collecting frips stats for each run"
     log:_logfile
+    conda: "../envs/frips/frips.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/frips_getFrips.py -f {files} -o {output} 2>>{log}")

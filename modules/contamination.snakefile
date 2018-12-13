@@ -66,6 +66,7 @@ rule contamination:
     threads: _bwa_threads
     message: "CONTAMINATION: checking {params.sample} against {params.panel}"
     log: _logfile
+    conda: "../envs/contamination/contamination.yaml"
     shell:
         "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} 2>> {log}"
 
@@ -83,6 +84,7 @@ rule contaminationStats:
         awk_cmd = "\'BEGIN {RS=\'\\t\'}{print $23 / $1 * 100}\'"
     message: "CONTAMINATION: get mapping stats {params.sample}:{params.panel}"
     log: _logfile
+    conda: "../envs/contamination/contamination.yaml"
     shell:
         "samtools flagstat {input} | awk {params.awk_cmd} > {output} 2>>{log}"
 
@@ -92,6 +94,7 @@ rule contaminationCollectStats:
         expand("analysis/contam/{{sample}}/{{sample}}.{panel}.txt", panel=_contaminationNames)
     output:
         "analysis/contam/{sample}/{sample}_contamination.txt"
+    conda: "../envs/contamination/contamination.yaml"
     run:
         for (n, f) in zip(_contaminationNames, input):
             shell("per=$(cat {f}) && echo {n} $per >> {output}")
@@ -104,6 +107,7 @@ rule collect_allContamination:
     log: _logfile
     output:
         "analysis/contam/contamination.csv"
+    conda: "../envs/contamination/contamination.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")

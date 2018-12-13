@@ -28,6 +28,7 @@ rule bam_snapshot:
         "analysis/bam_snapshots/{sample}/{sample}_{gene}_{zoom_f}Xzoom.png"
     message: "BAM_SNAPSHOT: generate snapshot for sample {wildcards.sample} in gene {wildcards.gene}"
     log: _logfile
+    conda: "../envs/bam_snapshots/bam_snapshots.yaml"
     params:
         isPaired= lambda wildcards: "TRUE" if len(config["samples"][wildcards.sample]) == 2 else "FALSE",
         name= lambda wildcards: wildcards.sample,

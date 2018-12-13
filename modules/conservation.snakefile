@@ -36,6 +36,7 @@ rule top5k_peaks:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
     log: _logfile
+    conda: "../envs/conservation/conservation.yaml"
     shell:
         "head -n {params.lines} {input} > {output} 2>>{log}"
 
@@ -56,6 +57,7 @@ rule conservation:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "CONSERVATION: calling conservation script"
     log: _logfile
+    	conda: "../envs/conservation/conservation.yaml"
     shell:
         "{params.pypath} {config[python2]} cidc_chips/modules/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 

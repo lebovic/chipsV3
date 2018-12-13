@@ -4,9 +4,6 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- samtools>=1.8
 - bedtools>=2.25.0
-- python>=3.5.2
-- r>=3.4.1
 - r-ggplot2>=2.2.0
 - r-reshape2>=1.4.2

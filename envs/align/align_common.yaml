@@ -7,5 +7,3 @@ dependencies:
 - sambamba
 - picard>=2.18.4
 - bedtools>=2.25.0
-- samtools>=1.8
-- python>=3.5.2

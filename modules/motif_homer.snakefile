@@ -47,6 +47,7 @@ rule motif_homer:
     message: "MOTIF: calling HOMER on top 5k summits"
     threads:_threads
     log: _logfile
+    conda: "../envs/motif/motif.yaml"
     run:
         #check to see if _sorted_5k_summits.bed is valid
         wc = str(subprocess.check_output(['wc', '-l', input.bed]))
@@ -70,6 +71,7 @@ rule getMotifSummary:
         "analysis/motif/motifSummary.csv"
     message: "MOTIF: summarizing motif runs"
     log: _logfile
+    conda: "../envs/motif/motif.yaml"
     run:
         files = " -m ".join(input)
         shell("cidc_chips/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
@@ -86,6 +88,7 @@ rule homer_annotatePeaks:
         genome=config['motif_path'],
     message: "MOTIF: homer annotatePeaks"
     log: _logfile
+    conda: "../envs/motif/motif.yaml"
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
 
@@ -98,5 +101,6 @@ rule homer_processAnnPeaks:
         csv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.csv",
     message: "MOTIF: Post-process homer annotatePeaks.txt file"
     log: _logfile
+    conda: "../envs/motif/motif.yaml"
     shell:
         "cidc_chips/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"

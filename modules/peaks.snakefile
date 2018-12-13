@@ -103,6 +103,7 @@ rule macs2_callpeaks:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "PEAKS: calling peaks with macs2"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     run:
         treatment = "-t %s" % input.treat if input.treat else "",
         control = "-c %s" % input.cont if input.cont else "",        
@@ -116,6 +117,7 @@ rule peakToBed:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
     message: "PEAKS: Converting peak file to bed file"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     shell:
         "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
 
@@ -126,6 +128,7 @@ rule sortSummits:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     message: "PEAKS: sorting the summits bed by score"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     shell:
         "sort -r -n -k 5 {input} > {output} 2>>{log}"
 
@@ -136,6 +139,7 @@ rule sortNarrowPeaks:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
     message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     shell:
         "sort -r -n -k 9 {input} > {output} 2>>{log}"
 
@@ -150,6 +154,7 @@ rule sortBedgraphs:
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedSort {input} {output} 2>>{log}"
 
@@ -165,6 +170,7 @@ rule bdgToBw:
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
 
@@ -181,6 +187,7 @@ rule gzip_bdg:
         msg= lambda wildcards: "%s.%s" % (wildcards.run, wildcards.rep)
     message: "PEAKS: compressing sorted.bdg {params.msg}"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     shell:
         "gzip {input.bdg} 2>> {log}"
 
@@ -193,6 +200,7 @@ rule getPeaksStats:
         "analysis/peaks/peakStats.csv"
     message: "PEAKS: collecting peaks stats for each run"
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/peaks_getPeakStats.py -f {files} -o {output} 2>>{log}")
@@ -207,6 +215,7 @@ rule macsRunInfo:
         #MAKE temp
         "analysis/peaks/run_info.txt"
     message: "PEAKS/REPORT - collection macs version and fdr info"
+    conda: "../envs/peaks/peaks.yaml"
     shell:
         "{params.pypath} {config[macs2_path]} --version 2> {output} && echo fdr {params.fdr} >> {output}"
     
@@ -218,6 +227,7 @@ rule generate_IGV_session:
     params:
         genome=config['assembly']
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/all_treatments.igv.xml"
     message: "PEAKS: generate IGV session for all treatment.bw files"
@@ -235,6 +245,7 @@ rule generate_IGV_perTrack:
     params:
         genome=config['assembly']
     log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_treatment.igv.xml"
     message: "PEAKS: generate IGV session for {run}.{rep} treatment.bw file"

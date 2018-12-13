@@ -5,8 +5,5 @@ channels:
 - defaults
 dependencies:
 - tabulate
-- python>=3.5.2
-- r>=3.4.1
 - r-ggplot2>=2.2.0
 - r-reshape2>=1.4.2
-- snakemake=4.8.1
