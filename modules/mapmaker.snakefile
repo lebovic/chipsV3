@@ -56,7 +56,7 @@ rule mapmaker_config:
         run_names=config['runs']
     message: "MAPMAKER: configuring mapmaker"
     log: _logfile
-    conda: "../envs/mapmaker/mapmaker.yaml"
+    #conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         "analysis/mapmaker/config.yaml"
     run:
@@ -78,7 +78,7 @@ rule mapmaker_meta:
         run_names=config['runs']
     message: "MAPMAKER: configuring mapmaker"
     log: _logfile
-    conda: "../envs/mapmaker/mapmaker.yaml"
+    #conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         "analysis/mapmaker/metasheet.csv"
     run:

@@ -94,7 +94,7 @@ rule contaminationCollectStats:
         expand("analysis/contam/{{sample}}/{{sample}}.{panel}.txt", panel=_contaminationNames)
     output:
         "analysis/contam/{sample}/{sample}_contamination.txt"
-    conda: "../envs/contamination/contamination.yaml"
+    #conda: "../envs/contamination/contamination.yaml"
     run:
         for (n, f) in zip(_contaminationNames, input):
             shell("per=$(cat {f}) && echo {n} $per >> {output}")
@@ -107,7 +107,7 @@ rule collect_allContamination:
     log: _logfile
     output:
         "analysis/contam/contamination.csv"
-    conda: "../envs/contamination/contamination.yaml"
+    #conda: "../envs/contamination/contamination.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")

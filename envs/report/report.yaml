@@ -4,6 +4,5 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- tabulate
 - r-ggplot2>=2.2.0
 - r-reshape2>=1.4.2

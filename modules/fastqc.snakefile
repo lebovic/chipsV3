@@ -163,7 +163,7 @@ rule collect_fastQCStats:
         "analysis/fastqc/fastqc.csv"
     message: "FASTQC: collect and parse ALL mapping stats"
     log: _logfile
-    conda: "../envs/fastqc/fastqc.yaml"
+    #conda: "../envs/fastqc/fastqc.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output} 2>>{log}")

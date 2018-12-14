@@ -162,7 +162,7 @@ rule collect_pbc:
         "analysis/frips/pbc.csv"
     message: "ALIGN: collect and parse ALL pbc stats"
     log: _logfile
-    conda: "../envs/frips/frips.yaml"
+    #conda: "../envs/frips/frips.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")
@@ -198,7 +198,7 @@ rule collect_nonChrM_stats:
         "analysis/frips/nonChrM_stats.csv"
     message: "FRiPs: collect and parse ALL nonChrM stats"
     log: _logfile
-    conda: "../envs/frips/frips.yaml"
+    #conda: "../envs/frips/frips.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
@@ -247,7 +247,7 @@ rule getFripStats:
         "analysis/frips/frips.csv"
     message: "FRiPs: collecting frips stats for each run"
     log:_logfile
-    conda: "../envs/frips/frips.yaml"
+    #conda: "../envs/frips/frips.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/frips_getFrips.py -f {files} -o {output} 2>>{log}")

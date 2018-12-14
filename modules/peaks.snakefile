@@ -103,7 +103,7 @@ rule macs2_callpeaks:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "PEAKS: calling peaks with macs2"
     log:_logfile
-    conda: "../envs/peaks/peaks.yaml"
+   # conda: "../envs/peaks/peaks.yaml"
     run:
         treatment = "-t %s" % input.treat if input.treat else "",
         control = "-c %s" % input.cont if input.cont else "",        
@@ -200,7 +200,7 @@ rule getPeaksStats:
         "analysis/peaks/peakStats.csv"
     message: "PEAKS: collecting peaks stats for each run"
     log:_logfile
-    conda: "../envs/peaks/peaks.yaml"
+   # conda: "../envs/peaks/peaks.yaml"
     run:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/peaks_getPeakStats.py -f {files} -o {output} 2>>{log}")
@@ -227,7 +227,7 @@ rule generate_IGV_session:
     params:
         genome=config['assembly']
     log:_logfile
-    conda: "../envs/peaks/peaks.yaml"
+    #conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/all_treatments.igv.xml"
     message: "PEAKS: generate IGV session for all treatment.bw files"
@@ -245,7 +245,7 @@ rule generate_IGV_perTrack:
     params:
         genome=config['assembly']
     log:_logfile
-    conda: "../envs/peaks/peaks.yaml"
+   # conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_treatment.igv.xml"
     message: "PEAKS: generate IGV session for {run}.{rep} treatment.bw file"

@@ -79,7 +79,7 @@ rule DHS_intersectDHS:
         dhs=config['DHS']
     message: "DHS: intersect PEAKS with DHS regions"
     log: _logfile
-    conda: "../envs/ceas/ceas.yaml"
+    #conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
     run:
@@ -115,7 +115,7 @@ rule VELCRO_intersectVelcro:
         velcro=config['velcro_regions']
     message: "VELCRO: intersect PEAKS with velcro regions"
     log: _logfile
-    conda: "../envs/ceas/ceas.yaml"
+    #conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
     run:
@@ -168,7 +168,7 @@ rule collect_BamRegionStats:
         exon = expand("analysis/ceas/samples/{sample}/{sample}.exons", sample=config['samples'])
     message: "CEAS: collect bam region stats"
     log: _logfile
-    conda: "../envs/ceas/ceas.yaml"
+    #conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/samples/bamRegionStats.csv'
     run:
@@ -185,7 +185,7 @@ rule collect_DHSstats:
         _getRepInput("analysis/ceas/$runRep/$runRep_DHS_stats.txt")
     message: "CEAS: collect DHS stats"
     log: _logfile
-    conda: "../envs/ceas/ceas.yaml"
+    #conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/dhs.csv'
     run:
@@ -199,7 +199,7 @@ rule collect_CEASstats:
         _getRepInput("analysis/ceas/$runRep/$runRep_summary.txt")
     message: "CEAS: collect CEAS stats"
     log: _logfile
-    conda: "../envs/ceas/ceas.yaml"
+    #conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/meta.csv'
     run:

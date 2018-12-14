@@ -4,7 +4,5 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- python=2.7
-- macs2
 - ucsc-bedsort>=332
 - ucsc-bedgraphtobigwig>=332
