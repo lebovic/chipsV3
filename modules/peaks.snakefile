@@ -101,13 +101,18 @@ rule macs2_callpeaks:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         BAMPE = lambda wildcards: checkBAMPE(wildcards),
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+
+        treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
+        control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
     message: "PEAKS: calling peaks with macs2"
     log:_logfile
-   # conda: "../envs/peaks/peaks.yaml"
-    run:
-        treatment = "-t %s" % input.treat if input.treat else "",
-        control = "-c %s" % input.cont if input.cont else "",        
-        shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} 2>>{log}"
+    #run:
+    #    treatment = "-t %s" % input.treat if input.treat else "",
+    #    control = "-c %s" % input.cont if input.cont else "",        
+    #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
 rule peakToBed:
     """Convert MACS's narrowPeak format, which is BED12 to BED5"""
@@ -196,14 +201,15 @@ rule getPeaksStats:
     input:
         #Generalized INPUT fn defined in chips.snakefile
         _getRepInput("analysis/peaks/$runRep/$runRep_sorted_peaks.narrowPeak")
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
     output:
         "analysis/peaks/peakStats.csv"
     message: "PEAKS: collecting peaks stats for each run"
     log:_logfile
-   # conda: "../envs/peaks/peaks.yaml"
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/peaks_getPeakStats.py -f {files} -o {output} 2>>{log}")
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+        "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output} 2>>{log}"
 
 rule macsRunInfo:
     """Dump the current version of macs and the fdr used into a text file 
@@ -225,15 +231,15 @@ rule generate_IGV_session:
     input:
         _getRepInput("analysis/peaks/$runRep/$runRep_treat_pileup.bw")
     params:
-        genome=config['assembly']
+        genome=config['assembly'],
+        treats = lambda wildcards, input: [" -t %s" % i for i in input]
     log:_logfile
-    #conda: "../envs/peaks/peaks.yaml"
+    conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/all_treatments.igv.xml"
     message: "PEAKS: generate IGV session for all treatment.bw files"
-    run:
-        treats = " -t ".join(input)
-        shell("cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {treats} -o {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output} 2>>{log}"
         
 rule generate_IGV_perTrack:
     """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
@@ -245,10 +251,10 @@ rule generate_IGV_perTrack:
     params:
         genome=config['assembly']
     log:_logfile
-   # conda: "../envs/peaks/peaks.yaml"
+    conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_treatment.igv.xml"
     message: "PEAKS: generate IGV session for {run}.{rep} treatment.bw file"
-    run:
+    shell:
         #NOTE: difference with this call and with generate_IGV_session is we pass the -l param which changes the file path
-        shell("cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l 2>>{log}")
+        "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l 2>>{log}"
