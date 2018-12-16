@@ -28,6 +28,12 @@ def ceas_targets(wildcards):
     ls.append("analysis/ceas/meta.csv")
     return ls
 
+def collect_BamRegionStats_dirs(file_paths):
+    """Given a list of file paths, returns the dirname of the filepaths"""
+    #NOTE: relying on os to be imported in chips.snakefile
+    dirs = [os.path.dirname(f) for f in file_paths]
+    return [" -d %s" % d for d in dirs]
+
 rule ceas_all:
     input:
         ceas_targets
@@ -76,22 +82,25 @@ rule DHS_intersectDHS:
     input:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed'
     params:
-        dhs=config['DHS']
+        #check for config['DHS'] defined, otherwise, use null
+        dhs=config['DHS'] if config['DHS'] else "/dev/null"
     message: "DHS: intersect PEAKS with DHS regions"
     log: _logfile
-    #conda: "../envs/ceas/ceas.yaml"
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
-    run:
+    shell:
+        "intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}"
+    #run:
         #HACK! IN the CASE where no DHS is defined/available for species/assemb
         #USE AN EMPTY FILE.  CONSEQUENCE- everything downstream will count 0 
         #DHS regions, NOT N/A
-        if config['DHS']:
-            shell("intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}")
-        else:
-            #make empty file
-            shell("touch .snakemake/null.dhs.txt")
-            shell("intersectBed -wa -u -a {input} -b .snakemake/null.dhs.txt > {output} 2>>{log}")
+    #    if config['DHS']:
+    #        shell("intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}")
+    #    else:
+    #        #make empty file
+    #        shell("touch .snakemake/null.dhs.txt")
+    #        shell("intersectBed -wa -u -a {input} -b .snakemake/null.dhs.txt > {output} 2>>{log}")
 
 rule DHS_stat:
     """collect DHS stats"""
@@ -112,19 +121,23 @@ rule VELCRO_intersectVelcro:
     input:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed'
     params:
-        velcro=config['velcro_regions']
+        #CHECK for if config is set, otherwise use /dev/null
+        velcro=config['velcro_regions'] if config['velcro_regions'] else "/dev/null"
     message: "VELCRO: intersect PEAKS with velcro regions"
     log: _logfile
-    #conda: "../envs/ceas/ceas.yaml"
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
-    run:
-        #CHECK for the existence of this file!
-        if params.velcro:
-            shell("intersectBed -wa -u -a {input} -b {params.velcro} > {output} 2>>{log}")
-        else:
-            #No velcro file defined --> empty output
-            shell("touch {output} && echo 'WARNING: no velcro region defined' >>{log}")
+    shell:
+        #NOTE: if no velcro defined, then maybe we should print out warning
+        "intersectBed -wa -u -a {input} -b {params.velcro} > {output}  2>>{log}"
+    #run:
+    #    #CHECK for the existence of this file!
+    #    if params.velcro:
+    #        shell("intersectBed -wa -u -a {input} -b {params.velcro} > {output} 2>>{log}")
+    #    else:
+    #        #No velcro file defined --> empty output
+    #        shell("touch {output} && echo 'WARNING: no velcro region defined' >>{log}")
     
 rule VELCRO_stat:
     """collect VELCRO stats"""
@@ -166,42 +179,42 @@ rule collect_BamRegionStats:
         dhs = expand("analysis/ceas/samples/{sample}/{sample}.DHS", sample=config['samples']),
         prom = expand("analysis/ceas/samples/{sample}/{sample}.promoters", sample=config['samples']),
         exon = expand("analysis/ceas/samples/{sample}/{sample}.exons", sample=config['samples'])
+    params:
+        dirs = lambda wildcards,input: collect_BamRegionStats_dirs(input.exon)
     message: "CEAS: collect bam region stats"
     log: _logfile
-    #conda: "../envs/ceas/ceas.yaml"
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/samples/bamRegionStats.csv'
-    run:
-        #REMOVE the file to get directories - 
-        #Aribitrarily USE only the exon list
-        dirs = ["/".join(d.split("/")[:-1]) for d in input.exon]
-        d = " -d ".join(dirs)
-        shell("cidc_chips/modules/scripts/ceas_collectBamRegStats.py -d {d} > {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/ceas_collectBamRegStats.py {params.dirs} > {output} 2>>{log}"
 
 rule collect_DHSstats:
     """collect the DHS stats into a single file"""
     input:
         #Generalized INPUT fn defined in chips.snakefile
         _getRepInput("analysis/ceas/$runRep/$runRep_DHS_stats.txt")
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "CEAS: collect DHS stats"
     log: _logfile
-    #conda: "../envs/ceas/ceas.yaml"
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/dhs.csv'
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/peaks_getDHSstats.py -f {files} -o {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/peaks_getDHSstats.py {params.files} -o {output} 2>>{log}"
 
 rule collect_CEASstats:
     """collect the CEAS stats into a single file"""
     input:
         #Generalized INPUT fn defined in chips.snakefile
         _getRepInput("analysis/ceas/$runRep/$runRep_summary.txt")
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "CEAS: collect CEAS stats"
     log: _logfile
-    #conda: "../envs/ceas/ceas.yaml"
+    conda: "../envs/ceas/ceas.yaml"
     output:
         'analysis/ceas/meta.csv'
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/ceas_getMetaStats.py -f {files} -o {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/ceas_getMetaStats.py {params.files} -o {output} 2>>{log}"
