@@ -10,17 +10,16 @@ _samtools_threads=4
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]
 
-#def getFastq2(wildcards):
-#    return config["samples"][wildcards.sample]
-
-# def getMates(wildcards):
-#     s = wildcards.sample
-#     files = config["samples"][s]
-#     return ["analysis/align/%s/%s_%s.sai" % (s,s,m) for m in range(len(files))]
-
-# def getRunType(wildcards):
-#     s = wildcards.sample
-#     return "sampe" if len(config["samples"][s]) > 1 else "samse"
+def bwt2_aln_inputs(inputs):
+    """Checks wether the bwt2_aln input is PE or SE
+    RETURNS appropriate bwt2 input settings"""
+    if len(inputs) > 1:
+        #PE
+        return ("-1 %s -2 %s" % (inputs[0], inputs[1]))
+    else:
+        #SE
+        return "-U %s" % inputs
+                
 
 rule bwt2_aln:
     input:
@@ -29,18 +28,13 @@ rule bwt2_aln:
         temp("analysis/align/{sample}/{sample}.sam")
     params:
         index=config['bwt2_index'],
+        _inputs = lambda wildcards, input: bwt2_aln_inputs(input)
     threads: _bwt2_threads
     message: "ALIGN: Running Bowtie2 alignment"
     log: _logfile
     conda: "../envs/align/align_bwt2.yaml"
-    run:
-        if len(input) > 1:
-            #PE
-            _inputs=("-1 %s -2 %s" % (input[0], input[1]))
-        else:
-            #SE
-            _inputs="-U %s" % input
-        shell("bowtie2 -p {threads} -x {params.index} {_inputs} -S {output} 2>>{log}")
+    shell:
+        "bowtie2 -p {threads} -x {params.index} {params._inputs} -S {output} 2>>{log}"
 
 rule bwt2_convert:
     input:
