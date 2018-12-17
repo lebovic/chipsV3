@@ -160,12 +160,16 @@ rule collect_pbc:
         expand("analysis/frips/{sample}/{sample}_pbc.txt", sample=sorted(config["samples"]))
     output:
         "analysis/frips/pbc.csv"
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "ALIGN: collect and parse ALL pbc stats"
     log: _logfile
-    #conda: "../envs/frips/frips.yaml"
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")
+    conda: "../envs/frips/frips.yaml"
+    # run:
+    #     files = " -f ".join(input)
+    #     shell("cidc_chips/modules/scripts/frips_collectPBC.py -f {files} > {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/frips_collectPBC.py {params.files} > {output} 2>>{log}"
 
 rule nonChrM_stats:
     """Get the nonChrM mapping stats for each aligment run"""
@@ -198,10 +202,14 @@ rule collect_nonChrM_stats:
         "analysis/frips/nonChrM_stats.csv"
     message: "FRiPs: collect and parse ALL nonChrM stats"
     log: _logfile
-    #conda: "../envs/frips/frips.yaml"
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
+    conda: "../envs/frips/frips.yaml"
+    # run:
+    #     files = " -f ".join(input)
+    #     shell("cidc_chips/modules/scripts/frips_collectNonChrM.py -f {files} > {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/frips_collectNonChrM.py {params.files} > {output} 2>>{log}"
 
 rule get_SampleFragLength:
     """Dump all of the sample's fragment lengths into 
@@ -245,9 +253,13 @@ rule getFripStats:
         _getRepInput("analysis/frips/$runRep/$runRep_frip.txt")
     output:
         "analysis/frips/frips.csv"
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "FRiPs: collecting frips stats for each run"
     log:_logfile
-    #conda: "../envs/frips/frips.yaml"
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/frips_getFrips.py -f {files} -o {output} 2>>{log}")
+    conda: "../envs/frips/frips.yaml"
+    # run:
+    #     files = " -f ".join(input)
+    #     shell("cidc_chips/modules/scripts/frips_getFrips.py -f {files} -o {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/frips_getFrips.py {params.files} -o {output} 2>>{log}"
