@@ -53,34 +53,43 @@ rule mapmaker_config:
         igv_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_treatment.igv.xml", run=config['runs']),
         config="analysis/mapmaker/.config.yaml"
     params:
-        run_names=config['runs']
+        # run_names=config['runs']
+        bed_files = lambda wildcards, input: [" -b %s" % make_relative(b) for b in input.bed_files],
+        bw_files  = lambda wildcards, input: [" -w %s" % make_relative(w) for w in input.bw_files],
+        bam_files = lambda wildcards, input: [" -a %s" % make_relative(bam) for bam in input.bam_files],
+        igv_files = lambda wildcards, input: [" -i %s" % make_relative(igv) for igv in input.igv_files],
+        names = lambda wildcards : [" -n %s" % i for i in config['runs']]
     message: "MAPMAKER: configuring mapmaker"
     log: _logfile
-    #conda: "../envs/mapmaker/mapmaker.yaml"
+    conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         "analysis/mapmaker/config.yaml"
-    run:
+    # run:
         #TRANSFORM to analysis/mapmaker relative
         #input.bed_files = [make_relative(b) for b in bed_files]
-        bed_files = " -b ".join([make_relative(b) for b in input.bed_files])
-        bw_files = " -w ".join([make_relative(bw) for bw in input.bw_files])
-        bam_files= " -a ".join([make_relative(bam) for bam in input.bam_files])
-        igv_files= " -i ".join([make_relative(igv) for igv in input.igv_files])
-        names = " -n ".join(params.run_names)
-
-        shell("cidc_chips/modules/scripts/mapmaker_config.py -n {names} -b {bed_files} -w {bw_files} -a {bam_files} -i {igv_files} -c {input.config} -o {output}")
+        #bed_files = " -b ".join([make_relative(b) for b in input.bed_files])
+        # bw_files = " -w ".join([make_relative(bw) for bw in input.bw_files])
+        # bam_files= " -a ".join([make_relative(bam) for bam in input.bam_files])
+        # igv_files= " -i ".join([make_relative(igv) for igv in input.igv_files])
+        # names = " -n ".join(params.run_names)
+        # shell("cidc_chips/modules/scripts/mapmaker_config.py -n {names} -b {bed_files} -w {bw_files} -a {bam_files} -i {igv_files} -c {input.config} -o {output}")
+    shell:
+      "cidc_chips/modules/scripts/mapmaker_config.py {params.names} {params.bed_files} {params.bw_files} {params.bam_files} {params.igv_files} -c {input.config} -o {output}"  
 
 rule mapmaker_meta:
     """Tries to configure the mapmaker meta based on the chips run info"""
     input:
         meta="analysis/mapmaker/.metasheet.csv"
     params:
-        run_names=config['runs']
+        #run_names=config['runs']
+        names = lambda wildcards : [" -n %s" % i for i in config['runs']]
     message: "MAPMAKER: configuring mapmaker"
     log: _logfile
-    #conda: "../envs/mapmaker/mapmaker.yaml"
+    conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         "analysis/mapmaker/metasheet.csv"
-    run:
-        names = " -n ".join(params.run_names)
-        shell("cidc_chips/modules/scripts/mapmaker_meta.py -n {names} -o {output}")
+    # run:
+    #     names = " -n ".join(params.run_names)
+    #     shell("cidc_chips/modules/scripts/mapmaker_meta.py -n {names} -o {output}")
+    shell:
+        "cidc_chips/modules/scripts/mapmaker_meta.py {params.names} -o {output}"

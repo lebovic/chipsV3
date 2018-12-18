@@ -71,10 +71,14 @@ rule getMotifSummary:
         "analysis/motif/motifSummary.csv"
     message: "MOTIF: summarizing motif runs"
     log: _logfile
-    #conda: "../envs/motif/motif.yaml"
-    run:
-        files = " -m ".join(input)
-        shell("cidc_chips/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
+    params:
+        files = lambda wildcards, input: [" -m %s" % i for i in input]
+    conda: "../envs/motif/motif.yaml"
+    # run:
+    #     files = " -m ".join(input)
+    #     shell("cidc_chips/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
+    shell:
+        "cidc_chips/modules/scripts/motif_homerSummary.py {params.files} -o {output} 2>> {log}"
 
 rule homer_annotatePeaks:
     """Annotate peak files.

@@ -107,7 +107,11 @@ rule collect_allContamination:
     log: _logfile
     output:
         "analysis/contam/contamination.csv"
-    #conda: "../envs/contamination/contamination.yaml"
-    run:
-        files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")
+    params:
+        files = lambda wildcards, input: [" -f %s" % i for i in input]
+    conda: "../envs/contamination/contamination.yaml"
+    # run:
+    #     files = " -f ".join(input)
+    #     shell("cidc_chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")
+    shell:
+        "cidc_chips/modules/scripts/contam_getStats.py {params.files} -o {output} 2>>{log}"
