@@ -12,6 +12,7 @@ def align_targets(wildcards):
         ls.append("analysis/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
+        ls.append("analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam"%(sample,sample,config['cutoff']))
         ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
         ls.append("analysis/align/%s/%s_readsPerChrom.txt" % (sample,sample))
     ls.append("analysis/align/mapping.csv")
@@ -137,6 +138,20 @@ rule dedupSortedUniqueBams:
     threads: _align_threads
     shell:
         "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
+
+rule filterBams:
+    """Filter out the long reads to get more accurate results in peaks calling"""
+    input:
+        "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam"
+    output:
+        "analysis/align/{sample}/{sample}_unique.sorted.dedup.sub" + str(config["cutoff"]) + ".bam"
+    message: "ALIGN: filter bam files"
+    log: _logfile
+    params:
+        cutoff = config['cutoff']
+    conda: "../envs/align/align_common.yaml"
+    shell:
+        "samtools view -h {input} | awk '($9 <= {params.cutoff} && $9 >= (-1)*{params.cutoff}) || $1 ~ /^@/' | samtools view -bS - > {output}"
 
 rule indexBam:
     """Index bam file"""

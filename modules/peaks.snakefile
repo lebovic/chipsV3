@@ -19,7 +19,7 @@ def getTreats(wildcards):
     #print(r)
     #print(treat)
     if treat < len(r) and r[treat]:
-        tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (r[treat],r[treat])]
+        tmp = ["analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam" % (r[treat],r[treat],config['cutoff'])]
     #print("TREAT: %s" % tmp)
     if not tmp:
         #NOTE: I can't figure out a proper kill command so I'll do this
@@ -38,7 +38,7 @@ def getConts(wildcards):
     #print(r)
     #print(cont)
     if cont < len(r) and r[cont]:
-        tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (r[cont],r[cont])]
+        tmp = ["analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam" % (r[cont],r[cont],config['cutoff'])]
     #print("CONT: %s" % tmp)
     return tmp
 
