@@ -235,7 +235,7 @@ rule plot_map_stat:
     output:
         "analysis/report/mapping.png"
     log: _logfile
-    #conda: "../envs/report/report.yaml"
+    conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/map_stats.R {input} {output}"
 
@@ -246,7 +246,7 @@ rule plot_pbc_stat:
     output:
         "analysis/report/pbc.png"
     log: _logfile
-    #conda: "../envs/report/report.yaml"
+    conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/plot_pbc.R {input} {output}"
 
@@ -256,7 +256,7 @@ rule plot_peakFoldChange:
     output:
         "analysis/report/peakFoldChange.png"
     log: _logfile
-    #conda: "../envs/report/report.yaml"
+    conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/plot_foldChange.R {input} {output}"
 
@@ -267,7 +267,7 @@ rule plot_nonChrM_stats:
     output:
         "analysis/report/attic/nonChrM_stats.png"
     log: _logfile
-    #conda: "../envs/report/report.yaml"
+    conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/plot_nonChrM.R {input} {output}"
 

@@ -92,7 +92,7 @@ rule homer_annotatePeaks:
         genome=config['motif_path'],
     message: "MOTIF: homer annotatePeaks"
     log: _logfile
-    conda: "../envs/motif/motif.yaml"
+    #conda: "../envs/motif/motif.yaml"
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
 
@@ -105,6 +105,6 @@ rule homer_processAnnPeaks:
         csv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.csv",
     message: "MOTIF: Post-process homer annotatePeaks.txt file"
     log: _logfile
-    conda: "../envs/motif/motif.yaml"
+    #conda: "../envs/motif/motif.yaml"
     shell:
         "cidc_chips/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"

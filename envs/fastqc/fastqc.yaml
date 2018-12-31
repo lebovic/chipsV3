@@ -4,6 +4,7 @@ channels:
 - conda-forge
 - defaults
 dependencies:
+- fastqc
 - seqtk
 - bedtools>=2.25.0
 - r-ggplot2>=2.2.0

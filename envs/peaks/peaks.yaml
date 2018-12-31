@@ -1,7 +1,7 @@
 name: peaks
 channels:
 - bioconda
-- conda-forge
+#- conda-forge
 - defaults
 dependencies:
 - ucsc-bedsort>=332

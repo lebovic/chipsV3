@@ -1,7 +1,7 @@
 name: qdnaseq
 channels:
 - bioconda
-- conda-forge
+#- conda-forge
 - defaults
 dependencies:
 - bioconductor-qdnaseq
