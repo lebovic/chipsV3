@@ -12,6 +12,8 @@ aligner: 'bwa'
 
 #CUTOFF: Some results show that long reads do not make sense in peaks calling
 #Change the number to set the cutoff
+#
+#To skip filtering, set cutoff 0 or leave it as blank
 cutoff: 150
 
 #MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'

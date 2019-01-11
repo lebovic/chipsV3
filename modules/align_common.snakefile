@@ -12,7 +12,7 @@ def align_targets(wildcards):
         ls.append("analysis/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
-        if len(config["samples"][sample]) > 1:
+        if len(config["samples"][sample]) > 1 and config['cutoff']:
             ls.append("analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam"%(sample,sample,config['cutoff']))
         ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
         ls.append("analysis/align/%s/%s_readsPerChrom.txt" % (sample,sample))

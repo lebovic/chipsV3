@@ -20,7 +20,7 @@ def getTreats(wildcards):
     #print(treat)
     if r[treat]:
         PEorSE = config["samples"][r[treat]]
-        if len(PEorSE) > 1:
+        if len(PEorSE) > 1 and config['cutoff']:
             #PE
             if treat < len(r):
                 tmp = ["analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam" % (r[treat],r[treat],config['cutoff'])]
@@ -51,7 +51,7 @@ def getConts(wildcards):
     #print(cont)
     if r[cont]:
         PEorSE = config["samples"][r[cont]]
-        if len(PEorSE) > 1:
+        if len(PEorSE) > 1 and config['cutoff']:
             #PE
             if cont < len(r):
                 tmp = ["analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam" % (r[cont],r[cont],config['cutoff'])]
