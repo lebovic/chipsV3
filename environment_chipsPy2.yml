@@ -10,3 +10,4 @@ dependencies:
 - cython
 - jinja2
 - macs2
+- weblogo

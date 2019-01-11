@@ -118,6 +118,7 @@ def all_targets(wildcards):
     ls.extend(contamination_targets(wildcards))
     ls.extend(mapmaker_targets(wildcards))
     ls.extend(bam_snapshots_targets(wildcards))
+    ls.extend(regulatory_targets(wildcards))
 
     #Check to see if motif is enabled
     if 'motif' in config:
