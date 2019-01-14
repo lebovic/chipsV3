@@ -109,6 +109,7 @@ rule macs2_callpeaks:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
         "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed",
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.xls",
         temp("analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg"),
         temp("analysis/peaks/{run}.{rep}/{run}.{rep}_control_lambda.bdg"),
     params:
