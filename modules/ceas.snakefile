@@ -14,7 +14,7 @@ def ceas_targets(wildcards):
             ls.append("analysis/ceas/%s/%s_DHS_stats.txt" % (runRep,runRep))
             ls.append("analysis/ceas/%s/%s_velcro_peaks.bed" % (runRep,runRep))
             ls.append("analysis/ceas/%s/%s_velcro_stats.txt" % (runRep,runRep))
-
+            ls.append("analysis/ceas/%s/%s_DHS_summary.dhs" % (runRep,runRep))
     #ADD bam_regionStats
     for sample in config["samples"]:
         if config['exons']:
@@ -114,6 +114,18 @@ rule DHS_stat:
         'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
     shell:
         "wc -l {input.n} {input.dhs} > {output} 2>>{log}"
+
+rule DHS_summary:
+    """get DHS summary"""
+    input:
+        'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
+    output:
+        'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_summary.dhs'
+    message: "DHS: collecting stats"
+    log: _logfile
+    conda: "../envs/ceas/ceas.yaml"
+    shell:
+        """cat PE.rep1_DHS_stats.txt | awk '{printf"%s,", $1}' > {output}"""
 
 #------------------------------------------------------------------------------
 rule VELCRO_intersectVelcro:
