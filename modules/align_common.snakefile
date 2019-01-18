@@ -12,7 +12,7 @@ def align_targets(wildcards):
         ls.append("analysis/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
-        if len(config["samples"][sample]) > 1 and config['cutoff']:
+        if len(config["samples"][sample]) > 1 and config['cutoff'] and ('cutoff' in config):
             ls.append("analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam"%(sample,sample,config['cutoff']))
         ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
         ls.append("analysis/align/%s/%s_readsPerChrom.txt" % (sample,sample))
@@ -145,7 +145,7 @@ rule filterBams:
     input:
         "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam"
     output:
-        "analysis/align/{sample}/{sample}_unique.sorted.dedup.sub" + str(config["cutoff"]) + ".bam"
+        "analysis/align/{sample}/{sample}_unique.sorted.dedup.sub%s.bam" % str(config['cutoff'])
     message: "ALIGN: filter bam files"
     log: _logfile
     params:
