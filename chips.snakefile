@@ -118,6 +118,7 @@ def all_targets(wildcards):
     ls.extend(contamination_targets(wildcards))
     ls.extend(mapmaker_targets(wildcards))
     ls.extend(bam_snapshots_targets(wildcards))
+    ls.extend(regulatory_targets(wildcards))
 
     #Check to see if motif is enabled
     if 'motif' in config:
@@ -179,4 +180,5 @@ include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
 include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
 include: "./modules/epicypher.snakefile"     # epicypher spike-in module
 include: "./modules/bam_snapshots.snakefile" # generate bam snapshots module
+include: "./modules/regulatory.snakefile"    # regulatory module
 include: "./modules/report.snakefile"        # report module
