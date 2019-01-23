@@ -18,12 +18,17 @@ def json_dump(json_dict):   # json
 
 def json_conservation(options):
     """
-        collect conservation_plot output Phastcon score
-        """
+    collect conservation_plot output Phastcon score
+    """
+    atype = options.TF
+    if options.factor:
+        atype = options.factor
+    if options.basics:
+        atype = options.basics
     input={"score": str(os.path.abspath(options.input))}
     output={"json": str(os.path.abspath(options.output))}
-    param={}
-    json_dict = {"stat": [], "input": input, "output": output, "param": ""}
+    param={"atype": atype, "id": options.ID}
+    json_dict = {"stat": [], "input": input, "output": output, "param": param}
     rd = lambda x: str(round(float(x), 3))
     json_dict['stat'] = list(map(rd, open(input['score']).read().strip().split()))
     json_dump(json_dict)
@@ -32,8 +37,8 @@ def json_conservation(options):
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", help="input files")
-    optparser.add_option("-o", "--output", help="output files")
+    optparser.add_option("-i", "--input", help="input json files")
+    optparser.add_option("-o", "--output", help="output json files")
     optparser.add_option("-b", "--basics", help="paramaters: basic")
     optparser.add_option("-f", "--factor", help="paramaters: factor")
     optparser.add_option("-T", "--TF", help="paramaters: TF")

@@ -17,24 +17,41 @@ def json_dump(json_dict):   # json
     return json_file
 
 def json_contamination(options):
+    # input file :
     """
-        collect conservation_plot output Phastcon score
-        """
+    hg19 97.8341
+    mm9 3.90596
+    dm3 1.305
+    S_cerevisiae 0.134
+    ...
+    """
     input={"summaries": str(os.path.abspath(options.input))}
     output={"json": str(os.path.abspath(options.output))}
-    param={"samples": options.samples ,"id": options.ID, "species":options.species }
+    param={"samples": options.samples ,"id": options.ID}
     
+    with open(os.path.abspath(options.input)) as f:
+        data = []
+        for line in f.readlines():
+            row = line.rstrip("\n").split(" ")
+            data.append(row)
+        # print(data)
+    species = []
+    for i in data:
+        species.append(i[0])
     library_contamination = {}
-    library_contamination["meta"] = {"sample": param["id"], "species": param["species"]}
+    library_contamination["meta"] = {"sample": param["id"], "species": species}
     library_contamination["value"] = {}
-    for a_summary, s in zip(input["summaries"], list(map(underline_to_space, param["samples"]))):
-        ## each bowtie_summary has several species information
-        library_contamination["value"][s] = {}
-        for i, j in zip(a_summary, param["species"]):
-            ## species 1, species2, species3
-            mapped = int(open(i[0]).readlines()[2].strip().split()[0])
-            total = int(open(i[1]).read().strip())
-            library_contamination["value"][s][j] = float(mapped)/total
+    # print(len(species))
+    for i in range(len(species)):
+        library_contamination["value"][species[i]] = data[i][1]
+    # for a_summary, s in zip(input["summaries"], list(map(underline_to_space, param["samples"]))):
+    #     ## each bowtie_summary has several species information
+    #     library_contamination["value"][s] = {}
+    #     for i, j in zip(a_summary, param["species"]):
+    #         ## species 1, species2, species3
+    #         mapped = int(open(i[0]).readlines()[2].strip().split()[0])
+    #         total = int(open(i[1]).read().strip())
+    #         library_contamination["value"][s][j] = float(mapped)/total
 
     json_dict = {"stat": {}, "input": input, "output": output, "param": param}
     json_dict["stat"] = library_contamination
@@ -44,10 +61,9 @@ def json_contamination(options):
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", action="append", help="input files")
+    optparser.add_option("-i", "--input", help="input files")
     optparser.add_option("-o", "--output", help="output files")
     optparser.add_option("-s", "--samples", help="paramaters: samples")
-    optparser.add_option("-S", "--species", help="paramaters: species")
     optparser.add_option("-I", "--ID", help="ID")
     (options, args) = optparser.parse_args(sys.argv)
     json_contamination(options)

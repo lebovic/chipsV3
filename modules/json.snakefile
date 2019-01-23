@@ -4,21 +4,22 @@ _logfile="analysis/logs/json.log"
 def json_targets(wildcards):
     ls = []
     ls.append("analysis/json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_conserv.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_contam.json")
-    if :
-        ls.append("analysis/json/{run}.{rep}/{run}.{rep}_dhs.json")
-    if :
-        ls.append("analysis/json/{run}.{rep}/{run}.{rep}_velcro.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_enrich_meta.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_fastqc.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_frag.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_frip.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_map.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_macs2_rep.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_macs2.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_meta.json")
-    ls.append("analysis/json/{run}.{rep}/{run}.{rep}_rep.json")
+    for sample in config["samples"]:
+        ls.append("analysis/json/%s/%s_conserv.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_contam.json" % (sample, sample))
+        if config["DHS"]:
+            ls.append("analysis/json/%s/%s_dhs.json" % (sample, sample))
+        if config["velcro_regions"]:
+            ls.append("analysis/json/%s/%s_velcro.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_enrich_meta.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_fastqc.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_frag.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_frip.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_map.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_macs2_rep.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_macs2.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_meta.json" % (sample, sample))
+        ls.append("analysis/json/%s/%s_rep.json" % (sample, sample))
     
     return ls
 
@@ -39,11 +40,11 @@ rule json_conservation:
     input:
         "analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.txt"
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_conserv.json"
+        "analysis/json/{sample}/{sample}_conserv.json"
     params:
-        basics = "-b %s " % config[]
-        factor = "-f %s " % config[]
-        TF = "-T %s " % config[]
+        basics = "-b %s " % config["basics"] if config["basics"] else ""
+        factor = "-f %s " % config["factor"] if config["factor"] else ""
+        TF = "-T %s " % config["TF"] if config["TF"] else ""
     message: "JSON: generate conservation json"
     log: _logfile
     shell:
@@ -53,7 +54,7 @@ rule json_comtamination:
     input:
         comtamination_target
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_contam.json"
+        "analysis/json/{sample}/{sample}_contam.json"
     params:
         samples:
         id:
@@ -65,9 +66,9 @@ rule json_comtamination:
 
 rule json_dhs:
     input:
-        "analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_summary.dhs"
+        "analysis/ceas/{sample}/{sample}_DHS_summary.dhs"
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_dhs.json"
+        "analysis/json/{sample}/{sample}_dhs.json"
     message: "JSON: generate DHS json"
     log: _logfile
     shell:
@@ -77,7 +78,7 @@ rule json_velcro:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_velcro.json"
+        "analysis/json/{sample}/{sample}_velcro.json"
     params:
 
     message: "JSON: generate velcro json"
@@ -89,7 +90,7 @@ rule json_enrich_meta:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_enrich_meta.json"
+        "analysis/json/{sample}/{sample}_enrich_meta.json"
     params:
 
     message: "JSON: generate meta enrichment json"
@@ -101,9 +102,9 @@ rule json_fastqc:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_fastqc.json"
+        "analysis/json/{sample}/{sample}_fastqc.json"
     params:
-        ids = "-s %s" % config[]
+        ids = "-s %s" % config[] if config[] else ""
     message: "JSON: generate fastqc json"
     log: _logfile
     shell:
@@ -113,7 +114,7 @@ rule json_frag:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_frag.json"
+        "analysis/json/{sample}/{sample}_frag.json"
     params:
         
     message: "JSON: generate frag json"
@@ -125,9 +126,9 @@ rule json_frip:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_frip.json"
+        "analysis/json/{sample}/{sample}_frip.json"
     params:
-        samples = "-s %s" % config[]
+        samples = "-s %s" % config[] if config[] else ""
     message: "JSON: generate frip json"
     log: _logfile
     shell:
@@ -137,7 +138,7 @@ rule json_macs2:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_macs2.json"
+        "analysis/json/{sample}/{sample}_macs2.json"
     message: "JSON: generate macs2 json"
     log: _logfile
     shell:
@@ -147,7 +148,7 @@ rule json_macs2_rep:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_macs2_rep.json"
+        "analysis/json/{sample}/{sample}_macs2_rep.json"
     params:
 
     message: "JSON: generate macs2 rep json"
@@ -159,7 +160,7 @@ rule json_map:
     input:
         map_target
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_map.json"
+        "analysis/json/{sample}/{sample}_map.json"
     params:
 
     message: "JSON: generate map json"
@@ -171,7 +172,7 @@ rule json_meta:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_meta.json"
+        "analysis/json/{sample}/{sample}_meta.json"
     message: "JSON: generate meta json"
     log: _logfile
     shell:
@@ -181,9 +182,9 @@ rule json_pbc:
     input:
         ""
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_pbc.json"
+        "analysis/json/{sample}/{sample}_pbc.json"
     params:
-        samples = "-s %s" % config[]
+        samples = "-s %s" % config[] if config[] else ""
     message: "JSON: generate pbc json"
     log: _logfile
     shell:
@@ -193,7 +194,7 @@ rule json_rep:
     input:
         rep_target
     output:
-        "analysis/json/{run}.{rep}/{run}.{rep}_rep.json"
+        "analysis/json/{sample}/{sample}_rep.json"
     message: "JSON: generate rep json"
     log: _logfile
     shell:
