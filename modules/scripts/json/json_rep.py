@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #porting from https://github.com/cfce/chilin/blob/master/chilin2/modules/replicates/qc.py
 from optparse import OptionParser
 import sys

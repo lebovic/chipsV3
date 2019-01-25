@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #porting https://github.com/cfce/chilin/blob/master/chilin2/modules/contamination/qc.py
 
 from optparse import OptionParser

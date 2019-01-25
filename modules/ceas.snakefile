@@ -125,7 +125,7 @@ rule DHS_summary:
     log: _logfile
     conda: "../envs/ceas/ceas.yaml"
     shell:
-        """cat PE.rep1_DHS_stats.txt | awk '{printf"%s,", $1}' > {output}"""
+        """cat {input} | awk '{{printf"%s,", $1}}' > {output}"""
 
 #------------------------------------------------------------------------------
 rule VELCRO_intersectVelcro:

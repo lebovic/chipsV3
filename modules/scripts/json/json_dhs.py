@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #porting from https://github.com/cfce/chilin/blob/master/chilin2/modules/ceas/qc.py
 
 from optparse import OptionParser
@@ -23,7 +25,7 @@ def json_dhs(options):
     param={}
     result_dict = {"stat": {}, "input": input, "output": output, "param": param}
 #    result_dict["stat"] = float(open(input["dhs"]).read().strip())
-    content = open(input["dhs"]).read().strip().split(",")
+    content = open(input["dhs_peaks"]).read().strip().split(",")
     # first number is 5000, second is dhs, third is 5000+dhs
     result_dict["stat"]["overlap"] = int(content[1])
     result_dict["stat"]["number"] = int(content[0])

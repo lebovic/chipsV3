@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #porting from https://github.com/cfce/chilin/blob/master/chilin2/modules/ceas/qc.py
 from optparse import OptionParser
 import sys
@@ -23,8 +24,9 @@ def json_meta(options):
     conveniently outputs the distribution as a dictionary of peak counts
     """
     input={"meta": str(os.path.abspath(options.input))}
+    # file "_summary.txt"
     output={"json": str(os.path.abspath(options.output))}
-    param={"json": options.ID}
+    param={"id": options.ID}
     f = open(input["meta"])
     #f = something like: {'Intron': 68017, 'Exon': 7659, 'Intergenic': 73090, 'Promoter': 11229}
     content = eval(f.read())

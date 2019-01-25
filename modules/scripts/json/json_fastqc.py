@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #porting from https://github.com/cfce/chilin/blob/master/chilin2/modules/fastqc/qc.py
 from optparse import OptionParser
 import sys

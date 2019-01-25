@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # porting from https://github.com/cfce/chilin/blob/master/chilin2/modules/library/qc.py
 from optparse import OptionParser
 import sys
@@ -21,19 +23,34 @@ def json_pbc(options):
     """
     input={"pbc": str(os.path.abspath(options.input))}
     output={"json": str(os.path.abspath(options.output))}
-    param={"samples":options.samples}
-    json_dict = {"stat": [], "input": input, "output": output, "param": ""}
-    rd = lambda x: str(round(float(x), 3))
-    json_dict['stat'] = list(map(rd, open(input['score']).read().strip().split()))
-    json_dump(json_dict)
+    json_dict = {"stat": {}, "input": input, "output": output}
+    
+    sampleID = str(os.path.abspath(options.input)).strip().split("/")[-1].split('.')[0]
+    #remove the _pbc ending
+    sampleID = sampleID.replace("_pbc", "")
+    f = open(os.path.abspath(options.input))
+    firstLine = f.readline().strip().split()
+    #print(firstLine)
+    N1 = int(firstLine[1]) #record number of reads with just one location
+    #NOW SUM over the rest of the reads
+    
+    Nd = N1
+    for l in f:
+        tmp = l.strip().split()
+        Nd += int(tmp[1])
 
+    json_dict["stat"][sampleID] = {}
+    json_dict["stat"][sampleID]["N1"] = N1
+    json_dict["stat"][sampleID]["Nd"] = Nd
+    json_dict["stat"][sampleID]["PBC"] = round(N1/Nd, 3)
+    json_dict["param"]={"samples":sampleID}
+    json_dump(json_dict)
 
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", action="append",help="input files")
+    optparser.add_option("-i", "--input", help="input files")
     optparser.add_option("-o", "--output", help="output files")
-    optparser.add_option("-s", "--samples", help="paramaters: samples")
     (options, args) = optparser.parse_args(sys.argv)
     json_pbc(options)
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # porting from https://github.com/cfce/chilin/blob/master/chilin2/modules/frip/qc.py
 
 from optparse import OptionParser
@@ -21,24 +22,34 @@ def json_frip(options):
     output={"json": str(os.path.abspath(options.output))}
     param={"samples":options.samples}
     """
-    input is *.frip
+    input is *_frip.txt
+    like:
+    #reads_under_peaks  501359
+    #total_reads    3998454
     output is conf.json_prefix + "_frip.json"
     param for matching samples
     """
     json_dict = {"stat": {}, "input": input, "output": output, "param": param}
-    for i,s in zip(input["frip"], param["samples"]):
-        inf = open(i).read().strip().split(",")
-        json_dict["stat"][s] = {}
-        json_dict["stat"][s]["info_tag"] = int(inf[0])
-        json_dict["stat"][s]["total_tag"] = int(inf[1])
-        json_dict["stat"][s]["frip"] = float(int(inf[0]))/int(inf[1])
+    # for i,s in zip(input["frip"], param["samples"]):
+    i = input["frip"]
+    s = param["samples"]
+    with open(i) as inf:
+        data = []
+        for item in inf.readlines():
+            item = item.rstrip("\n").split("\t")
+            data.append(item)
+    # print(data)
+    json_dict["stat"][s] = {}
+    json_dict["stat"][s]["info_tag"] = int(data[0][1])
+    json_dict["stat"][s]["total_tag"] = int(data[1][1])
+    json_dict["stat"][s]["frip"] = float(int(data[0][1]))/int(data[1][1])
     json_dump(json_dict)
 
 
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", action="append", help="input frip files")
+    optparser.add_option("-i", "--input", help="input frip files")
     optparser.add_option("-o", "--output", help="output json files")
     optparser.add_option("-s", "--samples", help="paramaters: samples")
     (options, args) = optparser.parse_args(sys.argv)

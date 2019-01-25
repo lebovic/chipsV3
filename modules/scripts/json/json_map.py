@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #porting from https://github.com/cfce/chilin/blob/master/chilin2/modules/bwa/qc.py
 from optparse import OptionParser
 import sys
@@ -26,20 +27,37 @@ def json_map(options):
     0 + 0 duplicates
     3815723 + 0 mapped (100.00%:-nan%)
     """
-    input={"bwa_mapped": list(os.path.abspath(options.input)), "bwa_total": list(os.path.abspath(options.total))}
+    input={"mapped_txt": str(os.path.abspath(options.input))}
     output={"json": str(os.path.abspath(options.output))}
-    param={"sample": options.samples}
+    # param={"sample": options.samples}
 
-    json_dict = {"stat": {}, "input": input, "output": output, "param": param}
-
-    for mapped, total, sam in zip(input["bwa_mapped"], input["bwa_total"], param["sample"]):
-        inft = open(total, 'rU')
-        infm = open(mapped, 'rU')
-        json_dict["stat"][sam] = {}
-        json_dict["stat"][sam]["mapped"] = int(infm.readlines()[2].split()[0])
-        json_dict["stat"][sam]["total"] = int(inft.readlines()[0].strip())
-        inft.close()
-        infm.close()
+    json_dict = {"stat": {}, "input": input, "output": output, "param": {}}
+    #UGH: this script is ugly!!
+    #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
+    sampleID = input["mapped_txt"].strip().split("/")[-1].split('.')[0]
+    # print(sampleID)
+    #ALSO remove the suffix '_mapping' from the sampleID name
+    if sampleID.endswith('_mapping'):
+        sampleID = sampleID.replace("_mapping","")
+    with open(input["mapped_txt"]) as f:
+        total = int(f.readline().strip().split()[0])
+        #skip 3 lines
+        l = f.readline()
+        l = f.readline()
+        l = f.readline()
+        mapped = int(f.readline().strip().split()[0])
+    json_dict["stat"][sampleID] = {}
+    json_dict["stat"][sampleID]["mapped"] = mapped
+    json_dict["stat"][sampleID]["total"] = total
+    json_dict["param"]["sample"]=sampleID
+    # for mapped, total, sam in zip(input["bwa_mapped"], input["bwa_total"], param["sample"]):
+    #     inft = open(total, 'rU')
+    #     infm = open(mapped, 'rU')
+    #     json_dict["stat"][sam] = {}
+    #     json_dict["stat"][sam]["mapped"] = int(infm.readlines()[2].split()[0])
+    #     json_dict["stat"][sam]["total"] = int(inft.readlines()[0].strip())
+    #     inft.close()
+    #     infm.close()
     json_dump(json_dict)
 
 
@@ -47,10 +65,8 @@ def json_map(options):
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", help="input bwa mapped files")
-    optparser.add_option("-t", "--total", help="input bwa total files")
+    optparser.add_option("-i", "--input", help="input text files")
     optparser.add_option("-o", "--output", help="output files")
-    optparser.add_option("-s", "--samples", help="paramaters: samples")
     (options, args) = optparser.parse_args(sys.argv)
     json_map(options)
 
