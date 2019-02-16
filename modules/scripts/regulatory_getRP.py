@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 """
 used to calc the score of each gene to be regulated by factor.
 1. For each refseq gene in genome, input a distance (for example 100kb), then I get the peak center within 100kb from gene TSS.
