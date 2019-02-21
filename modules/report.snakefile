@@ -172,7 +172,8 @@ def getReportInputs(wildcards):
     if 'motif' in config:
         ret['motif'] = "analysis/motif/motifSummary.csv"
     return ret
-           
+
+
 rule report_all:
     input:
         report_targets
@@ -200,7 +201,13 @@ rule report:
         #becomes a singleton
         fastqc_gc_plots = ["analysis/fastqc/%s/%s_perSeqGC_thumb.png" % (s,s) for s in config['samples']]
         sampleGCandContam = sampleGCandContam_table(input.fastqc_stats, fastqc_gc_plots, input.contam_panel)
-        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png))
+        git_commit_string = "XXXXXX"
+        git_link = 'https://bitbucket.org/plumbers/cidc_chips/commits/'
+        #Check for .git directory
+        if os.path.exists("cidc_chips/.git"):
+            git_commit_string = subprocess.check_output('git --git-dir="cidc_chips/.git" rev-parse --short HEAD',shell=True).decode('utf-8').strip()
+            git_link = git_link + git_commit_string
+        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png),git_commit_string=git_commit_string,git_link=git_link)
         report(tmp, output.html, metadata="Len Taing", **input)
 
 rule samples_summary_table:

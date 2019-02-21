@@ -4,6 +4,10 @@
 Chips: ChIP-seq Analysis Pipeline for Snakemake
 ========================================================================
 
+**This report is generated using Chips version** [ {git_commit_string}_ ]
+
+.. _{git_commit_string}: {git_link}
+
 Alignment Summary
 =================
     The raw reads for each sample were mapped to the reference genome (genome) using alignment software (see config.yaml).
@@ -65,3 +69,4 @@ Sample GC information and Contamination Panel
     A sub-sample of 100,000 reads from the raw file is take and then aligned against each species defined in the contamination panel (see config.yaml).  The reported values for each species represents the **percent of 100,000 reads that map to that species' reference genome**.
 
 {sampleGCandContam}
+
