@@ -41,7 +41,8 @@ rule uniquely_mapped_reads:
     """Get the uniquely mapped reads"""
     input:
         #"analysis/align/{sample}/{sample}.bam"
-        getBam
+        # getBam
+        "analysis/align/{sample}/{sample}.sorted.bam"
     output:
         temp("analysis/align/{sample}/{sample}_unique.bam")
     message: "ALIGN: Filtering for uniquely mapped reads"
@@ -58,7 +59,8 @@ rule map_stats:
     """Get the mapping stats for each aligment run"""
     input:
         #bam="analysis/align/{sample}/{sample}.bam",
-        bam=getBam,
+        # bam=getBam,
+        bam="analysis/align/{sample}/{sample}.sorted.bam",
         uniq_bam="analysis/align/{sample}/{sample}_unique.bam"
     output:
         #temp("analysis/align/{sample}/{sample}_mapping.txt")
@@ -170,7 +172,8 @@ rule extractUnmapped:
     """Extract the unmapped reads and save as {sample}.unmapped.bam"""
     input:
         #"analysis/align/{sample}/{sample}.bam"
-        getBam
+        # getBam
+        "analysis/align/{sample}/{sample}.sorted.bam"
     output:
         temp("analysis/align/{sample}/{sample}.unmapped.bam")
     message: "ALIGN: extract unmapped reads"
