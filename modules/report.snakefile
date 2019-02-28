@@ -208,7 +208,7 @@ rule report:
             git_commit_string = subprocess.check_output('git --git-dir="cidc_chips/.git" rev-parse --short HEAD',shell=True).decode('utf-8').strip()
             git_link = git_link + git_commit_string
         tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png),git_commit_string=git_commit_string,git_link=git_link)
-        report(tmp, output.html, metadata="Len Taing", **input)
+        report(tmp, output.html, stylesheet='./cidc_chips/static/chips_report.css', metadata="Len Taing", **input)
 
 rule samples_summary_table:
     input:

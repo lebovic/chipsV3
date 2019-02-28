@@ -14,13 +14,13 @@ Alignment Summary
 
     The **mapped reads** represent the number of reads which successfully map to the genome, while the **uniquely mapped reads** represent the subset of **mapped reads** that map to only one location in the genome.
 
-    In most cases, more than **XX% of the total reads** should be **uniquely mapped**.  Contamination, low quality sequencing data, or poor library construction are just some of the reasons that a sample's uniquely mapped reads might not reach this threshold.
+    In most cases, more than **60% of the total reads** should be **uniquely mapped**.  Contamination, low quality sequencing data, or poor library construction are just some of the reasons that a sample's uniquely mapped reads might not reach this threshold.
 
     .. image:: $map_stat
 
 PBC Summary
 =================
-    **PBC** is a common measure used for determining sample complexity (ref).  After alignment the samples are then normalized (by **downsampling**) to **4 million reads**.  ???The uniquely mapped reads of that downsample are then piled-up.???  **Nd** is defined as the number of **unique region locations**.  **N1** is defined as then number of **unique region locations with only one read**.  The **PBC** is then simply calculated as **N1/Nd**.
+    **PBC** is a common measure used for determining sample complexity (ref).  After alignment the samples are then normalized (by **downsampling**) to **4 million reads**. The uniquely mapped reads of that downsample are then piled-up. **Nd** is defined as the number of **unique region locations**.  **N1** is defined as then number of **unique region locations with only one read**.  The **PBC** is then simply calculated as **N1/Nd**.
 
     Good ChIP-seq samples typically have a **PBC score >= 0.90** (ref).
 
