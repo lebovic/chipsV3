@@ -134,13 +134,15 @@ rule dedupSortedUniqueBams:
     input:
         "analysis/align/{sample}/{sample}_unique.sorted.bam"
     output:
-        "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam"
+        bam = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
+        # bai = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
     message: "ALIGN: dedup sorted unique bam file"
     log: _logfile
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
+        # "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
+        "sambamba markdup -t {threads} -r --overflow-list-size 600000 {input} {output.bam}"
 
 rule filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""
