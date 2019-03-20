@@ -17,7 +17,7 @@ def chilin_targets(wildcards):
         ls.append("analysis/chilin/%s/attic/%s_gene_score_5fold.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_gene_score.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_motif/" % (run, run))
-        ls.append("analysis/chilin/%s/%s.md5" % (run, run))
+        # ls.append("analysis/chilin/%s/%s.md5" % (run, run))
         
         # Q: for xindong- is this a run -level thing?  I think so.
         #ls.append("analysis/chilin/%s/attic/json/" % sample)
@@ -157,14 +157,14 @@ rule getRegTxt:
         "ln -s {params.abspath} {output}"
 
 rule getMotif:
-    input:
-        lambda wildcards: "analysis/motif/%s/" % chilin_getRunAndRep(wildcards)
-    output:
-        "analysis/chilin/{run}/attic/{run}_motif/"
-    params:
-        abspath = lambda wildcards, input: os.path.abspath(str(input))
-    shell:
-        "ln -s {params.abspath} {output}"
+   input:
+       lambda wildcards: "analysis/motif/%s/" % chilin_getRunAndRep(wildcards)
+   output:
+       "analysis/chilin/{run}/attic/{run}_motif/"
+   params:
+       abspath = lambda wildcards, input: os.path.abspath(str(input))
+   shell:
+       "ln -s {params.abspath} {output}"
 
 rule getFastqc:
     input:
@@ -176,21 +176,22 @@ rule getFastqc:
     shell:
         "ln -s {params.abspath} {output}"
 
-#NOT checked
-rule getJson:
-    input:
-        "analysis/json/{sample}/"
-    output:
-        "analysis/chilin/{sample}/attic/json/"
-    params:
-        abspath = lambda wildcards, input: os.path.abspath(str(input))
-    shell:
-        "ln -s {params.abspath} {output}"
 
-rule md5check:
-    input:
-        "analysis/chilin/{run}/"
-    output:
-        "analysis/chilin/{run}/{run}.md5"
-    shell:
-        "cidc_chips/modules/scripts/md5check.py -d {input} -I {wildcards.run}"
+#NOT checked
+#rule getJson:
+#    input:
+#        "analysis/json/{sample}/"
+#    output:
+#        "analysis/chilin/{sample}/attic/json/"
+#    params:
+#        abspath = lambda wildcards, input: os.path.abspath(str(input))
+#    shell:
+#        "ln -s {params.abspath} {output}"
+
+#rule md5check:
+#    input:
+#        "analysis/chilin/{run}/"
+#    output:
+#        "analysis/chilin/{run}/{run}.md5"
+#    shell:
+#        "cidc_chips/modules/scripts/md5check.py -d {input} -I {wildcards.run}"

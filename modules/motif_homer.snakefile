@@ -11,6 +11,7 @@ def motif_targets(wildcards):
     for run in config["runs"].keys():
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
+            ls.append("analysis/motif/%s/" % runRep)
             ls.append("analysis/motif/%s/results/homerResults.html" % runRep)
             ls.append("analysis/peaks/%s/%s_annotatePeaks.txt" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_annotatePeaks.tsv" % (runRep,runRep))
@@ -39,6 +40,7 @@ rule motif_homer:
     input:
         bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
+        path="analysis/motif/{run}.{rep}/",
         results="analysis/motif/{run}.{rep}/results",
         html="analysis/motif/{run}.{rep}/results/homerResults.html",
     params:
