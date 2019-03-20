@@ -164,7 +164,7 @@ rule getMotif:
    params:
        abspath = lambda wildcards, input: os.path.abspath(str(input))
    shell:
-       "ln -s {params.abspath} {output}"
+       "ln -s {params.abspath}/* {output}"
 
 rule getFastqc:
     input:
@@ -174,7 +174,7 @@ rule getFastqc:
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
-        "ln -s {params.abspath} {output}"
+        "ln -s {params.abspath}/* {output}"
 
 
 #NOT checked
