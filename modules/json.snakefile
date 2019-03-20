@@ -5,25 +5,42 @@ def json_targets(wildcards):
     ls = []
     # ls.append("analysis/json")
     for sample in config["samples"]:
+        #conserv is run
         ls.append("analysis/json/%s/%s_conserv.json" % (sample, sample))
+        
+        #contam is sample-- see chilin.snakefile- fastqc as example
         ls.append("analysis/json/%s/%s_contam.json" % (sample, sample))
+        
+        #DHS is run
         if config["DHS"]:
             ls.append("analysis/json/%s/%s_dhs.json" % (sample, sample))
+            
+        #Velcro is run
         # if config["velcro_regions"]:
         #     ls.append("analysis/json/%s/%s_velcro.json" % (sample, sample))
+
+        #Not sure about enrich_meta
         ls.append("analysis/json/%s/%s_enrich_meta.json" % (sample, sample))
+
+        #Fastqc is sample-- see chilin.snakefile- fastqc as example
         ls.append("analysis/json/%s/%s_fastqc.json" % (sample, sample))
+        #frag is sample-- see chilin.snakefile- fastqc as example
         ls.append("analysis/json/%s/%s_frag.json" % (sample, sample))
+        #frip is run
         ls.append("analysis/json/%s/%s_frip.json" % (sample, sample))
+        #map is sample---- see chilin.snakefile- fastqc as example
         ls.append("analysis/json/%s/%s_map.json" % (sample, sample))
         # ls.append("analysis/json/%s/%s_macs2_rep.json" % (sample, sample))
+        #macs is run
         ls.append("analysis/json/%s/%s_macs2.json" % (sample, sample))
+        #meta is run
         ls.append("analysis/json/%s/%s_meta.json" % (sample, sample))
+        #pbc is run
         ls.append("analysis/json/%s/%s_pbc.json"% (sample, sample))
         # ls.append("analysis/json/%s/%s_rep.json" % (sample, sample))
     return ls
 
-def getRunAndRep(wildcards):
+def json_getRunAndRep(wildcards):
     item = 0
     replicate = []
     for i in range(2,len(r)+2,2):
