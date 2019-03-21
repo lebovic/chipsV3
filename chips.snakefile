@@ -119,7 +119,7 @@ def all_targets(wildcards):
     ls.extend(mapmaker_targets(wildcards))
     ls.extend(bam_snapshots_targets(wildcards))
     ls.extend(regulatory_targets(wildcards))
-    #ls.extend(json_targets(wildcards))
+    ls.extend(json_targets(wildcards))
     ls.extend(chilin_targets(wildcards))
 
     #Check to see if motif is enabled
@@ -184,5 +184,5 @@ include: "./modules/epicypher.snakefile"     # epicypher spike-in module
 include: "./modules/bam_snapshots.snakefile" # generate bam snapshots module
 include: "./modules/regulatory.snakefile"    # regulatory module
 include: "./modules/report.snakefile"        # report module
-#include: "./modules/json.snakefile"          # json module
+include: "./modules/json.snakefile"          # json module
 include: "./modules/chilin.snakefile"        # chilin adapter module
