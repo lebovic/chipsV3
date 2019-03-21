@@ -5,22 +5,21 @@ def json_targets(wildcards):
     ls = []
     # ls.append("analysis/json")
     for run in config["runs"]:
-        #conserv is run
         ls.append("analysis/json/%s/%s_conserv.json" % (run, run))
-        #DHS is run
         if config["DHS"]:
             ls.append("analysis/json/%s/%s_dhs.json" % (run, run))        
         #Velcro is run
         # if config["velcro_regions"]:
         #     ls.append("analysis/json/%s/%s_velcro.json" % (run, run))
-        #frip is run
         ls.append("analysis/json/%s/%s_frip.json" % (run, run))
         #macs is run
         ls.append("analysis/json/%s/%s_macs2.json" % (run, run))
         #meta is run
         ls.append("analysis/json/%s/%s_meta.json" % (run, run))
-        #Not sure about enrich_meta
-        # ls.append("analysis/json/%s/%s_enrich_meta.json" % (run, run))
+        ls.append("analysis/json/%s/%s_fastqc.json" % (run, run))
+        ls.append("analysis/json/%s/%s_map.json" % (run, run))
+        ls.append("analysis/json/%s/%s_enrich_meta.json" % (run, run))
+        ls.append("analysis/json/%s/%s_pbc.json"% (run, run))
         # ls.append("analysis/json/%s/%s_macs2_rep.json" % (sample, sample))
         # ls.append("analysis/json/%s/%s_rep.json" % (sample, sample))
 
@@ -29,14 +28,8 @@ def json_targets(wildcards):
             if sample:
                 #contam is sample-- see chilin.snakefile- fastqc as example
                 ls.append("analysis/json/%s/%s_contam.json" % (run, sample))
-                #Fastqc is sample-- see chilin.snakefile- fastqc as example
-                ls.append("analysis/json/%s/%s_fastqc.json" % (run, sample))
                 #frag is sample-- see chilin.snakefile- fastqc as example
                 ls.append("analysis/json/%s/%s_frag.json" % (run, sample))
-                #map is sample---- see chilin.snakefile- fastqc as example
-                ls.append("analysis/json/%s/%s_map.json" % (run, sample))
-                #pbc is run
-                ls.append("analysis/json/%s/%s_pbc.json"% (run, sample))
 
     return ls
 
@@ -69,21 +62,22 @@ def json_getRunAndRep(wildcards):
     run_rep = "%s.rep1" % wildcards.run
     return run_rep
 
+def json_getSample(wildcards):
+    json_sample = config['runs'][wildcards.run]
+    return json_sample
+
 # def velcro_target(wildcards):
 #     input = "analysis/ceas/%s/%s_velcro_summary.txt" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
 #     return input
 
 # def enrich_meta_target(wildcards):
-#     sample = wildcards.sample
-#     input = []
+#     sample = json_getSample(wildcards)
 #     meta="analysis/ceas/%s/%s_summary.txt" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
-#     mapped="analysis/align/%s/%s_mapping.txt" % (sample,sample)
+#     mapped= lambda wildcards: [" -m analysis/align/%s/%s_mapping.txt" % (i,i) for i in sample if i] if sample else "",
 #     dhs="analysis/ceas/%s/%s_DHS_summary.dhs" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
-#     input.append(meta)
-#     input.append(mapped)
-#     input.append(dhs)
-#     # print(input)
-#     return input
+#     input_files = {'meta' : meta, 'mapped': mapped, 'dhs' : dhs}
+#     print(input_files)
+#     return input_files
 
 rule json_all:
     input:
@@ -92,7 +86,6 @@ rule json_all:
 rule json_conservation:
     input:
         lambda wildcards:"analysis/conserv/%s/%s_conserv.txt" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
-        #"analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.txt"
     output:
         "analysis/json/{run}/{run}_conserv.json"
     params:
@@ -103,6 +96,7 @@ rule json_conservation:
     log: _logfile
     shell:
         "cidc_chips/modules/scripts/json/json_conserv.py -i {input} -o {output} {params.basics}{params.factor}{params.TF}-I {wildcards.run} 2>>{log}"
+
 
 rule json_comtamination:
     input:
@@ -125,7 +119,8 @@ rule json_dhs:
     message: "JSON: generate DHS json"
     log: _logfile
     shell:
-        "cidc_chips/modules/scripts/json/json_dhs.py -i {input} -o {output} -I {wildcards.run}"
+        "cidc_chips/modules/scripts/json/json_dhs.py -i {input} -o {output}"
+
 
 # rule json_velcro:
 #     input:
@@ -139,30 +134,38 @@ rule json_dhs:
 #     shell:
 #         "cidc_chips/modules/scripts/json/json_velcro.py  "
 
-# rule json_enrich_meta:
-#     input:
-#         enrich_meta_target
-#     output:
-#         "analysis/json/{run}/{run}_enrich_meta.json"
-#     params:
-#         has_dhs = "-H %s " % config["DHS"],
-#         down = True
-#     message: "JSON: generate meta enrichment json"
-#     log: _logfile
-#     shell:
-#         "cidc_chips/modules/scripts/json/json_enrich_meta.py -i {input[0]} -m {input[1]} -o {output} {params.has_dhs} -D {input[2]} -d {params.down} -I {wildcards.sample} -s {wildcards.sample}"
+rule json_enrich_meta:
+    input:
+        meta = lambda wildcards: "analysis/ceas/%s/%s_summary.txt" % (json_getRunAndRep(wildcards), json_getRunAndRep(wildcards)),
+        mapped = lambda wildcards: "analysis/align/%s/%s_mapping.txt" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0]),
+        dhs = lambda wildcards: "analysis/ceas/%s/%s_DHS_summary.dhs" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
+    output:
+        "analysis/json/{run}/{run}_enrich_meta.json"
+    params:
+        mapped_files = lambda wildcards, input: [" -m %s" % i for i in {input.mapped}],
+        has_dhs = "-H %s " % config["DHS"],
+        down = True,
+        sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
+    message: "JSON: generate meta enrichment json"
+    log: _logfile
+    shell:
+        "cidc_chips/modules/scripts/json/json_enrich_meta.py -i {input.meta} -o {output} {params.mapped_files} -D {input.dhs} {params.has_dhs} -d {params.down} -r {run} {params.sample_name}"
+        # "cidc_chips/modules/scripts/json/json_enrich_meta.py -i {input[0]} -m {input[1]} -o {output} {params.has_dhs} -D {input[2]} -d {params.down} -I {wildcards.sample} -s {wildcards.sample}"
+
 
 rule json_fastqc:
     input:
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
+        lambda wildcards: "analysis/fastqc/%s/%s_100k_fastqc/fastqc_data.txt" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0])
     output:
-        "analysis/json/{run}/{sample}_fastqc.json"
+        "analysis/json/{run}/{run}_fastqc.json"
     params:
-        ids = "-s %s" % config['sample'] if "sample" in config else "",
+        fastqc_data = lambda wildcards: [" -i analysis/fastqc/%s/%s_100k_fastqc/fastqc_data.txt" % (i,i) for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
+        sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     message: "JSON: generate fastqc json"
     log: _logfile
     shell:
-        "cidc_chips/modules/scripts/json/json_fastqc.py -i {input} -o {output} {params.ids} -I {run}"
+        "cidc_chips/modules/scripts/json/json_fastqc.py{params.fastqc_data} -o {output}{params.sample_name} -r {run}"
+
 
 rule json_frag:
     input:
@@ -176,15 +179,20 @@ rule json_frag:
     shell:
         "cidc_chips/modules/scripts/json/json_frag.py -r {input} -o {output} -R {params.sd_R} -f BAMSE -s {wildcards.sample}"
 
+
 rule json_frip:
     input:
         lambda wildcards: "analysis/frips/%s/%s_frip.txt" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
     output:
         "analysis/json/{run}/{run}_frip.json"
     message: "JSON: generate frip json"
+    params:
+        input_file = lambda wildcards: [" -i analysis/frips/%s/%s_frip.txt" % (i,i) for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
+        sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     log: _logfile
     shell:
-        "cidc_chips/modules/scripts/json/json_frip.py -i {input} -o {output} -s {wildcards.run}"
+        "cidc_chips/modules/scripts/json/json_frip.py{params.input_file} -o {output}{params.sample_name}"
+
 
 rule json_macs2:
     input:
@@ -195,6 +203,7 @@ rule json_macs2:
     log: _logfile
     shell:
         "cidc_chips/modules/scripts/json/json_macs2.py -i {input} -o {output} -I {wildcards.run}"
+
 
 # rule json_macs2_rep:
 #     input:
@@ -207,16 +216,20 @@ rule json_macs2:
 #     log: _logfile
 #     shell:
 #         "cidc_chips/modules/scripts/json/json_macs2_rep.py  "
-        
+
+
 rule json_map:
     input:
-        "analysis/align/{sample}/{sample}_mapping.txt"
+        lambda wildcards: "analysis/align/%s/%s_mapping.txt" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0])
     output:
-        "analysis/json/{run}/{sample}_map.json"
+        "analysis/json/{run}/{run}_map.json"
     message: "JSON: generate map json"
+    params:
+        input_file = lambda wildcards: [" -i analysis/align/%s/%s_mapping.txt" % (i,i) for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     log: _logfile
     shell:
-        "cidc_chips/modules/scripts/json/json_map.py -i {input} -o {output} "
+        "cidc_chips/modules/scripts/json/json_map.py{params.input_file} -o {output} "
+
 
 rule json_meta:
     input:
@@ -228,15 +241,19 @@ rule json_meta:
     shell:
         "cidc_chips/modules/scripts/json/json_meta.py -i {input} -o {output} -I {wildcards.run} "
 
+
 rule json_pbc:
     input:
-        "analysis/frips/{sample}/{sample}_pbc.txt"
+        lambda wildcards: "analysis/frips/%s/%s_pbc.txt" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0])
     output:
-        "analysis/json/{run}/{sample}_pbc.json"
+        "analysis/json/{run}/{run}_pbc.json"
     message: "JSON: generate pbc json"
+    params:
+        input_file = lambda wildcards: [" -i analysis/frips/%s/%s_pbc.txt" % (i,i) for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     log: _logfile
     shell:
-        "cidc_chips/modules/scripts/json/json_pbc.py -i {input} -o {output}"
+        "cidc_chips/modules/scripts/json/json_pbc.py{params.input_file} -o {output}"
+
 
 # rule json_rep:
 #     input:

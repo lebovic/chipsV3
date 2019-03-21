@@ -48,36 +48,35 @@ def _fastqc_parse(input, output=None, param=None):
             "median": median}
 
 def json_fastqc(options):
-    input={"fastqc_summaries": str(os.path.abspath(options.input))}
-    output={"R": "","pdf": "","json": str(os.path.abspath(options.output))}
-    param={"ids": options.ids,
-           "id": options.ID}
+    input_files = []
+    for i in options.input:
+        input_files.append(str(os.path.abspath(i)))
+    sample_list = []
+    for i in options.samples:
+        sample_list.append(i)
+
+    input={"fastqc_summaries": input_files}
+    output={"json": str(os.path.abspath(options.output))}
+    param={"ids": sample_list,
+           "id": options.run}
     json_dict = {"stat": {}, "input": input, "output": output, "param": param}
     # print(input["fastqc_summaries"])
     stat = json_dict["stat"]
-    # summ=list(input["fastqc_summaries"])
-    # for i in input["fastqc_summaries"]:
-    #     summ.append[i]
-    # print(list(zip(input["fastqc_summaries"], param["ids"])))
-    # ids = []
-    # for i in param["ids"]:
-    #     ids.append(i)
-    # for a_summary, a_id in zip(input["fastqc_summaries"], ids):
-        # print(a_summary)
-    parsed = _fastqc_parse(input=input["fastqc_summaries"])
-    stat[param["ids"]] = {}
-    stat[param["ids"]]["median"] = parsed["median"]
-    stat[param["ids"]]["sequence_length"] = parsed["sequence_length"]
+    for a_summary, a_id in zip(input["fastqc_summaries"], param["ids"]):
+        parsed = _fastqc_parse(input=a_summary)
+        stat[a_id] = {}
+        stat[a_id]["median"] = parsed["median"]
+        stat[a_id]["sequence_length"] = parsed["sequence_length"]
     json_dump(json_dict)
 
 
 def main():
-    USAGE="-i [input_txt] -o [output_json] -s {run}.{rep} -I {sample}"
+    USAGE="-i [input_txt] -o [output_json] -s [samples] -r [run]"
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", help="input files")
+    optparser.add_option("-i", "--input", action = 'append', help="input files")
     optparser.add_option("-o", "--output", help="output json files")
-    optparser.add_option("-s", "--ids", help="sample bases")
-    optparser.add_option("-I", "--ID", help="sample ID")
+    optparser.add_option("-s", "--samples", action = 'append', help="samples")
+    optparser.add_option("-r", "--run", help="run")
     (options, args) = optparser.parse_args(sys.argv)
     json_fastqc(options)
 
