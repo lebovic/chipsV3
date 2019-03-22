@@ -17,9 +17,15 @@ def json_dump(json_dict):   # json
     return json_file
 
 def json_rep(options):
-    input={"cor": str(os.path.abspath(options.cor)), "overlap": list(os.path.abspath(options.overlap))}
+    """
+    input:wigCorrelate of multiple replicates results
+          replicates peaks overlap number(percentage: 0.3)
+    output: *replicates.json
+    """
+    overlap_list = [str(os.path.abspath(i)) for i in options.overlap]
+    input={"cor": str(os.path.abspath(options.cor)), "overlap": overlap_list}
     output={"json": str(os.path.abspath(options.output))}
-    param={"parma": options.ID}
+    param={"parma": options.run}
 
     json_dict = {"stat": {}, "input": input, "output": output, "param": param}
     json_dict['stat']['cor'] = [ float(i.strip().split()[2]) for i in open(input['cor']).readlines() ]
@@ -32,8 +38,8 @@ def main():
     optparser = OptionParser(usage=USAGE)
     optparser.add_option("-c", "--cor", help="input files")
     optparser.add_option("-o", "--output", help="output files")
-    optparser.add_option("-O", "--overlap", help="input overlap")
-    optparser.add_option("-i", "--ID", help="paramaters: ID")
+    optparser.add_option("-O", "--overlap", aciton='append', help="input overlap")
+    optparser.add_option("-r", "--run", help="paramaters: run")
     (options, args) = optparser.parse_args(sys.argv)
     json_rep(options)
 
