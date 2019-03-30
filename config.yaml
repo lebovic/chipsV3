@@ -54,6 +54,11 @@ cnv_analysis: true
 #default: 'SNAP'
 #epicypher_analysis: 'SNAP'
 
+# FOR CISTROME DATABASE TEAM:
+# Uncomment it to enable json and chilin modules
+# This will bulid a adapter for Cistrome DB at ./analysis/chilin/
+# ChilinApi: true
+
 # DEFINE the samples- each sample should have a name, e.g. SAMPLE1
 # and a path to the input file, e.g. data/sample1.fastq.gz
 # VALID INPUTS: fastq, fastq.gz, bam

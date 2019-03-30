@@ -30,8 +30,8 @@ def json_conservation(options):
         atype = options.basics
     input={"score": str(os.path.abspath(options.input))}
     output={"json": str(os.path.abspath(options.output))}
-    param={"atype": atype, "id": options.ID}
-    json_dict = {"stat": [], "input": input, "output": output, "param": param}
+    param={"atype": atype, "id": options.run}
+    json_dict = {"stat": [], "input": input, "output": output, "param": ""}
     rd = lambda x: str(round(float(x), 3))
     json_dict['stat'] = list(map(rd, open(input['score']).read().strip().split()))
     json_dump(json_dict)
@@ -45,7 +45,7 @@ def main():
     optparser.add_option("-b", "--basics", help="paramaters: basic")
     optparser.add_option("-f", "--factor", help="paramaters: factor")
     optparser.add_option("-T", "--TF", help="paramaters: TF")
-    optparser.add_option("-I", "--ID", help="ID")
+    optparser.add_option("-r", "--run", help="run")
     (options, args) = optparser.parse_args(sys.argv)
     json_conservation(options)
 

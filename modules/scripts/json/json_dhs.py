@@ -37,7 +37,7 @@ def main():
     optparser = OptionParser(usage=USAGE)
     optparser.add_option("-i", "--input", help="input files")
     optparser.add_option("-o", "--output", help="output files")
-    optparser.add_option("-I", "--ID", help="ID")
+    # optparser.add_option("-I", "--ID", help="ID")
     (options, args) = optparser.parse_args(sys.argv)
     json_dhs(options)
 

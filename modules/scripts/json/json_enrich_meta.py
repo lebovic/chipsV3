@@ -20,66 +20,68 @@ def json_dump(json_dict):   # json
 def json_enrich_meta(options):
     """ enrichment in meta regions
     """
-    input = {'meta':str(os.path.abspath(options.input)), 'mapped':str(os.path.abspath(options.mapped))}
+    meta_list = []
+    for i in options.input:
+        meta_list.append(str(os.path.abspath(i)))
+    mapped_list = []
+    for i in options.mapped:
+        mapped_list.append(str(os.path.abspath(i)))
+    dhs_list = []
+    for i in options.DHS:
+        dhs_list.append(str(os.path.abspath(i)))
+    input = {'meta': meta_list, 'mapped': mapped_list}
     # meta "ceas summary txt"; mapped "align mapping"
     output = {"json": str(os.path.abspath(options.output))}
-    param = {'dhs': str(os.path.abspath(options.DHS)), 'down': options.down, 
-             'has_dhs':str(os.path.abspath(options.HasDHS)), 'id':options.ID, 'samples':options.samples}
+    subsample = False
+    if options.down:
+        subsample = True
+    param = {'dhs': dhs_list, 'down': subsample, 
+             'has_dhs':str(os.path.abspath(options.HasDHS)), 'id':options.run, 'samples':options.samples}
     # dhs "ceas dhs"; has_dhs config["DHS"]
+
     json_dict = {"stat": {}, "input": input, "output": output, "param":param}
     
-    f = open(input["meta"])
-    #f = something like: {'Intron': 68017, 'Exon': 7659, 'Intergenic': 73090, 'Promoter': 11229}
-    content = eval(f.read())
-    total = 0 
-    for k in content.keys():
-        total += content[k]
-    # print(total)
-    json_dict["stat"][options.samples]={}
-    json_dict["stat"][options.samples]["exon"] = content['Exon']/float(total)
-    json_dict["stat"][options.samples]["promoter"] = content['Promoter']/float(total)
-    f.close()
-    dhs_file = open(param["dhs"])
-    f=dhs_file.read().strip().split(",")
-    json_dict["stat"][options.samples]["dhs"] = float(f[1])/float(f[0])
-    dhs_file.close()
-    json_dump(json_dict)
+    for n, s in enumerate(param['samples']):
+        ## total mapped reads
+        with open(input["mapped"][n]) as input_mapped:
+            mapped = float(input_mapped.readlines()[4].split()[0])
+        # print(mapped)
+        json_dict['stat'][s] = {}
+        with open(input['meta'][n]) as input_meta:
+            meta_string = input_meta.readline().replace('\'','\"')
+            meta_dict = json.loads(meta_string)
+        # meta is something like: {'Intron': 68017, 'Exon': 7659, 'Intergenic': 73090, 'Promoter': 11229}
+        meta = [meta_dict['Exon'], meta_dict['Promoter'], 4000000.0]
+        # print(meta)
+        if not param["down"]:
+            json_dict['stat'][s]['exon'] = meta[0]/mapped
+            json_dict['stat'][s]['promoter'] = meta[1]/mapped ## use all mapped reads
+        else:
+            json_dict['stat'][s]['exon'] = meta[0]/meta[2]
+            json_dict['stat'][s]['promoter'] = meta[1]/meta[2] ## use 4M reads
 
-    
-    # for n, s in enumerate(param['samples']):
-    #     ## total mapped reads
-    #     mapped = float(open(input["mapped"][n]).readlines()[2].split()[0])
-    #     json_dict['stat'][s] = {}
-    #     meta = open(input['meta'][n]).read().strip().split(",")
-    #     meta = list(map(float, meta))
-    #     if not param["down"]:
-    #         json_dict['stat'][s]['exon'] = meta[0]/mapped
-    #         json_dict['stat'][s]['promoter'] = meta[1]/mapped ## use all mapped reads
-    #     else:
-    #         json_dict['stat'][s]['exon'] = meta[0]/meta[2]
-    #         json_dict['stat'][s]['promoter'] = meta[1]/meta[2] ## use 4M reads
-
-    #     if param['has_dhs']:
-    #         dhs = open(param["dhs"][n]).read().strip().split(",")
-    #         dhs = list(map(float, dhs))
-    #         if not param["down"]:
-    #             json_dict['stat'][s]['dhs'] = dhs[0]/mapped
-    #         else:
-    #             json_dict['stat'][s]['dhs'] = dhs[0]/dhs[1]
+        if param['has_dhs']:
+            with open(param["dhs"][n]) as input_dhs:
+                dhs = input_dhs.read().strip().split(",")
+            dhs = list(map(float, list(map(int, dhs[0:3]))))
+            if not param["down"]:
+                json_dict['stat'][s]['dhs'] = dhs[1]/mapped
+            else:
+                json_dict['stat'][s]['dhs'] = dhs[1]/dhs[2]
     json_dump(json_dict)
 
 
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", help="input meta files")
-    optparser.add_option("-m", "--mapped", help="input mapped files")
+    optparser.add_option("-i", "--input", action = 'append', help="input meta files")
+    optparser.add_option("-m", "--mapped",  action = 'append', help="input mapped files")
     optparser.add_option("-o", "--output", help="output json files")
-    optparser.add_option("-D", "--DHS", help="set DHS")
+    optparser.add_option("-D", "--DHS", action = 'append', help="set DHS")
     optparser.add_option("-H", "--HasDHS", help="set has dhs")
     optparser.add_option("-d", "--down", help="set down")
-    optparser.add_option("-I", "--ID", help="set ID")
-    optparser.add_option("-s", "--samples", help="set samples")
+    optparser.add_option("-r", "--run", help="set run")
+    optparser.add_option("-s", "--samples", action = 'append', help="set samples")
     (options, args) = optparser.parse_args(sys.argv)
     json_enrich_meta(options)
 

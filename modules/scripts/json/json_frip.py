@@ -18,7 +18,10 @@ def json_dump(json_dict):   # json
     return json_file
 
 def json_frip(options):
-    input={"frip": str(os.path.abspath(options.input))}
+    input_list = []
+    for i in options.input:
+        input_list.append(str(os.path.abspath(i)))
+    input={"frip": input_list}
     output={"json": str(os.path.abspath(options.output))}
     param={"samples":options.samples}
     """
@@ -30,28 +33,26 @@ def json_frip(options):
     param for matching samples
     """
     json_dict = {"stat": {}, "input": input, "output": output, "param": param}
-    # for i,s in zip(input["frip"], param["samples"]):
-    i = input["frip"]
-    s = param["samples"]
-    with open(i) as inf:
-        data = []
-        for item in inf.readlines():
-            item = item.rstrip("\n").split("\t")
-            data.append(item)
-    # print(data)
-    json_dict["stat"][s] = {}
-    json_dict["stat"][s]["info_tag"] = int(data[0][1])
-    json_dict["stat"][s]["total_tag"] = int(data[1][1])
-    json_dict["stat"][s]["frip"] = float(int(data[0][1]))/int(data[1][1])
+    for i,s in zip(input["frip"], param["samples"]):
+        with open(i) as inf:
+            data = []
+            for item in inf.readlines():
+                item = item.rstrip("\n").split("\t")
+                data.append(item)
+        # print(data)
+        json_dict["stat"][s] = {}
+        json_dict["stat"][s]["info_tag"] = int(data[0][1])
+        json_dict["stat"][s]["total_tag"] = int(data[1][1])
+        json_dict["stat"][s]["frip"] = float(int(data[0][1]))/int(data[1][1])
     json_dump(json_dict)
 
 
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", help="input frip files")
+    optparser.add_option("-i", "--input", action='append', help="input frip files")
     optparser.add_option("-o", "--output", help="output json files")
-    optparser.add_option("-s", "--samples", help="paramaters: samples")
+    optparser.add_option("-s", "--samples", action='append', help="paramaters: samples")
     (options, args) = optparser.parse_args(sys.argv)
     json_frip(options)
 

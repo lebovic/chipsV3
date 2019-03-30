@@ -27,29 +27,36 @@ def json_map(options):
     0 + 0 duplicates
     3815723 + 0 mapped (100.00%:-nan%)
     """
-    input={"mapped_txt": str(os.path.abspath(options.input))}
+    input_list = []
+    for i in options.input:
+        input_list.append(str(os.path.abspath(i)))
+    input={"bwa_mapped": input_list}
     output={"json": str(os.path.abspath(options.output))}
-    # param={"sample": options.samples}
+    param={"sample": []}
 
-    json_dict = {"stat": {}, "input": input, "output": output, "param": {}}
+    json_dict = {"stat": {}, "input": input, "output": output, "param": param}
     #UGH: this script is ugly!!
     #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
-    sampleID = input["mapped_txt"].strip().split("/")[-1].split('.')[0]
+    for i in input["bwa_mapped"]:
+        sampleID = i.strip().split("/")[-1].split('.')[0]
+        if sampleID.endswith('_mapping'):
+            sampleID = sampleID.replace("_mapping","")
+        json_dict['param']['sample'].append(sampleID)
     # print(sampleID)
     #ALSO remove the suffix '_mapping' from the sampleID name
-    if sampleID.endswith('_mapping'):
-        sampleID = sampleID.replace("_mapping","")
-    with open(input["mapped_txt"]) as f:
-        total = int(f.readline().strip().split()[0])
-        #skip 3 lines
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        mapped = int(f.readline().strip().split()[0])
-    json_dict["stat"][sampleID] = {}
-    json_dict["stat"][sampleID]["mapped"] = mapped
-    json_dict["stat"][sampleID]["total"] = total
-    json_dict["param"]["sample"]=sampleID
+        with open(i) as f:
+            total = int(f.readline().strip().split()[0])
+            #skip 3 lines
+            l = f.readline()
+            l = f.readline()
+            l = f.readline()
+            mapped = int(f.readline().strip().split()[0])
+        json_dict["stat"][sampleID] = {}
+        json_dict["stat"][sampleID]["mapped"] = mapped
+        json_dict["stat"][sampleID]["total"] = total
+        json_dict['input']['bwa_total'] = []
+        json_dict['input']['bwa_total'].append("We do NOT generate this file in Chips, the file content is only one number to show the total reads.")
+
     # for mapped, total, sam in zip(input["bwa_mapped"], input["bwa_total"], param["sample"]):
     #     inft = open(total, 'rU')
     #     infm = open(mapped, 'rU')
@@ -65,7 +72,7 @@ def json_map(options):
 def main():
     USAGE=""
     optparser = OptionParser(usage=USAGE)
-    optparser.add_option("-i", "--input", help="input text files")
+    optparser.add_option("-i", "--input", action='append', help="input text files")
     optparser.add_option("-o", "--output", help="output files")
     (options, args) = optparser.parse_args(sys.argv)
     json_map(options)
