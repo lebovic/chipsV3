@@ -21,7 +21,7 @@ def json_targets(wildcards):
         ls.append("analysis/json/%s/%s_enrich_meta.json" % (run, run))
         ls.append("analysis/json/%s/%s_pbc.json"% (run, run))
         ls.append("analysis/json/%s/%s_frag.json" % (run, run))
-
+        ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
         # Cistrome DB do not need contamination part for now
         # run_samples = config['runs'][run]
         # for sample in run_samples:
@@ -255,7 +255,17 @@ rule json_pbc:
     shell:
         "cidc_chips/modules/scripts/json/json_pbc.py{params.input_file} -o {output}"
 
-
+rule json_seqpos:
+    input:
+        lambda wildcards: "analysis/motif/%s/results/motif_list.json" % json_getRunAndRep(wildcards)
+    output:
+        "analysis/json/{run}/{run}_seqpos.json"
+    message: "JSON: generate seqpos json"
+    params:
+        prefix = lambda wildcards: "analysis/motif/%s/results/seqLogo/" % json_getRunAndRep(wildcards)
+    log: _logfile
+    shell:
+        "cidc_chips/modules/scripts/json/json_seqpos.py -i {input} -o {output} -p {params.prefix}"
 # rule json_rep:
 #     input:
         
