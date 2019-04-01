@@ -5,6 +5,7 @@ def json_targets(wildcards):
     ls = []
     # ls.append("analysis/json")
     for run in config["runs"]:
+        ls.append("analysis/json/%s/" % run)
         ls.append("analysis/json/%s/%s_conserv.json" % (run, run))
         if config["DHS"]:
             ls.append("analysis/json/%s/%s_dhs.json" % (run, run))        
@@ -88,7 +89,8 @@ rule json_conservation:
     input:
         lambda wildcards:"analysis/conserv/%s/%s_conserv.txt" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
     output:
-        "analysis/json/{run}/{run}_conserv.json"
+        json="analysis/json/{run}/{run}_conserv.json",
+        dir="analysis/json/{run}/"
     params:
         basics = "-b %s " % config["basics"] if "basics" in config else "",
         factor = "-f %s " % config["factor"] if "factor" in config else "",
@@ -96,7 +98,7 @@ rule json_conservation:
     message: "JSON: generate conservation json"
     log: _logfile
     shell:
-        "cidc_chips/modules/scripts/json/json_conserv.py -i {input} -o {output} {params.basics}{params.factor}{params.TF}-r {wildcards.run} 2>>{log}"
+        "cidc_chips/modules/scripts/json/json_conserv.py -i {input} -o {output.json} {params.basics}{params.factor}{params.TF}-r {wildcards.run} 2>>{log}"
 
 
 # rule json_comtamination:

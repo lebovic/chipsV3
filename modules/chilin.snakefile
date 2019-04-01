@@ -175,9 +175,9 @@ rule getFastqc:
 
 rule getJson:
    input:
-       "analysis/json/{sample}/"
+       "analysis/json/{run}/"
    output:
-       "analysis/chilin/{sample}/attic/json/"
+       "analysis/chilin/{run}/attic/json/"
    params:
        abspath = lambda wildcards, input: os.path.abspath(str(input))
    shell:
