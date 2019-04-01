@@ -17,10 +17,7 @@ def chilin_targets(wildcards):
         ls.append("analysis/chilin/%s/attic/%s_gene_score_5fold.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_gene_score.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_motif/" % (run, run))
-        # ls.append("analysis/chilin/%s/%s.md5" % (run, run))
-        
-        # Q: for xindong- is this a run -level thing?  I think so.
-        #ls.append("analysis/chilin/%s/attic/json/" % sample)
+        ls.append("analysis/chilin/%s/attic/json/" % run)
         #handle samples:
         run_samples = config['runs'][run]
         for sample in run_samples:
@@ -176,17 +173,15 @@ rule getFastqc:
     shell:
         "ln -s {params.abspath}/* {output}"
 
-
-#NOT checked
-#rule getJson:
-#    input:
-#        "analysis/json/{sample}/"
-#    output:
-#        "analysis/chilin/{sample}/attic/json/"
-#    params:
-#        abspath = lambda wildcards, input: os.path.abspath(str(input))
-#    shell:
-#        "ln -s {params.abspath} {output}"
+rule getJson:
+   input:
+       "analysis/json/{sample}/"
+   output:
+       "analysis/chilin/{sample}/attic/json/"
+   params:
+       abspath = lambda wildcards, input: os.path.abspath(str(input))
+   shell:
+       "ln -s {params.abspath}/* {output}"
 
 #rule md5check:
 #    input:
