@@ -37,7 +37,8 @@ rule mapmaker:
         "analysis/mapmaker/.metasheet.csv"
     conda: "../envs/mapmaker/mapmaker.yaml"
     shell:
-        "git clone git@bitbucket.org:cfce/mapmaker analysis/mapmaker > {log} 2>&1 && "
+        # "git clone git@bitbucket.org:cfce/mapmaker analysis/mapmaker > {log} 2>&1 && "
+        "git clone https://bitbucket.org/cfce/mapmaker.git analysis/mapmaker > {log} 2>&1 && "
         "sleep 20 && "
         #NOTE: the two files below are OTHER targets of this snakefile, so
         #we trick snakemake into thinking they don't exist by renaming them
