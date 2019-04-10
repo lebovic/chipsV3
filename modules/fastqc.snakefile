@@ -12,6 +12,7 @@ def fastqc_targets(wildcards):
         ls.append("analysis/fastqc/%s/%s_stats.csv" % (sample,sample))
         ls.append("analysis/fastqc/%s/%s_perSeqGC.png" % (sample,sample))
         ls.append("analysis/fastqc/%s/%s_perSeqGC_thumb.png" % (sample,sample))
+        ls.append("analysis/fastqc/%s/%s_100k_fastqc/" % (sample, sample))
 
     ls.append("analysis/fastqc/fastqc.csv")
     return ls
@@ -100,6 +101,7 @@ rule call_fastqc:
         getFastqcInput
     output:
         #MAKE temp
+        "analysis/fastqc/{sample}/{sample}_100k_fastqc/",
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt",
         temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.html"),
         temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.zip")

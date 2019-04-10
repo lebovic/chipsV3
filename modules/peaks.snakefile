@@ -92,6 +92,8 @@ def peaks_targets(wildcards):
             ls.append("analysis/peaks/%s/%s_treat_pileup.sorted.bdg.gz" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_control_lambda.sorted.bdg.gz" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_treatment.igv.xml" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_peaks.bed" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_model.R" % (runRep,runRep))
 
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
@@ -135,13 +137,40 @@ rule macs2_callpeaks:
     #    control = "-c %s" % input.cont if input.cont else "",        
     #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
+rule macs2_get_fragment:
+    input:
+        treat=getTreats,
+        cont=getConts
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_model.R",
+    params:
+        #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        treatment = lambda wildcards, input: [" -i %s" % i for i in input.treat] if input.treat else "",
+    message: "PEAKS: Get fragment size with macs2"
+    log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g 'hs' 2>>{log}"
+
+rule unsortPeaksToBed:
+    input:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
+    message: "PEAKS: Converting unsorted peak file to bed file"
+    log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+        "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
+
 rule peakToBed:
     """Convert MACS's narrowPeak format, which is BED12 to BED5"""
     input:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
-    message: "PEAKS: Converting peak file to bed file"
+    message: "PEAKS: Converting sorted peak file to bed file"
     log:_logfile
     conda: "../envs/peaks/peaks.yaml"
     shell:
