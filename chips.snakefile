@@ -115,15 +115,14 @@ def all_targets(wildcards):
     ls.extend(conservation_targets(wildcards))
     ls.extend(ceas_targets(wildcards))
     ls.extend(frips_targets(wildcards))
-    if 'ChilinApi' not in config or config['ChilinApi'] != True:
-        ls.extend(contamination_targets(wildcards))
-        ls.extend(mapmaker_targets(wildcards))
-        ls.extend(bam_snapshots_targets(wildcards))
     ls.extend(regulatory_targets(wildcards))
     if 'ChilinApi' in config and config['ChilinApi'] == True:
         ls.extend(json_targets(wildcards))
         ls.extend(chilin_targets(wildcards))
-
+    else:
+        ls.extend(contamination_targets(wildcards))
+        ls.extend(mapmaker_targets(wildcards))
+        ls.extend(bam_snapshots_targets(wildcards))
     #Check to see if motif is enabled
     if 'motif' in config:
         ls.extend(motif_targets(wildcards))
