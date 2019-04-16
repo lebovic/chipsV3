@@ -26,38 +26,40 @@ def json_seqpos(options):
     z_score_cutoff = param["z_score_cutoff"]
     seqpos_html_content = open(input['seqpos']).readlines()
     mdseqpos_result = []
+    if seqpos_html_content == ['{}\n']:
+        top_motifs = 'None'
+    else:
+        ## parse motif list json file
+        for m in seqpos_html_content:
+            mdseqpos_result.append(json.loads(m.strip()))
+        satisfied_motif_list = []
 
-    ## parse motif list json file
-    for m in seqpos_html_content:
-        mdseqpos_result.append(json.loads(m.strip()))
-    satisfied_motif_list = []
+        for a_motif in mdseqpos_result:
+            if a_motif['seqpos_results']['zscore'] == 'None':
+                a_motif['seqpos_results']['zscore'] = 65535
+            if a_motif['factors'] == None:
+                a_motif['factors'] = ['denovo']
+            satisfied_motif_list.append(a_motif)
 
-    for a_motif in mdseqpos_result:
-        if a_motif['seqpos_results']['zscore'] == 'None':
-            a_motif['seqpos_results']['zscore'] = 65535
-        if a_motif['factors'] == None:
-            a_motif['factors'] = ['denovo']
-        satisfied_motif_list.append(a_motif)
+        satisfied_motif_list.sort(key=lambda x:x['seqpos_results']['zscore'])
+        satisfied_count = 0
+        top_motifs = []
+        for a_motif in satisfied_motif_list:
 
-    satisfied_motif_list.sort(key=lambda x:x['seqpos_results']['zscore'])
-    satisfied_count = 0
-    top_motifs = []
-    for a_motif in satisfied_motif_list:
+            if a_motif['id'].find('observed')>0:
+                continue
+            if satisfied_count == 10:
+                break
 
-        if a_motif['id'].find('observed')>0:
-            continue
-        if satisfied_count == 10:
-            break
+            # z_score is a negative score, the smaller, the better
+            if a_motif['seqpos_results']['zscore'] < z_score_cutoff :
+                satisfied_count += 1
+                top_motifs.append(a_motif)
 
-        # z_score is a negative score, the smaller, the better
-        if a_motif['seqpos_results']['zscore'] < z_score_cutoff :
-            satisfied_count += 1
-            top_motifs.append(a_motif)
+        ## choose first 5 motifs to fit into latex document
 
-    ## choose first 5 motifs to fit into latex document
-
-    for n, _ in enumerate(top_motifs):
-        top_motifs[n]["logoImg"] = param["prefix"] + top_motifs[n]['id'] + ".png"
+        for n, _ in enumerate(top_motifs):
+            top_motifs[n]["logoImg"] = param["prefix"] + top_motifs[n]['id'] + ".png"
 
     result_dict = {"stat": {}, "input": input, "output": output, "param": param}
     result_dict["stat"]["satisfied_motifs"] = top_motifs

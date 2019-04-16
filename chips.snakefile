@@ -116,13 +116,6 @@ def all_targets(wildcards):
     ls.extend(ceas_targets(wildcards))
     ls.extend(frips_targets(wildcards))
     ls.extend(regulatory_targets(wildcards))
-    if 'ChilinApi' in config and config['ChilinApi'] == True:
-        ls.extend(json_targets(wildcards))
-        ls.extend(chilin_targets(wildcards))
-    else:
-        ls.extend(contamination_targets(wildcards))
-        ls.extend(mapmaker_targets(wildcards))
-        #ls.extend(bam_snapshots_targets(wildcards))
     #Check to see if motif is enabled
     if 'motif' in config:
         ls.extend(motif_targets(wildcards))
@@ -149,11 +142,17 @@ def all_targets(wildcards):
 
         if hasInput:
             ls.extend(qdnaseq_targets(wildcards))
-
-    if "epicypher_analysis" in config and config["epicypher_analysis"]:
-        ls.extend(epicypher_targets(wildcards))
-        
-    ls.extend(report_targets(wildcards))
+    # skip running modules that useless in cistrome db 
+    if 'ChilinApi' in config and config['ChilinApi'] == True:
+        ls.extend(json_targets(wildcards))
+        ls.extend(chilin_targets(wildcards))
+    else:
+        ls.extend(contamination_targets(wildcards))
+        ls.extend(mapmaker_targets(wildcards))
+        #ls.extend(bam_snapshots_targets(wildcards))
+        ls.extend(report_targets(wildcards))
+        if "epicypher_analysis" in config and config["epicypher_analysis"]:
+            ls.extend(epicypher_targets(wildcards))
     return ls
 
 rule target:

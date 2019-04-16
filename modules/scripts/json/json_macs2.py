@@ -60,11 +60,11 @@ def _peaks_parse(input):
     elif 0 < peaks_info["totalpeak"] < 200:
         peaks_info["peaksge20ratio"] = peaks_info["peaksge20"] / peaks_info["totalpeak"]
         peaks_info["peaksge10ratio"] = peaks_info["peaksge10"] / peaks_info["totalpeak"]
-        print >> sys.stderr, "Warning: peaks so few for motif scan"
+        print("Warning: peaks so few for motif scan", file=sys.stderr) 
     elif peaks_info["totalpeak"] == 0 :
         peaks_info["peaksge20ratio"] = 0
         peaks_info["peaksge10ratio"] = 0
-        print >> sys.stderr, "Warning: 0 peaks"
+        print("Warning: 0 peaks", file=sys.stderr)
 
     peaks_info["qvalue"] = q_value_cutoff
     peaks_info["shiftsize"] = shift_size
