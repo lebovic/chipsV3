@@ -131,10 +131,10 @@ def peaks_targets(wildcards):
             ls.append("analysis/peaks/%s/%s_peaks.bed" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_model.R" % (runRep,runRep))
             if ('cutoff' in config) and config['cutoff']:
-                ls.append("analysis/peaks/%s/%s.sub%s_sorted_peaks.narrowPeak" % (runRep,runRep,config[cutoff]))
-                ls.append("analysis/peaks/%s/%s.sub%s_sorted_peaks.narrowPeak.bed" % (runRep,runRep,config[cutoff]))
-                ls.append("analysis/peaks/%s/%s.sub%s_sorted_summits.bed" % (runRep,runRep,config[cutoff]))
-
+                ls.append("analysis/peaks/%s/%s.sub%s_peaks.bed" % (runRep,runRep,config["cutoff"]))
+                ls.append("analysis/peaks/%s/%s.sub%s_summits.bed" % (runRep,runRep,config["cutoff"]))
+                ls.append("analysis/peaks/%s/%s.sub%s_treat_pileup.bw" % (runRep,runRep,config["cutoff"]))
+                ls.append("analysis/peaks/%s/%s.sub%s_control_lambda.bw" % (runRep,runRep,config["cutoff"]))
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
     ls.append("analysis/peaks/all_treatments.igv.xml")
@@ -182,18 +182,18 @@ rule macs2_filtered_callpeaks:
         treat=getFilteredTreats,
         cont=getFilteredConts
     output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_peaks.narrowPeak",
-        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_summits.bed",
-        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_peaks.xls",
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_treat_pileup.bdg"),
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_control_lambda.bdg"),
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])),
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_summits.bed" % str(config['cutoff']),
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff'])),
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_treat_pileup.bdg" % str(config['cutoff'])),
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_control_lambda.bdg" % str(config['cutoff'])),
     params:
         fdr=_macs_fdr,
         keepdup=_macs_keepdup,
         extsize=_macs_extsize,
         genome_size=config['genome_size'],
         outdir="analysis/peaks/{run}.{rep}/",
-        name="{run}.{rep}.sub{cutoff}",
+        name="{run}.{rep}.sub%s" % str(config['cutoff']),
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         BAMPE = lambda wildcards: checkBAMPE(wildcards),
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
@@ -246,6 +246,18 @@ rule peakToBed:
     shell:
         "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
 
+rule filteredPeakToBed:
+    """Convert MACS's narrowPeak format, which is BED12 to BED5"""
+    input:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.bed" % str(config['cutoff'])
+    message: "PEAKS: Converting sorted peak file to bed file"
+    log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+        "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
+
 rule sortSummits:
     input:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
@@ -289,6 +301,37 @@ rule bdgToBw:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bw"
+    params:
+        chroms=config['chrom_lens'],
+        #msg just for message below
+        msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
+    message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
+    log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+        "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
+
+rule sortFilteredBedgraphs:
+    """Sort bed graphs--typically useful for converting bdg to bw"""
+    input:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_{suffix}.bdg" % str(config['cutoff'])
+    output:
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_{suffix}.sorted.bdg" % str(config['cutoff']))
+    params:
+        #msg just for message below
+        msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
+    message: "PEAKS: sorting bdg pileups {params.msg}"
+    log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+        "bedSort {input} {output} 2>>{log}"
+
+rule filteredBdgToBw:
+    """Convert bedGraphs to BigWig"""
+    input:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_{suffix}.sorted.bdg" % str(config['cutoff'])
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_{suffix}.bw" % str(config['cutoff'])
     params:
         chroms=config['chrom_lens'],
         #msg just for message below
