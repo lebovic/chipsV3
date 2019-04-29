@@ -18,6 +18,42 @@ def getTreats(wildcards):
     r = config['runs'][wildcards.run]
     #print(r)
     #print(treat)
+    if treat < len(r) and r[treat]:
+        tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (r[treat],r[treat])]
+    #print("TREAT: %s" % tmp)
+    if not tmp:
+        #NOTE: I can't figure out a proper kill command so I'll do this
+        tmp=["ERROR! Missing treatment file for run: %s, rep: %s" % (wildcards.run, rep_s)]
+    return tmp
+
+def getConts(wildcards):
+    tmp=[]
+    #print(wildcards)
+    rep_s = wildcards.rep
+    rep_n = int(rep_s[-1])
+
+    #USE the formula: treatment = 2^(rep-1); control = treatment+1
+    cont = 2**(rep_n-1) + 1 if rep_n > 1 else 1
+    r = config['runs'][wildcards.run]
+    #print(r)
+    #print(cont)
+    if cont < len(r) and r[cont]:
+        tmp = ["analysis/align/%s/%s_unique.sorted.bam" % (r[cont],r[cont])]
+    #print("CONT: %s" % tmp)
+    return tmp
+
+def getFilteredTreats(wildcards):
+    tmp=[]
+    #print(wildcards)
+    rep_s = wildcards.rep
+    rep_n = int(rep_s[-1])
+    #print(rep_n)
+
+    #USE the formula: treatment = 2^(rep-1); control = treatment+1
+    treat = 2**(rep_n-1) if rep_n > 1 else 0
+    r = config['runs'][wildcards.run]
+    #print(r)
+    #print(treat)
     if r[treat]:
         treatSample = config["samples"][r[treat]]
         if len(treatSample) > 1 and ('cutoff' in config) and config['cutoff']:
@@ -38,7 +74,7 @@ def getTreats(wildcards):
                 tmp=["ERROR! Missing treatment file for run: %s, rep: %s" % (wildcards.run, rep_s)]
     return tmp
 
-def getConts(wildcards):
+def getFilteredConts(wildcards):
     tmp=[]
     #print(wildcards)
     rep_s = wildcards.rep
@@ -94,6 +130,10 @@ def peaks_targets(wildcards):
             ls.append("analysis/peaks/%s/%s_treatment.igv.xml" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_peaks.bed" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_model.R" % (runRep,runRep))
+            if ('cutoff' in config) and config['cutoff']:
+                ls.append("analysis/peaks/%s/%s.sub%s_sorted_peaks.narrowPeak" % (runRep,runRep,config[cutoff]))
+                ls.append("analysis/peaks/%s/%s.sub%s_sorted_peaks.narrowPeak.bed" % (runRep,runRep,config[cutoff]))
+                ls.append("analysis/peaks/%s/%s.sub%s_sorted_summits.bed" % (runRep,runRep,config[cutoff]))
 
     ls.append("analysis/peaks/peakStats.csv")
     ls.append("analysis/peaks/run_info.txt")
@@ -136,6 +176,36 @@ rule macs2_callpeaks:
     #    treatment = "-t %s" % input.treat if input.treat else "",
     #    control = "-c %s" % input.cont if input.cont else "",        
     #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+
+rule macs2_filtered_callpeaks:
+    input:
+        treat=getFilteredTreats,
+        cont=getFilteredConts
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_peaks.narrowPeak",
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_summits.bed",
+        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_peaks.xls",
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_treat_pileup.bdg"),
+        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub{cutoff}_control_lambda.bdg"),
+    params:
+        fdr=_macs_fdr,
+        keepdup=_macs_keepdup,
+        extsize=_macs_extsize,
+        genome_size=config['genome_size'],
+        outdir="analysis/peaks/{run}.{rep}/",
+        name="{run}.{rep}.sub{cutoff}",
+        #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
+        BAMPE = lambda wildcards: checkBAMPE(wildcards),
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+
+        treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
+        control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
+    message: "PEAKS: calling peaks with macs2"
+    log:_logfile
+    conda: "../envs/peaks/peaks.yaml"
+    shell:
+       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} 2>>{log}"
+
 
 rule macs2_get_fragment:
     input:
