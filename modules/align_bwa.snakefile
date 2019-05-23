@@ -1,6 +1,6 @@
 #MODULE: Align fastq files to genome - BWA specific calls
 #PARAMETERS:
-_logfile="analysis/logs/align.log"
+# _logfile="analysis/logs/align.log"
 _bwa_threads=8
 
 def getFastq(wildcards):
@@ -15,7 +15,7 @@ rule bwa_mem:
         index=config['bwa_index'],
     threads: _bwa_threads
     message: "ALIGN: Running BWA mem for alignment"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_bwa.yaml"
     shell:
         "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"

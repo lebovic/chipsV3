@@ -1,5 +1,5 @@
 #MODULE: epicypher- quantify epicypher spike-ins
-_logfile="analysis/logs/epicypher.log"
+# _logfile="analysis/logs/epicypher.log"
 _threads=8
 
 def epicypher_targets(wildcards):
@@ -43,7 +43,7 @@ rule align_to_epicypher:
         "analysis/epicypher.{ttype}/{sample}/{sample}.epicypher.bam"
     threads: _threads
     message: "EPICYPHER: aligning unmapped reads to epicypher assembly"
-    log: _logfile
+    # log: "analysis/logs/epicypher/{sample}.log"
     conda: "../envs/epicypher/epicypherl.yaml"
     shell:
         "bwa mem -t {threads} {params.epicypher_index} {input} {params.mate2} | samtools view -Sb - > {output}"
@@ -54,11 +54,11 @@ rule sort_epicypher:
     output:
         "analysis/epicypher.{ttype}/{sample}/{sample}.epicypher.sorted.bam"
     message: "EPICYPHER: sorting epicypher bam file"
-    log: _logfile
+    # log: "analysis/logs/epicypher/{sample}.log"
     threads: _threads
     conda: "../envs/epicypher/epicypherl.yaml"
     shell:
-        "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads}"# 2>>{log}"
 
 rule uniquely_mapped:
     """Get uniquely mapped reads from epicypher.bam"""
@@ -68,7 +68,7 @@ rule uniquely_mapped:
         "analysis/epicypher.{ttype}/{sample}/{sample}.epicypher.sorted.unique.bam"
     message: "EPICYPHER: get uniquely mapped reads"
     threads: _threads
-    log: _logfile
+    # log: "analysis/logs/epicypher/{sample}.log"
     conda: "../envs/epicypher/epicypherl.yaml"
     shell:
         "samtools view -bq 1 -@ {threads} {input} > {output}"
@@ -79,7 +79,7 @@ rule index_epicypher:
     output:
         "analysis/epicypher.{ttype}/{sample}/{sample}.epicypher.sorted.unique.bam.bai"
     message: "EPICYPHER: indexing epicypher bam file"
-    log:_logfile
+    # log:"analysis/logs/epicypher/{sample}.log"
     conda: "../envs/epicypher/epicypherl.yaml"
     shell:
         "sambamba index {input} {output}"
@@ -95,7 +95,7 @@ rule epicypher_quantify:
         "analysis/epicypher.{ttype}/{sample}/{sample}.epicypher.quant.txt"
     message: "EPICYPHER: quantifying epicypher marks"
     threads: _threads
-    log: _logfile
+    # log: "analysis/logs/epicypher/{sample}.log"
     conda: "../envs/epicypher/epicypherl.yaml"
     shell:
         "{params.script} -b {input.bam} > {output}"

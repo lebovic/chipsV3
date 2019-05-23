@@ -1,5 +1,5 @@
 #MODULE: bam_snapshots- takes bam read pile up snapshots for a set of genes
-_logfile="analysis/logs/bam_snapshot.log"
+# _logfile="analysis/logs/bam_snapshot.log"
 
 #LIST of target genes and zoom factor
 _gene_list=[("ACTB",3),
@@ -27,7 +27,7 @@ rule bam_snapshot:
     output:
         "analysis/bam_snapshots/{sample}/{sample}_{gene}_{zoom_f}Xzoom.png"
     message: "BAM_SNAPSHOT: generate snapshot for sample {wildcards.sample} in gene {wildcards.gene}"
-    log: _logfile
+    # log: "analysis/logs/bam_snapshot/{sample}.log"
     conda: "../envs/bam_snapshots/bam_snapshots.yaml"
     params:
         isPaired= lambda wildcards: "TRUE" if len(config["samples"][wildcards.sample]) == 2 else "FALSE",

@@ -1,7 +1,7 @@
 #MODULE: fastqc- sequence quality scores
 #RULES:
 #    sample_fastq: subsample 100k reads from each sample to perform fastqc analysis
-_logfile="analysis/logs/fastqc.log"
+# _logfile="analysis/logs/fastqc.log"
 
 def fastqc_targets(wildcards):
     """Generates the targets for this module"""
@@ -63,7 +63,7 @@ rule sample_fastq:
         #how many to sample
         size=100000
     message: "FASTQC: sample_fastq"
-    log:_logfile
+    log:"analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "seqtk sample -s {params.seed} {input} {params.size} > {output} 2>>{log}"
@@ -78,7 +78,7 @@ rule sample_bam:
     output:
         temp("analysis/align/{sample}/{sample}_100k.bam")
     message: "FASTQC: sampling 100k reads from bam"
-    log:_logfile
+    log:"analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/sampleBam.sh -i {input} -n {params.n} -o {output}"
@@ -90,7 +90,7 @@ rule convertBamToFastq:
     output:
         temp("analysis/align/{sample}/{sample}_100k.bam.fastq")
     message: "FASTQC: converting 100k.bam to 100k.fastq"
-    log:_logfile
+    log:"analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} 2>> {log}"
@@ -101,7 +101,7 @@ rule call_fastqc:
         getFastqcInput
     output:
         #MAKE temp
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc/",
+        directory("analysis/fastqc/{sample}/{sample}_100k_fastqc/"),
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt",
         temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.html"),
         temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.zip")
@@ -109,7 +109,7 @@ rule call_fastqc:
     params:
         sample = lambda wildcards: wildcards.sample
     message: "FASTQC: call fastqc"
-    log:_logfile
+    log:"analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "fastqc {input} --extract -o analysis/fastqc/{params.sample} 2>>{log}"
@@ -124,7 +124,7 @@ rule get_PerSequenceQual:
         #DON'T forget quotes
         section="'Per sequence quality'"
     message: "FASTQC: get_PerSequenceQual"
-    log:_logfile
+    log:"analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -139,7 +139,7 @@ rule get_PerSequenceGC:
         #DON'T forget quotes
         section="'Per sequence GC content'"
     message: "FASTQC: get_PerSequenceGC"
-    log:_logfile
+    log:"analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -152,7 +152,7 @@ rule extract_FastQCStats:
     output:
         "analysis/fastqc/{sample}/{sample}_stats.csv"
     message: "FASTQC: extract_FastQCStats"
-    log:_logfile
+    log:"analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_stats.py -a {input.qual} -b {input.gc} > {output} 2>>{log}"
@@ -164,11 +164,11 @@ rule collect_fastQCStats:
     output:
         "analysis/fastqc/fastqc.csv"
     message: "FASTQC: collect and parse ALL mapping stats"
-    log: _logfile
+    # log: "analysis/logs/fastqc/{sample}.log"
     #conda: "../envs/fastqc/fastqc.yaml"
     run:
         files = " -f ".join(input)
-        shell("cidc_chips/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output} 2>>{log}")
+        shell("cidc_chips/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output}")
 
 rule plot_fastQC_GC:
     """Plots the GC distribution of the sample according to data in
@@ -182,7 +182,7 @@ rule plot_fastQC_GC:
         thumb="analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png",
     message:
         "FASTQC: generating GC content distrib. plots"
-    log: _logfile
+    log: "analysis/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/fastqc_plotGC.R {input.gc} {output.png} {output.thumb}"

@@ -1,6 +1,6 @@
 #MODULE: Align fastq files to genome - BOWTIE2 specific calls
 #PARAMETERS:
-_logfile="analysis/logs/align.log"
+# _logfile="analysis/logs/align.log"
 #_bwa_q="5"
 #_bwa_l="32"
 #_bwa_k="2"
@@ -31,7 +31,7 @@ rule bwt2_aln:
         _inputs = lambda wildcards, input: bwt2_aln_inputs(input)
     threads: _bwt2_threads
     message: "ALIGN: Running Bowtie2 alignment"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_bwt2.yaml"
     shell:
         "bowtie2 -p {threads} -x {params.index} {params._inputs} -S {output} 2>>{log}"
@@ -43,7 +43,7 @@ rule bwt2_convert:
         temp("analysis/align/{sample}/{sample}.bam")
     threads: _samtools_threads
     message: "ALIGN: convert sam to bam"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_bwt2.yaml"
     shell:
         "samtools view -@ {threads} -Sb {input} > {output}"

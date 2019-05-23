@@ -1,5 +1,5 @@
 #MODULE: json- generating the analysis/json folder
-_logfile="analysis/logs/json.log"
+# _logfile="analysis/logs/json.log"
 
 def json_targets(wildcards):
     ls = []
@@ -96,7 +96,7 @@ rule json_conservation:
         factor = "-f %s " % config["factor"] if "factor" in config else "",
         TF = "-T %s " % config["TF"] if "TF" in config else ""
     message: "JSON: generate conservation json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_conserv.py -i {input} -o {output.json} {params.basics}{params.factor}{params.TF}-r {wildcards.run} 2>>{log}"
 
@@ -120,7 +120,7 @@ rule json_dhs:
     output:
         "analysis/json/{run}/{run}_dhs.json"
     message: "JSON: generate DHS json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_dhs.py -i {input} -o {output}"
 
@@ -132,7 +132,7 @@ rule json_dhs:
 #     params:
 
 #     message: "JSON: generate velcro json"
-#     log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
 #     shell:
 #         "cidc_chips/modules/scripts/json/json_velcro.py  "
 
@@ -149,7 +149,7 @@ rule json_enrich_meta:
         down = True,
         sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     message: "JSON: generate meta enrichment json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_enrich_meta.py -i {input.meta} -o {output} {params.mapped_files} -D {input.dhs} {params.has_dhs} -d {params.down} -r {run} {params.sample_name}"
 
@@ -163,7 +163,7 @@ rule json_fastqc:
         fastqc_data = lambda wildcards: [" -i analysis/fastqc/%s/%s_100k_fastqc/fastqc_data.txt" % (i,i) for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
         sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     message: "JSON: generate fastqc json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_fastqc.py{params.fastqc_data} -o {output}{params.sample_name} -r {run}"
 
@@ -178,7 +178,7 @@ rule json_frag:
         frag_tool = lambda wildcards: "%s" % json_checkBAMPE(wildcards),
         sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     message: "JSON: generate frag json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_frag.py -r {input} -o {output.json} -R {params.sd_R} {params.frag_tool} {params.sample_name}"
 
@@ -192,7 +192,7 @@ rule json_frip:
     params:
         input_file = lambda wildcards, input: [" -i %s" % i for i in input],
         sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_frip.py{params.input_file} -o {output}{params.sample_name}"
 
@@ -203,7 +203,7 @@ rule json_macs2:
     output:
         "analysis/json/{run}/{run}_macs2.json"
     message: "JSON: generate macs2 json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_macs2.py -i {input} -o {output} -I {wildcards.run}"
 
@@ -216,7 +216,7 @@ rule json_macs2_rep:
     params:
         sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
     message: "JSON: generate macs2 rep json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_macs2_rep.py -i {input} -o {output} {params.sample_name} "
 
@@ -229,7 +229,7 @@ rule json_map:
     message: "JSON: generate map json"
     params:
         input_file = lambda wildcards: [" -i analysis/align/%s/%s_mapping.txt" % (i,i) for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_map.py{params.input_file} -o {output} "
 
@@ -240,7 +240,7 @@ rule json_meta:
     output:
         "analysis/json/{run}/{run}_meta.json"
     message: "JSON: generate meta json"
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_meta.py -i {input} -o {output} -I {wildcards.run} "
 
@@ -253,7 +253,7 @@ rule json_pbc:
     message: "JSON: generate pbc json"
     params:
         input_file = lambda wildcards: [" -i analysis/frips/%s/%s_pbc.txt" % (i,i) for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_pbc.py{params.input_file} -o {output}"
 
@@ -265,7 +265,7 @@ rule json_seqpos:
     message: "JSON: generate seqpos json"
     params:
         prefix = lambda wildcards: "analysis/motif/%s/results/seqLogo/" % json_getRunAndRep(wildcards)
-    log: _logfile
+    # log: "analysis/logs/json/{sample}.log"
     shell:
         "cidc_chips/modules/scripts/json/json_seqpos.py -i {input} -o {output} -p {params.prefix}"
 # rule json_rep:
@@ -274,7 +274,7 @@ rule json_seqpos:
 #     output:
 #         "analysis/json/{run}/{run}_rep.json"
 #     message: "JSON: generate rep json"
-#     log: _logfile
+#     log: "analysis/logs/json/{sample}.log"
 #     shell:
 #         "cidc_chips/modules/scripts/json/json_rep.py -c {input.cor} -o {output} -O {input.overlap} -i {run}" 
 

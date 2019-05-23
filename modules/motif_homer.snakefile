@@ -1,6 +1,6 @@
 #MODULE: homer motif module--performs motif analysis and generates motif table
 import subprocess
-_logfile="analysis/logs/motif.log"
+# _logfile="analysis/logs/motif.log"
 _threads=8
 _minPeaks = 500
 
@@ -48,7 +48,7 @@ rule motif_homer:
         size=600,
     message: "MOTIF: calling HOMER on top 5k summits"
     threads:_threads
-    log: _logfile
+    log: "analysis/logs/motif/{run}.{rep}.log"
     #conda: "../envs/motif/motif.yaml"
     run:
         #check to see if _sorted_5k_summits.bed is valid
@@ -72,7 +72,7 @@ rule getMotifSummary:
     output:
         "analysis/motif/motifSummary.csv"
     message: "MOTIF: summarizing motif runs"
-    log: _logfile
+    # log: "analysis/logs/motif/{run}.{rep}.log"
     params:
         files = lambda wildcards, input: [" -m %s" % i for i in input]
     conda: "../envs/motif/motif.yaml"
@@ -80,7 +80,7 @@ rule getMotifSummary:
     #     files = " -m ".join(input)
     #     shell("cidc_chips/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
     shell:
-        "cidc_chips/modules/scripts/motif_homerSummary.py {params.files} -o {output} 2>> {log}"
+        "cidc_chips/modules/scripts/motif_homerSummary.py {params.files} -o {output} " # 2>> {log}"
 
 rule homer_annotatePeaks:
     """Annotate peak files.
@@ -93,7 +93,7 @@ rule homer_annotatePeaks:
     params:
         genome=config['motif_path'],
     message: "MOTIF: homer annotatePeaks"
-    log: _logfile
+    log: "analysis/logs/motif/{run}.{rep}.log"
     #conda: "../envs/motif/motif.yaml"
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
@@ -106,7 +106,7 @@ rule homer_processAnnPeaks:
         tsv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.tsv",
         csv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.csv",
     message: "MOTIF: Post-process homer annotatePeaks.txt file"
-    log: _logfile
+    log: "analysis/logs/motif/{run}.{rep}.log"
     #conda: "../envs/motif/motif.yaml"
     shell:
         "cidc_chips/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"

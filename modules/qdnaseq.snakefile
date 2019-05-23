@@ -1,5 +1,5 @@
 #MODULE: qdnaseq- perform qdnaseq CNV analysis on sample bams
-_logfile="analysis/logs/qdnaseq.log"
+# _logfile="analysis/logs/qdnaseq.log"
 
 def qdnaseq_targets(wildcards):
     """Generates the targets for this module"""
@@ -47,7 +47,7 @@ rule qdnaseq_linkFiles:
     output:
         temp(".tmp/{sample}_unique.sorted.bam")
     message: "QDNAseq: linking files"
-    log: _logfile
+    log: "analysis/logs/qdnaseq/{sample}.log"
     conda: "../envs/qdnaseq/qdnaseq.yaml"
     shell:
         "ln -s ../{input} {output} 2>>{log}"
@@ -64,14 +64,14 @@ rule qdnaseq:
         "analysis/qdnaseq/qdnaseq_segmented.igv",
         "analysis/qdnaseq/qdnaseq_calls.igv",
     message: "QDNAseq: performing cnv analysis"
-    log: _logfile
+    # log: "analysis/logs/qdnaseq/{sample}.log"
     conda: "../envs/qdnaseq/qdnaseq.yaml"
     params:
         name="qdnaseq",
         qbin="cidc_chips/static/qdnaseq/qdnaseq_hg19_50.bin",
         out="analysis/qdnaseq/"
     shell:
-        "R CMD BATCH --vanilla '--args {params.name} .tmp {params.qbin} {params.out}' cidc_chips/modules/scripts/qdnaseq.R {log}"
+        "R CMD BATCH --vanilla '--args {params.name} .tmp {params.qbin} {params.out}' cidc_chips/modules/scripts/qdnaseq.R "#{log}"
 
 rule qdnaseq_annotate:
     """Processes the segmented.igv file, which is region-based, and creates
@@ -82,7 +82,7 @@ rule qdnaseq_annotate:
         "analysis/qdnaseq/qdnaseq_genes.txt",
         "analysis/qdnaseq/qdnaseq_genes.igv",
     message: "QDNASEQ: annotating cnv analysis output"
-    log: _logfile
+    # log: "analysis/logs/qdnaseq/{sample}.log"
     conda: "../envs/qdnaseq/qdnaseq.yaml"
     params:
         geneTable=config['geneTable'],

@@ -1,7 +1,7 @@
 #MODULE: PEAK CALLING using macs2
 
 #PARAMETERS
-_logfile="analysis/logs/peaks.log"
+# _logfile="analysis/logs/peaks.log"
 _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
@@ -164,14 +164,14 @@ rule macs2_callpeaks:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         BAMPE = lambda wildcards: checkBAMPE(wildcards),
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-
         treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
         control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
     message: "PEAKS: calling peaks with macs2"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} 2>>{log}"
+       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+       "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} " #2>>{log}"
     #run:
     #    treatment = "-t %s" % input.treat if input.treat else "",
     #    control = "-c %s" % input.cont if input.cont else "",        
@@ -197,14 +197,14 @@ rule macs2_filtered_callpeaks:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         BAMPE = lambda wildcards: checkBAMPE(wildcards),
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-
         treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
         control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
     message: "PEAKS: calling peaks with macs2"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} 2>>{log}"
+       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+       "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
 
 
 rule macs2_get_fragment:
@@ -218,10 +218,10 @@ rule macs2_get_fragment:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         treatment = lambda wildcards, input: [" -i %s" % i for i in input.treat] if input.treat else "",
     message: "PEAKS: Get fragment size with macs2"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g 'hs' 2>>{log}"
+       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g 'hs' "#2>>{log}"
 
 rule unsortPeaksToBed:
     input:
@@ -229,10 +229,10 @@ rule unsortPeaksToBed:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
     message: "PEAKS: Converting unsorted peak file to bed file"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
+        "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
 rule peakToBed:
     """Convert MACS's narrowPeak format, which is BED12 to BED5"""
@@ -241,10 +241,10 @@ rule peakToBed:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
     message: "PEAKS: Converting sorted peak file to bed file"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
+        "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
 rule filteredPeakToBed:
     """Convert MACS's narrowPeak format, which is BED12 to BED5"""
@@ -253,10 +253,10 @@ rule filteredPeakToBed:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.bed" % str(config['cutoff'])
     message: "PEAKS: Converting sorted peak file to bed file"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "cut -f1,2,3,4,9 {input} > {output} 2>>{log}"
+        "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
 rule sortSummits:
     input:
@@ -264,10 +264,10 @@ rule sortSummits:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     message: "PEAKS: sorting the summits bed by score"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "sort -r -n -k 5 {input} > {output} 2>>{log}"
+        "sort -r -n -k 5 {input} > {output} "#2>>{log}"
 
 rule sortNarrowPeaks:
     input:
@@ -275,10 +275,10 @@ rule sortNarrowPeaks:
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
     message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "sort -r -n -k 9 {input} > {output} 2>>{log}"
+        "sort -r -n -k 9 {input} > {output} "#2>>{log}"
 
 rule sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
@@ -290,10 +290,10 @@ rule sortBedgraphs:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
-    log:_logfile
+    # log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "bedSort {input} {output} 2>>{log}"
+        "bedSort {input} {output}"# 2>>{log}"
 
 rule bdgToBw:
     """Convert bedGraphs to BigWig"""
@@ -306,10 +306,10 @@ rule bdgToBw:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
-    log:_logfile
+    # log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
+        "bedGraphToBigWig {input} {params.chroms} {output} "#2>>{log}"
 
 rule sortFilteredBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
@@ -321,10 +321,10 @@ rule sortFilteredBedgraphs:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
-    log:_logfile
+    # log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "bedSort {input} {output} 2>>{log}"
+        "bedSort {input} {output}"# 2>>{log}"
 
 rule filteredBdgToBw:
     """Convert bedGraphs to BigWig"""
@@ -337,10 +337,10 @@ rule filteredBdgToBw:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
-    log:_logfile
+    # log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "bedGraphToBigWig {input} {params.chroms} {output} 2>>{log}"
+        "bedGraphToBigWig {input} {params.chroms} {output}"# 2>>{log}"
 
 rule gzip_bdg:
     """Space saving rule to compress the bdg output"""
@@ -354,10 +354,10 @@ rule gzip_bdg:
         #msg just for message below
         msg= lambda wildcards: "%s.%s" % (wildcards.run, wildcards.rep)
     message: "PEAKS: compressing sorted.bdg {params.msg}"
-    log:_logfile
+    # log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "gzip {input.bdg} 2>> {log}"
+        "gzip {input.bdg} " #2>> {log}"
 
 rule getPeaksStats:
     """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
@@ -369,10 +369,10 @@ rule getPeaksStats:
     output:
         "analysis/peaks/peakStats.csv"
     message: "PEAKS: collecting peaks stats for each run"
-    log:_logfile
+    # log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output} 2>>{log}"
+        "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
 
 rule macsRunInfo:
     """Dump the current version of macs and the fdr used into a text file 
@@ -396,13 +396,13 @@ rule generate_IGV_session:
     params:
         genome=config['assembly'],
         treats = lambda wildcards, input: [" -t %s" % i for i in input]
-    log:_logfile
+    # log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/all_treatments.igv.xml"
     message: "PEAKS: generate IGV session for all treatment.bw files"
     shell:
-        "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output} 2>>{log}"
+        "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output}"# 2>>{log}"
         
 rule generate_IGV_perTrack:
     """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
@@ -413,11 +413,11 @@ rule generate_IGV_perTrack:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bw"
     params:
         genome=config['assembly']
-    log:_logfile
+    log:"analysis/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_treatment.igv.xml"
     message: "PEAKS: generate IGV session for {run}.{rep} treatment.bw file"
     shell:
         #NOTE: difference with this call and with generate_IGV_session is we pass the -l param which changes the file path
-        "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l 2>>{log}"
+        "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l"# 2>>{log}"

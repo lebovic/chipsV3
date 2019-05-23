@@ -6,7 +6,7 @@ _logfile="analysis/logs/mapmaker.log"
 def mapmaker_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
-    ls.append("analysis/mapmaker")
+    # ls.append("analysis/mapmaker")
     ls.append("analysis/mapmaker/config.yaml")
     ls.append("analysis/mapmaker/metasheet.csv")
     return ls
@@ -32,7 +32,7 @@ rule mapmaker:
     message: "MAPMAKER: cloning the mapmaker project from github"
     log: _logfile
     output:
-        "analysis/mapmaker",
+        # "analysis/mapmaker",
         "analysis/mapmaker/.config.yaml",
         "analysis/mapmaker/.metasheet.csv"
     conda: "../envs/mapmaker/mapmaker.yaml"

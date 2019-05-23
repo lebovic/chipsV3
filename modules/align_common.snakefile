@@ -46,7 +46,7 @@ rule uniquely_mapped_reads:
     output:
         temp("analysis/align/{sample}/{sample}_unique.bam")
     message: "ALIGN: Filtering for uniquely mapped reads"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     threads: _align_threads
     conda: "../envs/align/align_common.yaml"
     shell:
@@ -67,7 +67,7 @@ rule map_stats:
         "analysis/align/{sample}/{sample}_mapping.txt"
     threads: _align_threads
     message: "ALIGN: get mapping stats for each bam"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     #CAN/should samtools view be multi-threaded--
     #UPDATE: tricky on how to do this right w/ compounded commands
@@ -87,14 +87,14 @@ rule collect_map_stats:
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "ALIGN: collect and parse ALL mapping stats"
-    log: _logfile
+    # log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     #NOTE: can't do conda envs with run
     #run:
     #    files = " -f ".join(input)
     #    shell("cidc_chips/modules/scripts/align_getMapStats.py -f {files} > {output} 2>>{log}")
     shell:
-        "cidc_chips/modules/scripts/align_getMapStats.py {params.files} > {output} 2>>{log}"
+        "cidc_chips/modules/scripts/align_getMapStats.py {params.files} > {output}"
 
 rule sortBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -106,7 +106,7 @@ rule sortBams:
         "analysis/align/{sample}/{sample}.sorted.bam",
         #"analysis/align/{sample}/{sample}.sorted.bam.bai"
     message: "ALIGN: sort bam file"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
@@ -122,7 +122,7 @@ rule sortUniqueBams:
         "analysis/align/{sample}/{sample}_unique.sorted.bam",
         #"analysis/align/{sample}/{sample}_unique.sorted.bam.bai"
     message: "ALIGN: sort bam file"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
@@ -137,7 +137,7 @@ rule dedupSortedUniqueBams:
         bam = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
         # bai = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
     message: "ALIGN: dedup sorted unique bam file"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
@@ -151,7 +151,7 @@ rule filterBams:
     output:
         "analysis/align/{sample}/{sample}_unique.sorted.dedup.sub%s.bam" % str(config['cutoff'])
     message: "ALIGN: filter bam files"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     params:
         cutoff = config['cutoff']
     conda: "../envs/align/align_common.yaml"
@@ -165,7 +165,7 @@ rule indexBam:
     output:
         "analysis/align/{sample}/{prefix}.bam.bai"
     message: "ALIGN: indexing bam file {input}"
-    log: _logfile
+    # log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "sambamba index {input} {output}"
@@ -179,7 +179,7 @@ rule extractUnmapped:
     output:
         temp("analysis/align/{sample}/{sample}.unmapped.bam")
     message: "ALIGN: extract unmapped reads"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
@@ -198,9 +198,9 @@ rule bamToFastq:
         "analysis/align/{sample}/{sample}.unmapped.fq"
     params:
         #handle PE alignments!
-        mate2 = lambda wildcards: "-fq2 analysis/align/{sample}/{sample}.unmapped.fq2" if len(config["samples"][wildcards.sample]) == 2 else ""
+        mate2 = lambda wildcards: "-fq2 analysis/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: convert unmapped bam to fastq"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} {params.mate2}"
@@ -213,9 +213,9 @@ rule gzipUnmappedFq:
         "analysis/align/{sample}/{sample}.unmapped.fq.gz"
     params:
         #handle PE alignments!
-        mate2 = lambda wildcards: "analysis/align/{sample}/{sample}.unmapped.fq2" if len(config["samples"][wildcards.sample]) == 2 else ""
+        mate2 = lambda wildcards: "analysis/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: gzip unmapped fq files"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "gzip {input} {params} 2>>{log}"
@@ -235,7 +235,7 @@ rule readsPerChromStat:
     output:
         "analysis/align/{sample}/{sample}_readsPerChrom.txt"
     message: "ALIGN: collecting the number of reads per chrom"
-    log: _logfile
+    log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "cidc_chips/modules/scripts/align_readsPerChrom.sh -a {input.bam} > {output} 2>> {log}"

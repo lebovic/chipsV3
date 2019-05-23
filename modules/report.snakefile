@@ -2,7 +2,7 @@
 import sys
 from string import Template
 from snakemake.utils import report
-from snakemake.report import data_uri
+from snakemake.report import data_uri_from_file
 
 #DEPENDENCIES
 from tabulate import tabulate
@@ -58,12 +58,12 @@ def genPeakSummitsTable(conservPlots,motifSummary):
     for run,img in zip(runs,conservPlots):
         #HANDLE null values
         if img and (img != 'NA'):
-            conserv = ".. image:: %s" % data_uri(img)
+            conserv = ".. image:: %s" % data_uri_from_file(img)[0]
         else:
             conserv = "NA"
         #HANDLE null values--Also check that we're doing motif analysis
         if 'motif' in config and motifs[run]['logo'] and (motifs[run]['logo'] != 'NA'):
-            motif_logo = ".. image:: %s" % data_uri(motifs[run]['logo'])
+            motif_logo = ".. image:: %s" % data_uri_from_file(motifs[run]['logo'])[0]
         else:
             motif_logo = "NA"
 
@@ -142,7 +142,7 @@ def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
     for sample in samples:
         #HANDLE null values
         if plots[sample] and (plots[sample] != 'NA'):
-            gc_plot = ".. image:: %s" % data_uri(plots[sample])
+            gc_plot = ".. image:: %s" % data_uri_from_file(plots[sample])[0]
         else:
             gc_plot = "NA"
         #get rest of values and compose row
@@ -207,7 +207,10 @@ rule report:
         if os.path.exists("cidc_chips/.git"):
             git_commit_string = subprocess.check_output('git --git-dir="cidc_chips/.git" rev-parse --short HEAD',shell=True).decode('utf-8').strip()
             git_link = git_link + git_commit_string
-        tmp = _ReportTemplate.substitute(cfce_logo=data_uri(input.cfce_logo),map_stat=data_uri(input.map_stat),pbc_stat=data_uri(input.pbc_stat),peakSummitsTable=peakSummitsTable,peakFoldChange_png=data_uri(input.peakFoldChange_png),git_commit_string=git_commit_string,git_link=git_link)
+        tmp = _ReportTemplate.substitute(cfce_logo=data_uri_from_file(input.cfce_logo)[0],map_stat=data_uri_from_file(input.map_stat)[0],
+                                         pbc_stat=data_uri_from_file(input.pbc_stat)[0],peakSummitsTable=peakSummitsTable,
+                                         peakFoldChange_png=data_uri_from_file(input.peakFoldChange_png)[0],
+                                         git_commit_string=git_commit_string,git_link=git_link)
         report(tmp, output.html, stylesheet='./cidc_chips/static/chips_report.css', metadata="Len Taing", **input)
 
 rule samples_summary_table:

@@ -1,7 +1,7 @@
 #MODULE: conservation- module to create conservation plots
 import math
 
-_logfile="analysis/logs/conservation.log"
+# _logfile="analysis/logs/conservation.log"
 #_numPngs is used in conservation_plot rule to see how many pngs to expect
 #note: the rule plots 3 runs per png, so for example, 12 runs results in 4 pngs
 _nPerPlot = 3
@@ -35,10 +35,10 @@ rule top5k_peaks:
     params:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
-    log: _logfile
+    log: "analysis/logs/conservation/{run}.{rep}.log"
     conda: "../envs/conservation/conservation.yaml"
     shell:
-        "head -n {params.lines} {input} > {output} 2>>{log}"
+        "head -n {params.lines} {input} > {output}"
 
 rule conservation:
     """generate conservation plots"""
@@ -56,7 +56,7 @@ rule conservation:
         run="{run}.{rep}" ,
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     message: "CONSERVATION: calling conservation script"
-    log: _logfile
+    log: "analysis/logs/conservation/{run}.{rep}.log"
     conda: "../envs/conservation/conservation.yaml"
     shell:
         "{params.pypath} {config[python2]} cidc_chips/modules/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"

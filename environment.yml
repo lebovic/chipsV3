@@ -5,7 +5,7 @@ channels:
 - defaults
 dependencies:
 #GENERAL
-- snakemake=4.8.1
+- snakemake=5.4.5
 - samtools>=1.8
 - python>=3.5.2
 - r>=3.4.1
@@ -44,6 +44,7 @@ dependencies:
 - homer>=4.7
 #Tied to 2.8.2=3 b/c other updated versions produce missing seqlogo bin (homer)
 - weblogo=2.8.2
+- bioconductor-seqLogo
 
 #peaks.snakefile
 - ucsc-bedgraphtobigwig>=332

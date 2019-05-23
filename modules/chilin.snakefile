@@ -1,5 +1,5 @@
 #MODULE: chilin - a chilin adapter of chips
-_logfile="analysis/logs/chilin.log"
+# _logfile="analysis/logs/chilin.log"
 
 import os
 

@@ -1,5 +1,5 @@
 #MODULE: contamination module to check for sample contamination
-_logfile="analysis/logs/contamination.log"
+# _logfile="analysis/logs/contamination.log"
 _bwa_q="5"
 _bwa_l="32"
 _bwa_k="2"
@@ -65,10 +65,10 @@ rule contamination:
         panel = lambda wildcards: wildcards.panel
     threads: _bwa_threads
     message: "CONTAMINATION: checking {params.sample} against {params.panel}"
-    log: _logfile
+    # log: "analysis/logs/contamination/{sample}.log"
     conda: "../envs/contamination/contamination.yaml"
     shell:
-        "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} 2>> {log}"
+        "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} "#2>> {log}"
 
 rule contaminationStats:
     """Extract the mapping stats for each species"""
@@ -83,10 +83,10 @@ rule contaminationStats:
         #READ out the 5th row, the first element (and divide by 100/100000)
         awk_cmd = "\'BEGIN {RS=\'\\t\'}{print $23 / $1 * 100}\'"
     message: "CONTAMINATION: get mapping stats {params.sample}:{params.panel}"
-    log: _logfile
+    # log: "analysis/logs/contamination/{sample}.log"
     conda: "../envs/contamination/contamination.yaml"
     shell:
-        "samtools flagstat {input} | awk {params.awk_cmd} > {output} 2>>{log}"
+        "samtools flagstat {input} | awk {params.awk_cmd} > {output} "#2>>{log}"
 
 rule contaminationCollectStats:
     """Collect the mapping stats across the entire panel"""
@@ -104,7 +104,7 @@ rule collect_allContamination:
     input:
         expand("analysis/contam/{sample}/{sample}_contamination.txt", sample=config['samples'])
     message: "Contamination: collecting contamination panel"
-    log: _logfile
+    # log: "analysis/logs/contamination/{sample}.log"
     output:
         "analysis/contam/contamination.csv"
     params:
@@ -114,4 +114,4 @@ rule collect_allContamination:
     #     files = " -f ".join(input)
     #     shell("cidc_chips/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")
     shell:
-        "cidc_chips/modules/scripts/contam_getStats.py {params.files} -o {output} 2>>{log}"
+        "cidc_chips/modules/scripts/contam_getStats.py {params.files} -o {output} "#2>>{log}"

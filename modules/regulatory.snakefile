@@ -1,7 +1,7 @@
 #MODULE: regulatory module--use BETA to calculate the Regular Potential
 
 #PARAMETERS
-_logfile="analysis/logs/regulatory.log"
+# _logfile="analysis/logs/regulatory.log"
 
 def regulatory_targets(wildcards):
     """Generates the targets for this module"""
@@ -25,7 +25,7 @@ rule get_5Fold_Peaks:
     output:
         "analysis/regulatory/{run}.{rep}/{run}.{rep}_5foldpeaks.bed"
     message: "REGULATORY: get 5 fold peaks"
-    log:_logfile
+    log:"analysis/logs/regulatory/{run}.{rep}.log"
     shell:
         """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
 
@@ -38,7 +38,7 @@ rule get_5Fold_Peaks_RP_Score:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         genome=config['geneTable']
     message: "REGULATORY: get RP score of 5 fold peaks"
-    log:_logfile
+    log:"analysis/logs/regulatory/{run}.{rep}.log"
     shell:
         "{params.pypath} cidc_chips/modules/scripts/regulatory_getRP.py -t {input} -g {params.genome} -n {output} -d 100000"
 
@@ -49,7 +49,7 @@ rule get_top_peaks:
         "analysis/regulatory/{run}.{rep}/{run}.{rep}_peaks_top_reg.bed"
     params:
         peaks = 10000
-    log:_logfile
+    log:"analysis/logs/regulatory/{run}.{rep}.log"
     message: "REGULATORY: get top summits for regpotential"
     shell:
         "head -n {params.peaks} {input} | cut -f 1,2,3,4,9 > {output}"
@@ -63,7 +63,7 @@ rule get_top_Peaks_RP_Score:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         genome=config['geneTable']
     message: "REGULATORY: get RP score of top peaks"
-    log:_logfile
+    log:"analysis/logs/regulatory/{run}.{rep}.log"
     shell:
         "{params.pypath} cidc_chips/modules/scripts/regulatory_getRP.py -t {input} -g {params.genome} -n {output} -d 100000"
 

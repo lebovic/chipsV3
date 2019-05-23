@@ -1,7 +1,7 @@
 #MODULE: motif module--uses MDSeqPos.py to perform motif analysis and generate 
 #motif table
 import subprocess
-_logfile="analysis/logs/motif.log"
+# _logfile="analysis/logs/motif.log"
 
 _minPeaks = 500
 
@@ -61,7 +61,7 @@ rule motif:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         runName = "{run}.{rep}"
     message: "MOTIF: calling MDSeqPos on top 5k summits"
-    log: _logfile
+    # log: _logfile
     run:
         #check to see if _sorted_5k_summits.bed is valid
         wc = str(subprocess.check_output(['wc', '-l', input.bed]))
@@ -71,7 +71,7 @@ rule motif:
 
         if wc >= _minPeaks:
             #PASS- run motif scan
-            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results 1>>{log}")
+            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results )"#1>>{log}")
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html, output.json)
@@ -83,11 +83,11 @@ rule getMotifSummary:
     output:
         "analysis/motif/motifSummary.csv"
     message: "MOTIF: summarizing motif runs"
-    log: _logfile
+    # log: _logfile
     params:
         files = lambda wildcards, input: [" -m %s" % i for i in input]
     # run:
     #     files = " -m ".join(input)
     #     shell("cidc_chips/modules/scripts/motif_getSummary.py -m {files} -o {output} 2>> {log}")
     shell:
-        "cidc_chips/modules/scripts/motif_getSummary.py {params.files} -o {output} 2>> {log}"
+        "cidc_chips/modules/scripts/motif_getSummary.py {params.files} -o {output}"# 2>> {log}"
