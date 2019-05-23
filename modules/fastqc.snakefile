@@ -13,7 +13,7 @@ def fastqc_targets(wildcards):
         ls.append("analysis/fastqc/%s/%s_perSeqGC.png" % (sample,sample))
         ls.append("analysis/fastqc/%s/%s_perSeqGC_thumb.png" % (sample,sample))
         ls.append("analysis/fastqc/%s/%s_100k_fastqc/" % (sample, sample))
-
+        ls.append("analysis/fastqc/%s/%s_100k_fastqc/fastqc_data.txt" % (sample, sample))
     ls.append("analysis/fastqc/fastqc.csv")
     return ls
 
