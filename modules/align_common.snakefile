@@ -110,7 +110,7 @@ rule sortBams:
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} -m 20G 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} -m 100G 2>>{log}"
 
 rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -126,7 +126,7 @@ rule sortUniqueBams:
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} -m 20G 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} -m 100G 2>>{log}"
 
 rule dedupSortedUniqueBams:
     """Dedup sorted unique bams using PICARD
@@ -142,7 +142,7 @@ rule dedupSortedUniqueBams:
     threads: _align_threads
     shell:
         # "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
-        "sambamba markdup -t {threads} -r --overflow-list-size 600000 {input} {output.bam}"
+        "sambamba markdup -t {threads} -r --overflow-list-size 60000000 {input} {output.bam}"
 
 rule filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""
