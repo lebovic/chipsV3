@@ -110,7 +110,7 @@ rule sortBams:
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} -m 20G 2>>{log}"
 
 rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -126,7 +126,7 @@ rule sortUniqueBams:
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} -m 20G 2>>{log}"
 
 rule dedupSortedUniqueBams:
     """Dedup sorted unique bams using PICARD
