@@ -53,13 +53,13 @@ rule motif:
         bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
         path="analysis/motif/{run}.{rep}/",
-        results="analysis/motif/{run}.{rep}/results",
+        # results="analysis/motif/{run}.{rep}/results",
         html="analysis/motif/{run}.{rep}/results/mdseqpos_index.html",
         json="analysis/motif/{run}.{rep}/results/motif_list.json",
     params:
         genome=config['motif_path'],
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        runName = "{run}.{rep}"
+        runName="{run}.{rep}"
     message: "MOTIF: calling MDSeqPos on top 5k summits"
     # log: _logfile
     run:
@@ -68,10 +68,9 @@ rule motif:
         #this returns a byte string--we need to eliminate the b' ... '
         #and then convert the first elm to int
         wc = int(wc[2:-1].split()[0])
-
         if wc >= _minPeaks:
             #PASS- run motif scan
-            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results )"#1>>{log}")
+            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results )" )#1>>{log}")
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html, output.json)
