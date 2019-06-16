@@ -16,7 +16,7 @@ def chilin_targets(wildcards):
         ls.append("analysis/chilin/%s/attic/%s_conserv.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_gene_score_5fold.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_gene_score.txt" % (run, run))
-        ls.append("analysis/chilin/%s/attic/%s_motif/" % (run, run))
+        ls.append("analysis/chilin/%s/attic/%s_seqpos/" % (run, run))
         ls.append("analysis/chilin/%s/attic/json/" % run)
         #handle samples:
         run_samples = config['runs'][run]
@@ -155,11 +155,11 @@ rule getRegTxt:
 
 rule getMotif:
    input:
-       lambda wildcards: "analysis/motif/%s/" % chilin_getRunAndRep(wildcards)
+       lambda wildcards: "analysis/motif/%s/results/mdseqpos_index.html" % chilin_getRunAndRep(wildcards)
    output:
-       "analysis/chilin/{run}/attic/{run}_motif/"
+       directory("analysis/chilin/{run}/attic/{run}_seqpos/")
    params:
-       abspath = lambda wildcards, input: os.path.abspath(str(input))
+       abspath = lambda wildcards: os.path.abspath(str("analysis/motif/%s" % chilin_getRunAndRep(wildcards)))
    shell:
        "ln -s {params.abspath}/* {output}"
 
@@ -167,7 +167,7 @@ rule getFastqc:
     input:
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/"
     output:
-        "analysis/chilin/{run}/attic/{sample}_100k_fastqc/"
+        directory("analysis/chilin/{run}/attic/{sample}_100k_fastqc/")
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -177,7 +177,7 @@ rule getJson:
    input:
        "analysis/json/{run}/"
    output:
-       "analysis/chilin/{run}/attic/json/"
+       directory("analysis/chilin/{run}/attic/json/")
    params:
        abspath = lambda wildcards, input: os.path.abspath(str(input))
    shell:

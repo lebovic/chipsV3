@@ -13,7 +13,7 @@ def motif_targets(wildcards):
         for rep in _reps[run]:
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
-            ls.append("analysis/motif/%s/" % runRep)
+            # ls.append("analysis/motif/%s/" % runRep)
             ls.append("analysis/motif/%s/results/mdseqpos_index.html" % runRep)
             ls.append("analysis/motif/%s/results/motif_list.json" % runRep)
     ls.append("analysis/motif/motifSummary.csv")
@@ -52,7 +52,7 @@ rule motif:
         #KEY: Since motif analysis is costly, we're only running it on rep1
         bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
-        path="analysis/motif/{run}.{rep}/",
+        # path=directory("analysis/motif/{run}.{rep}/"),
         # results="analysis/motif/{run}.{rep}/results",
         html="analysis/motif/{run}.{rep}/results/mdseqpos_index.html",
         json="analysis/motif/{run}.{rep}/results/motif_list.json",
@@ -70,7 +70,7 @@ rule motif:
         wc = int(wc[2:-1].split()[0])
         if wc >= _minPeaks:
             #PASS- run motif scan
-            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results )" )#1>>{log}")
+            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results") #1>>{log}")
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html, output.json)

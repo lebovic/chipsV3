@@ -90,7 +90,7 @@ rule json_conservation:
         lambda wildcards:"analysis/conserv/%s/%s_conserv.txt" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
     output:
         json="analysis/json/{run}/{run}_conserv.json",
-        dir="analysis/json/{run}/"
+        # dir="analysis/json/{run}/"
     params:
         basics = "-b %s " % config["basics"] if "basics" in config else "",
         factor = "-f %s " % config["factor"] if "factor" in config else "",
@@ -98,7 +98,7 @@ rule json_conservation:
     message: "JSON: generate conservation json"
     # log: "analysis/logs/json/{sample}.log"
     shell:
-        "cidc_chips/modules/scripts/json/json_conserv.py -i {input} -o {output.json} {params.basics}{params.factor}{params.TF}-r {wildcards.run} 2>>{log}"
+        "cidc_chips/modules/scripts/json/json_conserv.py -i {input} -o {output.json} {params.basics}{params.factor}{params.TF}-r {wildcards.run}"
 
 
 # rule json_comtamination:
