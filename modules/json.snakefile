@@ -90,7 +90,7 @@ rule json_conservation:
         lambda wildcards:"analysis/conserv/%s/%s_conserv.txt" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
     output:
         json="analysis/json/{run}/{run}_conserv.json",
-        # dir="analysis/json/{run}/"
+        dir=directory("analysis/json/{run}/")
     params:
         basics = "-b %s " % config["basics"] if "basics" in config else "",
         factor = "-f %s " % config["factor"] if "factor" in config else "",

@@ -5,6 +5,11 @@ ref: "cidc_chips/ref.yaml"
 #Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
 assembly: hg19
 
+#ALIGNER: if you have sentieon license and got sentieon installed on your machine
+#Uncomment the following line and set absolute path of sentieon
+#This software could speed up your alignment
+#sentieon: "/path/to/sentieon"
+
 #ALIGNER: if you want to use bowtie2, set your aligner as 'bwt2'
 #OTHERWISE leave it as 'bwa' (default)
 aligner: 'bwa'
