@@ -17,7 +17,7 @@ def getAlnFastq(wildcards):
 def getMates(wildcards):
     s = wildcards.sample
     files = config["samples"][s]
-    return ["analysis/align/%s/%s_%s.sai" % (s,s,m) for m in range(len(files))]
+    return ["analysis/align/%s/%s_%s_aln.sai" % (s,s,m) for m in range(len(files))]
 
 
 def getRunType(wildcards):
@@ -29,11 +29,11 @@ checkpoint read_length:
     input:
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
     output:
-        # direc=directory("analysis/align/{sample}/"),
-        length=temp("analysis/align/{sample}/{sample}_read_length.txt")
+        # direc=directory("analysis/fastqc/{sample}/"),
+        length=temp("analysis/fastqc/{sample}/{sample}_read_length.txt")
     shell:
-        # "mkdir analysis/align/{wildcards.sample}/;"
-        "python cidc_chips/modules/scripts/align_get_read_length.py -f {input} > {output.length}"
+        # "mkdir analysis/fastqc/{wildcards.sample}/;"
+        "python cidc_chips/modules/scripts/align_get_read_length.py -f {input} -o {output.length}"
 
 
 rule bwa_mem:

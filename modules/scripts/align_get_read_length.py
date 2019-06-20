@@ -9,13 +9,13 @@ from optparse import OptionParser
 import numpy as np
 
 def main():
-    usage = "USAGE: %prog -f [path to fastqc_data.txt] -s [Section to parse out, e.g. Per sequence quality]"
+    usage = "USAGE: %prog -f [path to fastqc_data.txt] -o [path to output file]"
     optparser = OptionParser(usage=usage)
     optparser.add_option("-f", "--file", help="path to fastqc_data.txt file")
-    # optparser.add_option("-s", "--section", help="Section to parse out, e.g. Per sequence quality")
+    optparser.add_option("-o", "--output", help="output file")
     (options, args) = optparser.parse_args(sys.argv)
 
-    if not options.file: # or not options.section:
+    if not options.file: 
         optparser.print_help()
         sys.exit(-1)
 
@@ -24,10 +24,12 @@ def main():
             if l.strip().startswith("Sequence length"):
                 ReadLength = l.strip().split()[2].split('-')
                 if len(ReadLength) == 1:
-                    print(ReadLength[0])
+                    outputlenth = ReadLength[0]
                 else:
                     intReadLength = [int(i) for i in ReadLength]
-                    print(int(round(np.median(intReadLength))))
+                    outputlenth = int(round(np.median(intReadLength)))
+    with open(options.output, "w") as o:
+        o.write(outputlenth)
 
 if __name__=='__main__':
     main()
