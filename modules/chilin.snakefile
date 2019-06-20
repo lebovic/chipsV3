@@ -23,7 +23,25 @@ def chilin_targets(wildcards):
         for sample in run_samples:
             if sample:
                 ls.append("analysis/chilin/%s/attic/%s_100k_fastqc/" % (run, sample))
+    return ls
 
+def getJsonInput(wildcards):
+    ls = []
+    for run in config["runs"]:
+        ls.append("analysis/json/%s/%s_conserv.json" % (run, run))
+        if config["DHS"]:
+            ls.append("analysis/json/%s/%s_dhs.json" % (run, run))        
+        ls.append("analysis/json/%s/%s_frip.json" % (run, run))
+        ls.append("analysis/json/%s/%s_macs2.json" % (run, run))
+        if config['runs'][run][2]:
+            ls.append("analysis/json/%s/%s_macs2_rep.json" % (run, run))
+        ls.append("analysis/json/%s/%s_meta.json" % (run, run))
+        ls.append("analysis/json/%s/%s_fastqc.json" % (run, run))
+        ls.append("analysis/json/%s/%s_map.json" % (run, run))
+        ls.append("analysis/json/%s/%s_enrich_meta.json" % (run, run))
+        ls.append("analysis/json/%s/%s_pbc.json"% (run, run))
+        ls.append("analysis/json/%s/%s_frag.json" % (run, run))
+        ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
     return ls
 
 def chilin_getRunAndRep(wildcards):
@@ -175,11 +193,11 @@ rule getFastqc:
 
 rule getJson:
    input:
-       "analysis/json/{run}/"
+       getJsonInput
    output:
        directory("analysis/chilin/{run}/attic/json/")
    params:
-       abspath = lambda wildcards, input: os.path.abspath(str(input))
+       abspath = lambda wildcards, input: os.path.abspath(str(input[0]))
    shell:
        "ln -s {params.abspath}/* {output}"
 

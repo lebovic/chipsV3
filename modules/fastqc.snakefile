@@ -103,8 +103,8 @@ rule call_fastqc:
         #MAKE temp
         directory("analysis/fastqc/{sample}/{sample}_100k_fastqc/"),
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt",
-        temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.html"),
-        temp("analysis/fastqc/{sample}/{sample}_100k_fastqc.zip")
+        "analysis/fastqc/{sample}/{sample}_100k_fastqc.html",
+        "analysis/fastqc/{sample}/{sample}_100k_fastqc.zip"
     #threads:
     params:
         sample = lambda wildcards: wildcards.sample
