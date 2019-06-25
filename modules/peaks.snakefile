@@ -120,9 +120,14 @@ def peaks_targets(wildcards):
         for rep in _reps[run]:
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
-            ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak" % (runRep,runRep))
-            ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak.bed" % (runRep,runRep))
-            ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
+            if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+                ls.append("analysis/peaks/%s/%s_sorted_peaks.broadPeak" % (runRep,runRep))
+                ls.append("analysis/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
+                # ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
+            else:
+                ls.append("analysis/peaks/%s/%s_sorted_peaks.narrowPeak" % (runRep,runRep))
+                ls.append("analysis/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
+                ls.append("analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_treat_pileup.bw" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_control_lambda.bw" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_treat_pileup.sorted.bdg.gz" % (runRep,runRep))
@@ -131,8 +136,9 @@ def peaks_targets(wildcards):
             ls.append("analysis/peaks/%s/%s_peaks.bed" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_model.R" % (runRep,runRep))
             if ('cutoff' in config) and config['cutoff']:
+                if ("macs2_broadpeaks" not in config) or (config["macs2_broadpeaks"] == False):
+                    ls.append("analysis/peaks/%s/%s.sub%s_summits.bed" % (runRep,runRep,config["cutoff"]))
                 ls.append("analysis/peaks/%s/%s.sub%s_peaks.bed" % (runRep,runRep,config["cutoff"]))
-                ls.append("analysis/peaks/%s/%s.sub%s_summits.bed" % (runRep,runRep,config["cutoff"]))
                 ls.append("analysis/peaks/%s/%s.sub%s_treat_pileup.bw" % (runRep,runRep,config["cutoff"]))
                 ls.append("analysis/peaks/%s/%s.sub%s_control_lambda.bw" % (runRep,runRep,config["cutoff"]))
     ls.append("analysis/peaks/peakStats.csv")
@@ -144,67 +150,261 @@ rule peaks_all:
     input:
         peaks_targets
 
-rule macs2_callpeaks:
-    input:
-        treat=getTreats,
-        cont=getConts
-    output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed",
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.xls",
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg"),
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}_control_lambda.bdg"),
-    params:
-        fdr=_macs_fdr,
-        keepdup=_macs_keepdup,
-        extsize=_macs_extsize,
-        genome_size=config['genome_size'],
-        outdir="analysis/peaks/{run}.{rep}/",
-        name="{run}.{rep}",
-        #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
-        BAMPE = lambda wildcards: checkBAMPE(wildcards),
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
-        control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
-    message: "PEAKS: calling peaks with macs2"
-    log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
-       "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} " #2>>{log}"
-    #run:
-    #    treatment = "-t %s" % input.treat if input.treat else "",
-    #    control = "-c %s" % input.cont if input.cont else "",        
-    #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+    rule macs2_callpeaks_broad:
+        input:
+            treat=getTreats,
+            cont=getConts
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak",
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.gappedPeak",
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.xls",
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg"),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}_control_lambda.bdg"),
+        params:
+            fdr=_macs_fdr,
+            keepdup=_macs_keepdup,
+            extsize=_macs_extsize,
+            genome_size=config['genome_size'],
+            outdir="analysis/peaks/{run}.{rep}/",
+            name="{run}.{rep}",
+            #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
+            BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
+            control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
+        message: "PEAKS: calling peaks with macs2"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
 
-rule macs2_filtered_callpeaks:
-    input:
-        treat=getFilteredTreats,
-        cont=getFilteredConts
-    output:
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])),
-        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_summits.bed" % str(config['cutoff']),
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff'])),
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_treat_pileup.bdg" % str(config['cutoff'])),
-        temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_control_lambda.bdg" % str(config['cutoff'])),
-    params:
-        fdr=_macs_fdr,
-        keepdup=_macs_keepdup,
-        extsize=_macs_extsize,
-        genome_size=config['genome_size'],
-        outdir="analysis/peaks/{run}.{rep}/",
-        name="{run}.{rep}.sub%s" % str(config['cutoff']),
-        #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
-        BAMPE = lambda wildcards: checkBAMPE(wildcards),
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
-        control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
-    message: "PEAKS: calling peaks with macs2"
-    log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-       "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
-       "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
+    rule macs2_filtered_callpeaks_broad:
+        input:
+            treat=getFilteredTreats,
+            cont=getFilteredConts
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.broadPeak" % str(config['cutoff']),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.gappedPeak" % str(config['cutoff'])),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff'])),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_treat_pileup.bdg" % str(config['cutoff'])),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_control_lambda.bdg" % str(config['cutoff'])),
+        params:
+            fdr=_macs_fdr,
+            keepdup=_macs_keepdup,
+            extsize=_macs_extsize,
+            genome_size=config['genome_size'],
+            outdir="analysis/peaks/{run}.{rep}/",
+            name="{run}.{rep}.sub%s" % str(config['cutoff']),
+            #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
+            BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
+            control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
+        message: "PEAKS: calling broad peaks with macs2"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
+
+    rule unsortBoardPeaksToBed:
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak"
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
+        message: "PEAKS: Converting unsorted peak file to bed file"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
+
+    rule sortBroadPeaks:
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak"
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak"
+        message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "sort -r -n -k 9 {input} > {output} "#2>>{log}"
+
+    rule boardPeakToBed:
+        """Convert MACS's narrowPeak format, which is BED12 to BED5"""
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak"
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        message: "PEAKS: Converting sorted peak file to bed file"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
+
+    rule filteredBoardPeakToBed:
+        """Convert MACS's narrowPeak format, which is BED12 to BED5"""
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.broadPeak" % str(config['cutoff'])
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.bed" % str(config['cutoff'])
+        message: "PEAKS: Converting sorted peak file to bed file"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
+
+    rule getBroadStats:
+        """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
+        input:
+            #Generalized INPUT fn defined in chips.snakefile
+            _getRepInput("analysis/peaks/$runRep/$runRep_sorted_peaks.broadPeak")
+        params:
+            files = lambda wildcards, input: [" -f %s" % i for i in input]
+        output:
+            "analysis/peaks/peakStats.csv"
+        message: "PEAKS: collecting peaks stats for each run"
+        # log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
+
+else:
+    rule macs2_callpeaks:
+        input:
+            treat=getTreats,
+            cont=getConts
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed",
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.xls",
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bdg"),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}_control_lambda.bdg"),
+        params:
+            fdr=_macs_fdr,
+            keepdup=_macs_keepdup,
+            extsize=_macs_extsize,
+            genome_size=config['genome_size'],
+            outdir="analysis/peaks/{run}.{rep}/",
+            name="{run}.{rep}",
+            #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
+            BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
+            control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
+        message: "PEAKS: calling peaks with macs2"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} " #2>>{log}"
+        #run:
+        #    treatment = "-t %s" % input.treat if input.treat else "",
+        #    control = "-c %s" % input.cont if input.cont else "",        
+        #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
+
+    rule macs2_filtered_callpeaks:
+        input:
+            treat=getFilteredTreats,
+            cont=getFilteredConts
+        output:
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])),
+            "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_summits.bed" % str(config['cutoff']),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff'])),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_treat_pileup.bdg" % str(config['cutoff'])),
+            temp("analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_control_lambda.bdg" % str(config['cutoff'])),
+        params:
+            fdr=_macs_fdr,
+            keepdup=_macs_keepdup,
+            extsize=_macs_extsize,
+            genome_size=config['genome_size'],
+            outdir="analysis/peaks/{run}.{rep}/",
+            name="{run}.{rep}.sub%s" % str(config['cutoff']),
+            #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
+            BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
+            control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
+        message: "PEAKS: calling filtered reads peaks with macs2"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
+
+    rule unsortPeaksToBed:
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
+        message: "PEAKS: Converting unsorted peak file to bed file"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
+
+    rule peakToBed:
+        """Convert MACS's narrowPeak format, which is BED12 to BED5"""
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
+        message: "PEAKS: Converting sorted peak file to bed file"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
+
+    rule filteredPeakToBed:
+        """Convert MACS's narrowPeak format, which is BED12 to BED5"""
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.bed" % str(config['cutoff'])
+        message: "PEAKS: Converting sorted peak file to bed file"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
+
+    rule sortNarrowPeaks:
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
+        message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "sort -r -n -k 9 {input} > {output} "#2>>{log}"
+
+    rule getPeaksStats:
+        """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
+        input:
+            #Generalized INPUT fn defined in chips.snakefile
+            _getRepInput("analysis/peaks/$runRep/$runRep_sorted_peaks.narrowPeak")
+        params:
+            files = lambda wildcards, input: [" -f %s" % i for i in input]
+        output:
+            "analysis/peaks/peakStats.csv"
+        message: "PEAKS: collecting peaks stats for each run"
+        # log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
+
+    rule sortSummits:
+        input:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
+        output:
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+        message: "PEAKS: sorting the summits bed by score"
+        log:"analysis/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "sort -r -n -k 5 {input} > {output} "#2>>{log}"
+
 
 
 rule macs2_get_fragment:
@@ -222,63 +422,6 @@ rule macs2_get_fragment:
     conda: "../envs/peaks/peaks.yaml"
     shell:
        "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g 'hs' "#2>>{log}"
-
-rule unsortPeaksToBed:
-    input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
-    output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
-    message: "PEAKS: Converting unsorted peak file to bed file"
-    log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-        "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
-
-rule peakToBed:
-    """Convert MACS's narrowPeak format, which is BED12 to BED5"""
-    input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
-    output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
-    message: "PEAKS: Converting sorted peak file to bed file"
-    log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-        "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
-
-rule filteredPeakToBed:
-    """Convert MACS's narrowPeak format, which is BED12 to BED5"""
-    input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])
-    output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.bed" % str(config['cutoff'])
-    message: "PEAKS: Converting sorted peak file to bed file"
-    log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-        "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
-
-rule sortSummits:
-    input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
-    output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
-    message: "PEAKS: sorting the summits bed by score"
-    log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-        "sort -r -n -k 5 {input} > {output} "#2>>{log}"
-
-rule sortNarrowPeaks:
-    input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
-    output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
-    message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
-    log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-        "sort -r -n -k 9 {input} > {output} "#2>>{log}"
 
 rule sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
@@ -359,20 +502,6 @@ rule gzip_bdg:
     shell:
         "gzip {input.bdg} " #2>> {log}"
 
-rule getPeaksStats:
-    """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
-    input:
-        #Generalized INPUT fn defined in chips.snakefile
-        _getRepInput("analysis/peaks/$runRep/$runRep_sorted_peaks.narrowPeak")
-    params:
-        files = lambda wildcards, input: [" -f %s" % i for i in input]
-    output:
-        "analysis/peaks/peakStats.csv"
-    message: "PEAKS: collecting peaks stats for each run"
-    # log:"analysis/logs/peaks/{run}.{rep}.log"
-    conda: "../envs/peaks/peaks.yaml"
-    shell:
-        "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
 
 rule macsRunInfo:
     """Dump the current version of macs and the fdr used into a text file 

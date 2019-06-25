@@ -21,13 +21,15 @@ rule regulatory_all:
 
 rule get_5Fold_Peaks:
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.xls"
+        # "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.xls"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
     output:
         "analysis/regulatory/{run}.{rep}/{run}.{rep}_5foldpeaks.bed"
     message: "REGULATORY: get 5 fold peaks"
     log:"analysis/logs/regulatory/{run}.{rep}.log"
     shell:
-        """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
+        # """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
+        "awk '($5 >= 5)' {input} > {output}"
 
 rule get_5Fold_Peaks_RP_Score:
     input:
@@ -44,7 +46,7 @@ rule get_5Fold_Peaks_RP_Score:
 
 rule get_top_peaks:
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     output:
         "analysis/regulatory/{run}.{rep}/{run}.{rep}_peaks_top_reg.bed"
     params:
@@ -52,7 +54,7 @@ rule get_top_peaks:
     log:"analysis/logs/regulatory/{run}.{rep}.log"
     message: "REGULATORY: get top summits for regpotential"
     shell:
-        "head -n {params.peaks} {input} | cut -f 1,2,3,4,9 > {output}"
+        "head -n {params.peaks} {input} > {output}"
 
 rule get_top_Peaks_RP_Score:
     input:

@@ -22,7 +22,9 @@ def json_targets(wildcards):
         ls.append("analysis/json/%s/%s_enrich_meta.json" % (run, run))
         ls.append("analysis/json/%s/%s_pbc.json"% (run, run))
         ls.append("analysis/json/%s/%s_frag.json" % (run, run))
-        ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
+        if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] == False:
+            if ("motif" in config) and config["motif"] == "mdseqpos":
+                ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
         # Cistrome DB do not need contamination part for now
         # run_samples = config['runs'][run]
         # for sample in run_samples:

@@ -141,8 +141,8 @@ rule dedupSortedUniqueBams:
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        # "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
-        "sambamba markdup -t {threads} -r --overflow-list-size 6000000 {input} {output.bam}"
+        "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
+        # "sambamba markdup -t {threads} -r --overflow-list-size 600000 --hash-table-size 800000 --sort-buffer-size 4096 {input} {output.bam}"
 
 rule filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""

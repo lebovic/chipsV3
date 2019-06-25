@@ -64,7 +64,7 @@ rule bwa_aln:
         bwa_k = _bwa_k,
         sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else ""
     threads: _bwa_threads
-    message: "ALIGN: Running BWA alignment"
+    message: "ALIGN: Running BWA aln for alignment"
     # log: "analysis/logs/align/{sample}.log"
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}" # 2>>{log}"

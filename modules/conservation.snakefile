@@ -16,7 +16,8 @@ def conservation_targets(wildcards):
         for rep in _reps[run]:
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
-            ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
+            # ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
+            ls.append("analysis/peaks/%s/%s_sorted_5k_peaks.bed" % (runRep,runRep))
             ls.append("analysis/conserv/%s/%s_conserv.R" % (runRep,runRep))
             ls.append("analysis/conserv/%s/%s_conserv.png" % (runRep,runRep))
             ls.append("analysis/conserv/%s/%s_conserv_thumb.png" % (runRep,runRep))
@@ -29,9 +30,10 @@ rule conservation_all:
 rule top5k_peaks:
     """take the top 5000 peaks, sorted by score"""
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed"
     params:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
@@ -43,7 +45,8 @@ rule top5k_peaks:
 rule conservation:
     """generate conservation plots"""
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+        # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     output:
         png="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.png",
         thumb="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv_thumb.png",

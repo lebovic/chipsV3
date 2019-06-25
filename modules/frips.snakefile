@@ -121,21 +121,39 @@ rule sample_4M_from_uniqueNonChrM:
         cidc_chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
         """
 
-rule frip_calculate:
-    """Calculate the frip score"""
-    #TODO: if there are more than 1 treatment, merge them??!
-    input:
-        treat=frip_getTreatBam,
-        bed="analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak",
-    output:
-        "analysis/frips/{run}.{rep}/{run}.{rep}_frip.txt"
-    params:
-        pval="1E-9"
-    message: "FRiPs: calculate frips"
-    # log:"analysis/logs/frips/{sample}.log"
-    conda: "../envs/frips/frips.yaml"
-    shell:
-        "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
+if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+    rule frip_broad_calculate:
+        """Calculate the frip score"""
+        #TODO: if there are more than 1 treatment, merge them??!
+        input:
+            treat=frip_getTreatBam,
+            bed="analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak",
+        output:
+            "analysis/frips/{run}.{rep}/{run}.{rep}_frip.txt"
+        params:
+            pval="1E-9"
+        message: "FRiPs: calculate frips"
+        # log:"analysis/logs/frips/{sample}.log"
+        conda: "../envs/frips/frips.yaml"
+        shell:
+            "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
+else:
+    rule frip_calculate:
+        """Calculate the frip score"""
+        #TODO: if there are more than 1 treatment, merge them??!
+        input:
+            treat=frip_getTreatBam,
+            bed="analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak",
+        output:
+            "analysis/frips/{run}.{rep}/{run}.{rep}_frip.txt"
+        params:
+            pval="1E-9"
+        message: "FRiPs: calculate frips"
+        # log:"analysis/logs/frips/{sample}.log"
+        conda: "../envs/frips/frips.yaml"
+        shell:
+            "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
+
 
 rule frip_pbc:
     """Generate the PBC histogram for each normalized sample, which will be 

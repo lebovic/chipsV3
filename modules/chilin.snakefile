@@ -8,15 +8,20 @@ def chilin_targets(wildcards):
     
     for run in config["runs"]:
         ls.append("analysis/chilin/%s/%s_peaks.xls" % (run, run))
-        ls.append("analysis/chilin/%s/%s_sorted_peaks.narrowPeak.bed" % (run, run))
-        ls.append("analysis/chilin/%s/%s_sorted_summits.bed" % (run, run))
+        if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+            ls.append("analysis/chilin/%s/%s_sorted_peaks.broadPeak.bed" % (run, run))
+        else:
+            ls.append("analysis/chilin/%s/%s_sorted_peaks.narrowPeak.bed" % (run, run))
+            ls.append("analysis/chilin/%s/%s_sorted_summits.bed" % (run, run))
         ls.append("analysis/chilin/%s/%s_peaks.bed" % (run, run))
         ls.append("analysis/chilin/%s/%s_treat.bw" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_conserv_img.png" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_conserv.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_gene_score_5fold.txt" % (run, run))
         ls.append("analysis/chilin/%s/attic/%s_gene_score.txt" % (run, run))
-        ls.append("analysis/chilin/%s/attic/%s_seqpos/" % (run, run))
+        if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] == False:
+            if ("motif" in config) and config["motif"] == "mdseqpos":
+                ls.append("analysis/chilin/%s/attic/%s_seqpos/" % (run, run))
         ls.append("analysis/chilin/%s/attic/json/" % run)
         #handle samples:
         run_samples = config['runs'][run]
@@ -41,7 +46,9 @@ def getJsonInput(wildcards):
         ls.append("analysis/json/%s/%s_enrich_meta.json" % (run, run))
         ls.append("analysis/json/%s/%s_pbc.json"% (run, run))
         ls.append("analysis/json/%s/%s_frag.json" % (run, run))
-        ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
+        if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] == False:
+            if ("motif" in config) and config["motif"] == "mdseqpos":
+                ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
     return ls
 
 def chilin_getRunAndRep(wildcards):
@@ -93,9 +100,19 @@ rule getPeaksXls:
 
 rule getNarrowPeakBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.narrowPeak.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
         "analysis/chilin/{run}/{run}_sorted_peaks.narrowPeak.bed"
+    params:
+        abspath = lambda wildcards, input: os.path.abspath(str(input))
+    shell:
+        "ln -s {params.abspath} {output}"
+
+rule getBroadPeakBed:
+    input:
+        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+    output:
+        "analysis/chilin/{run}/{run}_sorted_peaks.broadPeak.bed"
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -197,7 +214,7 @@ rule getJson:
    output:
        directory("analysis/chilin/{run}/attic/json/")
    params:
-       abspath = lambda wildcards, input: os.path.abspath(str(input[0]))
+       abspath = lambda wildcards, input: str(os.path.abspath(os.path.dirname(input[0])))
    shell:
        "ln -s {params.abspath}/* {output}"
 
