@@ -349,7 +349,7 @@ else:
         input:
             "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
         output:
-            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
+            "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
         message: "PEAKS: Converting sorted peak file to bed file"
         log:"analysis/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
