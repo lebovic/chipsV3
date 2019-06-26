@@ -48,7 +48,7 @@ rule mapmaker:
 rule mapmaker_config:
     """Tries to configure the mapmaker run based on the chips run info"""
     input:
-        bed_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_sorted_peaks.narrowPeak.bed", run=config['runs']),
+        bed_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_sorted_peaks.bed", run=config['runs']),
         bw_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_treat_pileup.bw", run=config['runs']),
         bam_files = expand("analysis/align/{sample}/{sample}_unique.sorted.dedup.bam", sample=[getTreat(r) for r in config['runs']]),
         igv_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_treatment.igv.xml", run=config['runs']),

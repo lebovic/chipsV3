@@ -17,7 +17,10 @@ def conservation_targets(wildcards):
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
             # ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
-            ls.append("analysis/peaks/%s/%s_sorted_5k_peaks.bed" % (runRep,runRep))
+            if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+                ls.append("analysis/peaks/%s/%s_sorted_5k_peaks.bed" % (runRep,runRep))
+            else:
+                ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
             ls.append("analysis/conserv/%s/%s_conserv.R" % (runRep,runRep))
             ls.append("analysis/conserv/%s/%s_conserv.png" % (runRep,runRep))
             ls.append("analysis/conserv/%s/%s_conserv_thumb.png" % (runRep,runRep))
@@ -37,13 +40,27 @@ rule conservation_all:
     input:
         conservation_targets
 
-rule top5k_peaks:
+rule top5k_broad_peaks:
     """take the top 5000 peaks, sorted by score"""
     input:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
         # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed"
+    params:
+        lines = 5000
+    message: "CONSERVATION: top5k_peaks"
+    log: "analysis/logs/conservation/{run}.{rep}.log"
+    conda: "../envs/conservation/conservation.yaml"
+    shell:
+        "head -n {params.lines} {input} > {output}"
+
+rule top5k_peaks:
+    """take the top 5000 peaks, sorted by score"""
+    input:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+    output:
+        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     params:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
