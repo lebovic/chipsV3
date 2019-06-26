@@ -3,7 +3,7 @@ metasheet: 'metasheet.csv'
 ref: "cidc_chips/ref.yaml"
 
 #Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
-assembly: hg19
+assembly: GDC_hg38
 
 #ALIGNER: if you have sentieon license and got sentieon installed on your machine
 #Uncomment the following line and set absolute path of sentieon

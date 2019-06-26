@@ -23,6 +23,16 @@ def conservation_targets(wildcards):
             ls.append("analysis/conserv/%s/%s_conserv_thumb.png" % (runRep,runRep))
     return ls
 
+def conservationInput(wildcards):
+    run = wildcards.run
+    rep = wildcards.rep
+    runRep = "%s.%s" % (run,rep)
+    if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+        temp = "analysis/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep)
+    else:
+        temp = "analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep)
+    return temp
+
 rule conservation_all:
     input:
         conservation_targets
@@ -46,7 +56,8 @@ rule conservation:
     """generate conservation plots"""
     input:
         # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        conservationInput
     output:
         png="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.png",
         thumb="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv_thumb.png",

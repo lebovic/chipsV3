@@ -34,6 +34,16 @@ def collect_BamRegionStats_dirs(file_paths):
     dirs = [os.path.dirname(f) for f in file_paths]
     return [" -d %s" % d for d in dirs]
 
+def ceasInput(wildcards):
+    run = wildcards.run
+    rep = wildcards.rep
+    runRep = "%s.%s" % (run,rep)
+    if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+        temp = "analysis/peaks/%s/%s_peaks.bed" % (runRep,runRep)
+    else:
+        temp = "analysis/peaks/%s/%s_summits.bed" % (runRep,runRep)
+    return temp
+
 rule ceas_all:
     input:
         ceas_targets
@@ -42,7 +52,8 @@ rule ceas:
     """Annotate peak regions"""
     input:
         # "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
+        # "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
+        ceasInput
     output:
         promoter="analysis/ceas/{run}.{rep}/{run}.{rep}_summits_promoter.bed",
         exon="analysis/ceas/{run}.{rep}/{run}.{rep}_summits_exon.bed",
