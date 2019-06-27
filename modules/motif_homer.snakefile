@@ -11,7 +11,7 @@ def motif_targets(wildcards):
     for run in config["runs"].keys():
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
-            ls.append("analysis/motif/%s/" % runRep)
+            # ls.append("analysis/motif/%s/" % runRep)
             ls.append("analysis/motif/%s/results/homerResults.html" % runRep)
             ls.append("analysis/peaks/%s/%s_annotatePeaks.txt" % (runRep,runRep))
             ls.append("analysis/peaks/%s/%s_annotatePeaks.tsv" % (runRep,runRep))
@@ -40,12 +40,13 @@ rule motif_homer:
     input:
         bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
-        path="analysis/motif/{run}.{rep}/",
-        results="analysis/motif/{run}.{rep}/results",
+        # path=directory("analysis/motif/{run}.{rep}/"),
+        # results=directory("analysis/motif/{run}.{rep}/results"),
         html="analysis/motif/{run}.{rep}/results/homerResults.html",
     params:
         genome=config['motif_path'],
         size=600,
+        results=lambda wildcards: "analysis/motif/%s.%s/results" % (wildcards.run,wildcards.rep)
     message: "MOTIF: calling HOMER on top 5k summits"
     threads:_threads
     log: "analysis/logs/motif/{run}.{rep}.log"
@@ -59,7 +60,7 @@ rule motif_homer:
 
         if wc >= _minPeaks:
             #PASS- run motif scan
-            shell("findMotifsGenome.pl {input} {params.genome} {output.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {output.results} >>{log} 2>&1")
+            shell("findMotifsGenome.pl {input} {params.genome} {params.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {params.results} >>{log} 2>&1")
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html)
@@ -87,7 +88,7 @@ rule homer_annotatePeaks:
     NOTE: only for motif_homer modules
     """
     input:
-        bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak.bed"
+        bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     output:
         "analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
     params:

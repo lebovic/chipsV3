@@ -173,7 +173,7 @@ include: "./modules/conservation.snakefile"  # generate conservation plot
 include: "./modules/ceas.snakefile"          # annotate peak regions
 include: "./modules/frips.snakefile"         # fraction of reads in peaks
 
-if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] == False:
+if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
     if 'motif' in config and config['motif'] == 'mdseqpos':
         include: "./modules/motif_mdseqpos.snakefile"     # mdseqpos motif module
     else:
