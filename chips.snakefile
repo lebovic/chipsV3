@@ -154,6 +154,7 @@ def all_targets(wildcards):
         ls.extend(report_targets(wildcards))
         if "epicypher_analysis" in config and config["epicypher_analysis"]:
             ls.extend(epicypher_targets(wildcards))
+    ls.extend(checking_targets(wildcards))
     return ls
 
 rule target:
@@ -188,3 +189,6 @@ include: "./modules/regulatory.snakefile"    # regulatory module
 include: "./modules/report.snakefile"        # report module
 include: "./modules/json.snakefile"          # json module
 include: "./modules/chilin.snakefile"        # chilin adapter module
+include: "./modules/empty_checking.snakefile"# checking empty file module
+
+
