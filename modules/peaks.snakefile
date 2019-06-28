@@ -284,7 +284,7 @@ else:
         params:
             fdr=_macs_fdr,
             keepdup=_macs_keepdup,
-            extsize=_macs_extsize,
+            # extsize=_macs_extsize,
             genome_size=config['genome_size'],
             outdir="analysis/peaks/{run}.{rep}/",
             name="{run}.{rep}",
@@ -298,7 +298,7 @@ else:
         conda: "../envs/peaks/peaks.yaml"
         shell:
            "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
-           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} " #2>>{log}"
+           "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} " #2>>{log}"
         #run:
         #    treatment = "-t %s" % input.treat if input.treat else "",
         #    control = "-c %s" % input.cont if input.cont else "",        
@@ -317,7 +317,7 @@ else:
         params:
             fdr=_macs_fdr,
             keepdup=_macs_keepdup,
-            extsize=_macs_extsize,
+            # extsize=_macs_extsize,
             genome_size=config['genome_size'],
             outdir="analysis/peaks/{run}.{rep}/",
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
@@ -331,7 +331,7 @@ else:
         conda: "../envs/peaks/peaks.yaml"
         shell:
            "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
-           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
+           "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
 
     rule unsortPeaksToBed:
         input:
