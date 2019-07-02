@@ -66,8 +66,9 @@ cnv_analysis: true
 
 # FOR CISTROME DATABASE TEAM:
 # Uncomment it to enable json and chilin modules
-# This will bulid a adapter for Cistrome DB at ./analysis/chilin/
+# This will bulid a adapter for Cistrome DB at {Chilin_path}
 # ChilinApi: true
+# Chilin_path: "./analysis/chilin"
 
 # DEFINE the samples- each sample should have a name, e.g. SAMPLE1
 # and a path to the input file, e.g. data/sample1.fastq.gz

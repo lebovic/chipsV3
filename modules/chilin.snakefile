@@ -1,33 +1,37 @@
 #MODULE: chilin - a chilin adapter of chips
 # _logfile="analysis/logs/chilin.log"
-
 import os
+
+if "Chilin_path" in config and config["Chilin_path"]:
+    chilinpath = config["Chilin_path"]
+else:
+    chilinpath = "analysis/chilin"
 
 def chilin_targets(wildcards):
     ls = []
-    
+
     for run in config["runs"]:
-        ls.append("analysis/chilin/%s/%s_peaks.xls" % (run, run))
+        ls.append("%s/%s/%s_peaks.xls" % (chilinpath, run, run))
         if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
-            ls.append("analysis/chilin/%s/%s_sorted_peaks.broadPeak.bed" % (run, run))
+            ls.append("%s/%s/%s_sorted_peaks.broadPeak.bed" % (chilinpath, run, run))
         else:
-            ls.append("analysis/chilin/%s/%s_sorted_peaks.narrowPeak.bed" % (run, run))
-            ls.append("analysis/chilin/%s/%s_sorted_summits.bed" % (run, run))
-        ls.append("analysis/chilin/%s/%s_peaks.bed" % (run, run))
-        ls.append("analysis/chilin/%s/%s_treat.bw" % (run, run))
-        ls.append("analysis/chilin/%s/attic/%s_conserv_img.png" % (run, run))
-        ls.append("analysis/chilin/%s/attic/%s_conserv.txt" % (run, run))
-        ls.append("analysis/chilin/%s/attic/%s_gene_score_5fold.txt" % (run, run))
-        ls.append("analysis/chilin/%s/attic/%s_gene_score.txt" % (run, run))
-        if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] == False:
+            ls.append("%s/%s/%s_sorted_peaks.narrowPeak.bed" % (chilinpath, run, run))
+            ls.append("%s/%s/%s_sorted_summits.bed" % (chilinpath, run, run))
+        ls.append("%s/%s/%s_peaks.bed" % (chilinpath, run, run))
+        ls.append("%s/%s/%s_treat.bw" % (chilinpath, run, run))
+        ls.append("%s/%s/attic/%s_conserv_img.png" % (chilinpath, run, run))
+        ls.append("%s/%s/attic/%s_conserv.txt" % (chilinpath, run, run))
+        ls.append("%s/%s/attic/%s_gene_score_5fold.txt" % (chilinpath, run, run))
+        ls.append("%s/%s/attic/%s_gene_score.txt" % (chilinpath, run, run))
+        if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
             if ("motif" in config) and config["motif"] == "mdseqpos":
-                ls.append("analysis/chilin/%s/attic/%s_seqpos/" % (run, run))
-        ls.append("analysis/chilin/%s/attic/json/" % run)
+                ls.append("%s/%s/attic/%s_seqpos/" % (chilinpath, run, run))
+        ls.append("%s/%s/attic/json/" % (chilinpath, run))
         #handle samples:
         run_samples = config['runs'][run]
         for sample in run_samples:
             if sample:
-                ls.append("analysis/chilin/%s/attic/%s_100k_fastqc/" % (run, sample))
+                ls.append("%s/%s/attic/%s_100k_fastqc/" % (chilinpath, run, sample))
     return ls
 
 def getJsonInput(wildcards):
@@ -92,7 +96,7 @@ rule getPeaksXls:
     input:
         lambda wildcards: "analysis/peaks/%s/%s_peaks.xls" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/{run}_peaks.xls"
+        "%s/{run}/{run}_peaks.xls" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -102,7 +106,7 @@ rule getNarrowPeakBed:
     input:
         lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/{run}_sorted_peaks.narrowPeak.bed"
+        "%s/{run}/{run}_sorted_peaks.narrowPeak.bed" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -112,7 +116,7 @@ rule getBroadPeakBed:
     input:
         lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/{run}_sorted_peaks.broadPeak.bed"
+        "%s/{run}/{run}_sorted_peaks.broadPeak.bed" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -122,7 +126,7 @@ rule getSortedSummitsBed:
     input:
         lambda wildcards: "analysis/peaks/%s/%s_sorted_summits.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/{run}_sorted_summits.bed"
+        "%s/{run}/{run}_sorted_summits.bed" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -132,7 +136,7 @@ rule getPeaksBed:
     input:
         lambda wildcards: "analysis/peaks/%s/%s_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/{run}_peaks.bed"
+        "%s/{run}/{run}_peaks.bed" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -142,7 +146,7 @@ rule getTreatBw:
     input:
         lambda wildcards: "analysis/peaks/%s/%s_treat_pileup.bw" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/{run}_treat.bw"
+        "%s/{run}/{run}_treat.bw" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -152,7 +156,7 @@ rule getConservPng:
     input:
         lambda wildcards: "analysis/conserv/%s/%s_conserv.png" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/attic/{run}_conserv_img.png"
+        "%s/{run}/attic/{run}_conserv_img.png" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -162,7 +166,7 @@ rule getConservTxt:
     input:
         lambda wildcards: "analysis/conserv/%s/%s_conserv.txt" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/attic/{run}_conserv.txt"
+        "%s/{run}/attic/{run}_conserv.txt" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -172,7 +176,7 @@ rule getReg5foldTxt:
     input:
         lambda wildcards: "analysis/regulatory/%s/%s_gene_score_5fold.txt" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/attic/{run}_gene_score_5fold.txt"
+        "%s/{run}/attic/{run}_gene_score_5fold.txt" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -182,7 +186,7 @@ rule getRegTxt:
     input:
         lambda wildcards: "analysis/regulatory/%s/%s_gene_score.txt" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
     output:
-        "analysis/chilin/{run}/attic/{run}_gene_score.txt"
+        "%s/{run}/attic/{run}_gene_score.txt" % chilinpath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -192,7 +196,7 @@ rule getMotif:
    input:
        lambda wildcards: "analysis/motif/%s/results/mdseqpos_index.html" % chilin_getRunAndRep(wildcards)
    output:
-       directory("analysis/chilin/{run}/attic/{run}_seqpos/")
+       directory("%s/{run}/attic/{run}_seqpos/" % chilinpath )
    params:
        abspath = lambda wildcards: os.path.abspath(str("analysis/motif/%s" % chilin_getRunAndRep(wildcards)))
    shell:
@@ -202,7 +206,7 @@ rule getFastqc:
     input:
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/"
     output:
-        directory("analysis/chilin/{run}/attic/{sample}_100k_fastqc/")
+        directory("%s/{run}/attic/{sample}_100k_fastqc/" % chilinpath)
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -212,7 +216,7 @@ rule getJson:
    input:
        getJsonInput
    output:
-       directory("analysis/chilin/{run}/attic/json/")
+       directory("%s/{run}/attic/json/" % chilinpath)
    params:
        abspath = lambda wildcards, input: str(os.path.abspath(os.path.dirname(input[0])))
    shell:
@@ -220,8 +224,8 @@ rule getJson:
 
 #rule md5check:
 #    input:
-#        "analysis/chilin/{run}/"
+#        "%s/{run}/"
 #    output:
-#        "analysis/chilin/{run}/{run}.md5"
+#        "%s/{run}/{run}.md5 % chilinpath"
 #    shell:
 #        "cidc_chips/modules/scripts/md5check.py -d {input} -I {wildcards.run}"
