@@ -12,7 +12,7 @@ def align_targets(wildcards):
         ls.append("analysis/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
         ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
-        if len(config["samples"][sample]) > 1 and config['cutoff'] and ('cutoff' in config):
+        if len(config["samples"][sample]) > 1 and ('cutoff' in config) and config['cutoff']:
             ls.append("analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam"%(sample,sample,config['cutoff']))
         ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
         ls.append("analysis/align/%s/%s_readsPerChrom.txt" % (sample,sample))
@@ -110,7 +110,7 @@ rule sortBams:
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} -m 50G 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
 
 rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -126,23 +126,66 @@ rule sortUniqueBams:
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} -m 50G 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} 2>>{log}"
 
-rule dedupSortedUniqueBams:
-    """Dedup sorted unique bams using PICARD
-    output {sample}_unique.sorted.dedup.bam"""
-    input:
-        "analysis/align/{sample}/{sample}_unique.sorted.bam"
-    output:
-        bam = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
-        # bai = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
-    message: "ALIGN: dedup sorted unique bam file"
-    log: "analysis/logs/align/{sample}.log"
-    conda: "../envs/align/align_common.yaml"
-    threads: _align_threads
-    shell:
-        "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
-        # "sambamba markdup -t {threads} -r --overflow-list-size 600000 --hash-table-size 800000 --sort-buffer-size 4096 {input} {output.bam}"
+if "sentieon" in config and config["sentieon"]:
+    rule scoreSample:
+        "Calls sentieon driver  --fun score_info on the sample"
+        input:
+            bam="analysis/align/{sample}/{sample}_unique.sorted.bam",
+            bai="analysis/align/{sample}/{sample}_unique.sorted.bam.bai",
+        output:   
+            score=temp("analysis/align/{sample}/{sample}_unique.sorted.score.txt"),
+            idx=temp("analysis/align/{sample}/{sample}_unique.sorted.score.txt.idx"),
+        message: "ALIGN: score sample"
+        log: "analysis/logs/align/{sample}/align.scoreSample.{sample}.log"
+        threads: _align_threads
+        params:
+            sentieon=config['sentieon'],
+        # group: "align"
+        # benchmark:
+        #     "benchmarks/align/{sample}/{sample}.scoreSample.txt"
+        shell:
+            """{params.sentieon} driver -t {threads} -i {input.bam} --algo LocusCollector --fun score_info {output.score} """
+
+    rule dedupSortedUniqueBamSentieon:
+        """Dedup sorted unique bams using sentieon
+         output {sample}_unique.sorted.dedup.bam"""
+        input:
+            bam="analysis/align/{sample}/{sample}_unique.sorted.bam",
+            bai="analysis/align/{sample}/{sample}_unique.sorted.bam.bai",
+            score="analysis/align/{sample}/{sample}_unique.sorted.score.txt",
+            idx="analysis/align/{sample}/{sample}_unique.sorted.score.txt.idx"
+        output:
+            bamm="analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
+            met=temp("analysis/align/{sample}/{sample}_unique.sorted.dedup.metric.txt"),
+        message: "ALIGN: dedup sorted unique bam file"
+        log: "analysis/logs/align/{sample}/align.dedupSortedUniqueBam.{sample}.log"
+        threads: _align_threads
+        params:
+            sentieon=config['sentieon'],
+        # group: "align"
+        # benchmark:
+        #     "benchmarks/align/{sample}/{sample}.dedupSortedUniqueBam.txt"
+        shell:
+            "{params.sentieon} driver -t {threads} -i {input.bam} --algo Dedup --rmdup --score_info {input.score} --metrics {output.met} {output.bamm}"
+
+else:
+    rule dedupSortedUniqueBams:
+        """Dedup sorted unique bams using PICARD
+        output {sample}_unique.sorted.dedup.bam"""
+        input:
+            "analysis/align/{sample}/{sample}_unique.sorted.bam"
+        output:
+            bam = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
+            # bai = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
+        message: "ALIGN: dedup sorted unique bam file"
+        log: "analysis/logs/align/{sample}.log"
+        conda: "../envs/align/align_common.yaml"
+        threads: _align_threads
+        shell:
+            "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
+            # "sambamba markdup -t {threads} -r --overflow-list-size 600000 --hash-table-size 800000 --sort-buffer-size 4096 {input} {output.bam}"
 
 rule filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""

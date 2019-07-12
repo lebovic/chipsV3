@@ -28,13 +28,14 @@ rule bwt2_aln:
         temp("analysis/align/{sample}/{sample}.sam")
     params:
         index=config['bwt2_index'],
-        _inputs = lambda wildcards, input: bwt2_aln_inputs(input)
+        _inputs = lambda wildcards, input: bwt2_aln_inputs(input),
+        read_group = lambda wildcards: "--rg-id %s --rg \"SM:%s\" --rg \"PL:ILLUMINA\"" % (wildcards.sample, wildcards.sample)
     threads: _bwt2_threads
     message: "ALIGN: Running Bowtie2 alignment"
     log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_bwt2.yaml"
     shell:
-        "bowtie2 -p {threads} -x {params.index} {params._inputs} -S {output} 2>>{log}"
+        "bowtie2 -p {threads} {params.read_group} -x {params.index} {params._inputs} -S {output} 2>>{log}"
 
 rule bwt2_convert:
     input:

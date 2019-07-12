@@ -43,13 +43,14 @@ rule bwa_mem:
         temp("analysis/align/{sample}/{sample}_mem.bam")
     params:
         index=config['bwa_index'],
-        sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else ""
+        sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else "",
+        read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
     message: "ALIGN: Running BWA mem for alignment"
     log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_bwa.yaml"
     shell:
-        "{params.sentieon} bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
+        """{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"""
 
 
 rule bwa_aln:
@@ -67,7 +68,7 @@ rule bwa_aln:
     message: "ALIGN: Running BWA aln for alignment"
     # log: "analysis/logs/align/{sample}.log"
     shell:
-        "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}" # 2>>{log}"
+        "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}"
 
 rule bwa_convert:
     input:
@@ -80,12 +81,13 @@ rule bwa_convert:
         index=config['bwa_index'],
         #NOTE: this is a hack b/c snakemake didn't like the - in the shell cmd
         hack="view -bS -",
-        sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else ""
+        sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else "",
+        read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
     message: "ALIGN: Converting BWA alignment to BAM"
     # log: "analysis/logs/align/{sample}.log"
     shell:
-        "{params.sentieon} bwa {params.run_type} {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}" # 2>>{log}"
+        """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 
 
 def aggregate_align_input(wildcards):
