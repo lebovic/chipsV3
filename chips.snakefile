@@ -124,10 +124,8 @@ def all_targets(wildcards):
     #HANDLE CNV/qdnaseq analysis
     if _qdnaseq:
         #ls.extend(qdnaseq_targets(wildcards))
-
         #check for some inputs
         hasInput = False
-
         #HACK: for some reason, using the following line causes errors
         #for (run, ls) in config['runs'].items():
         #SO we call getRuns (from above) using a simplified config
@@ -149,7 +147,7 @@ def all_targets(wildcards):
         ls.extend(chilin_targets(wildcards))
     else:
         ls.extend(contamination_targets(wildcards))
-        ls.extend(mapmaker_targets(wildcards))
+        # ls.extend(mapmaker_targets(wildcards))
         #ls.extend(bam_snapshots_targets(wildcards))
         ls.extend(report_targets(wildcards))
         if "epicypher_analysis" in config and config["epicypher_analysis"]:
