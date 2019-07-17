@@ -14,7 +14,7 @@ dependencies:
 #align_*.snakefile
 - bwa>=0.7.15
 - bowtie2>=2.3.4.1
-- sambamba>=0.7.0
+- sambamba=0.6.6
 - picard>=2.18.4
 - bedtools>=2.25.0 #for bamToFastq
 
