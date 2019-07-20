@@ -1,37 +1,37 @@
-#MODULE: chilin - a chilin adapter of chips
-# _logfile="analysis/logs/chilin.log"
+#MODULE: cistrome - a cistrome adapter of chips
+# _logfile="analysis/logs/cistrome.log"
 import os
 
-if "Chilin_path" in config and config["Chilin_path"]:
-    chilinpath = config["Chilin_path"]
+if "Cistrome_path" in config and config["Cistrome_path"]:
+    cistromepath = config["Cistrome_path"]
 else:
-    chilinpath = "analysis/chilin"
+    cistromepath = "analysis/cistrome"
 
-def chilin_targets(wildcards):
+def cistrome_targets(wildcards):
     ls = []
 
     for run in config["runs"]:
-        ls.append("%s/%s/%s_peaks.xls" % (chilinpath, run, run))
+        ls.append("%s/%s/%s_peaks.xls" % (cistromepath, run, run))
         if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
-            ls.append("%s/%s/%s_sorted_peaks.broadPeak.bed" % (chilinpath, run, run))
+            ls.append("%s/%s/%s_sorted_peaks.broadPeak.bed" % (cistromepath, run, run))
         else:
-            ls.append("%s/%s/%s_sorted_peaks.narrowPeak.bed" % (chilinpath, run, run))
-            ls.append("%s/%s/%s_sorted_summits.bed" % (chilinpath, run, run))
-        ls.append("%s/%s/%s_peaks.bed" % (chilinpath, run, run))
-        ls.append("%s/%s/%s_treat.bw" % (chilinpath, run, run))
-        ls.append("%s/%s/attic/%s_conserv_img.png" % (chilinpath, run, run))
-        ls.append("%s/%s/attic/%s_conserv.txt" % (chilinpath, run, run))
-        ls.append("%s/%s/attic/%s_gene_score_5fold.txt" % (chilinpath, run, run))
-        ls.append("%s/%s/attic/%s_gene_score.txt" % (chilinpath, run, run))
+            ls.append("%s/%s/%s_sorted_peaks.narrowPeak.bed" % (cistromepath, run, run))
+            ls.append("%s/%s/%s_sorted_summits.bed" % (cistromepath, run, run))
+        ls.append("%s/%s/%s_peaks.bed" % (cistromepath, run, run))
+        ls.append("%s/%s/%s_treat.bw" % (cistromepath, run, run))
+        ls.append("%s/%s/attic/%s_conserv_img.png" % (cistromepath, run, run))
+        ls.append("%s/%s/attic/%s_conserv.txt" % (cistromepath, run, run))
+        ls.append("%s/%s/attic/%s_gene_score_5fold.txt" % (cistromepath, run, run))
+        ls.append("%s/%s/attic/%s_gene_score.txt" % (cistromepath, run, run))
         if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
             if ("motif" in config) and config["motif"] == "mdseqpos":
-                ls.append("%s/%s/attic/%s_seqpos/" % (chilinpath, run, run))
-        ls.append("%s/%s/attic/json/" % (chilinpath, run))
+                ls.append("%s/%s/attic/%s_seqpos/" % (cistromepath, run, run))
+        ls.append("%s/%s/attic/json/" % (cistromepath, run))
         #handle samples:
         run_samples = config['runs'][run]
         for sample in run_samples:
             if sample:
-                ls.append("%s/%s/attic/%s_100k_fastqc/" % (chilinpath, run, sample))
+                ls.append("%s/%s/attic/%s_100k_fastqc/" % (cistromepath, run, sample))
     return ls
 
 def getJsonInput(wildcards):
@@ -55,12 +55,12 @@ def getJsonInput(wildcards):
                 ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
     return ls
 
-def chilin_getRunAndRep(wildcards):
+def cistrome_getRunAndRep(wildcards):
     #Xindong, this is a hack until we figure out a cleaner way to do this
-    #PROBLEM: the chilin "run" does not have any idea about replicates
+    #PROBLEM: the cistrome "run" does not have any idea about replicates
     #chips runs do.
     #HACK/Solution: we just eliminate the rep part because cistromedb
-    #does not run replicates; we assume chips's {run}.{rep1} = chilin {run}
+    #does not run replicates; we assume chips's {run}.{rep1} = cistrome {run}
 
     run_rep = "%s.rep1" % wildcards.run
     return run_rep
@@ -88,15 +88,15 @@ def chilin_getRunAndRep(wildcards):
     #         continue
     # return "%s.%s" % (run, rep)
 
-rule chilin_all:
+rule cistrome_all:
     input:
-        chilin_targets
+        cistrome_targets
 
 rule getPeaksXls:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_peaks.xls" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/peaks/%s/%s_peaks.xls" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/{run}_peaks.xls" % chilinpath
+        "%s/{run}/{run}_peaks.xls" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -104,9 +104,9 @@ rule getPeaksXls:
 
 rule getNarrowPeakBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/{run}_sorted_peaks.narrowPeak.bed" % chilinpath
+        "%s/{run}/{run}_sorted_peaks.narrowPeak.bed" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -114,9 +114,9 @@ rule getNarrowPeakBed:
 
 rule getBroadPeakBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/{run}_sorted_peaks.broadPeak.bed" % chilinpath
+        "%s/{run}/{run}_sorted_peaks.broadPeak.bed" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -124,9 +124,9 @@ rule getBroadPeakBed:
 
 rule getSortedSummitsBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_sorted_summits.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/peaks/%s/%s_sorted_summits.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/{run}_sorted_summits.bed" % chilinpath
+        "%s/{run}/{run}_sorted_summits.bed" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -134,9 +134,9 @@ rule getSortedSummitsBed:
 
 rule getPeaksBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_peaks.bed" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/peaks/%s/%s_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/{run}_peaks.bed" % chilinpath
+        "%s/{run}/{run}_peaks.bed" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -144,9 +144,9 @@ rule getPeaksBed:
 
 rule getTreatBw:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_treat_pileup.bw" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/peaks/%s/%s_treat_pileup.bw" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/{run}_treat.bw" % chilinpath
+        "%s/{run}/{run}_treat.bw" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -154,9 +154,9 @@ rule getTreatBw:
 
 rule getConservPng:
     input:
-        lambda wildcards: "analysis/conserv/%s/%s_conserv.png" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/conserv/%s/%s_conserv.png" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/attic/{run}_conserv_img.png" % chilinpath
+        "%s/{run}/attic/{run}_conserv_img.png" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -164,9 +164,9 @@ rule getConservPng:
 
 rule getConservTxt:
     input:
-        lambda wildcards: "analysis/conserv/%s/%s_conserv.txt" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/conserv/%s/%s_conserv.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/attic/{run}_conserv.txt" % chilinpath
+        "%s/{run}/attic/{run}_conserv.txt" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -174,9 +174,9 @@ rule getConservTxt:
 
 rule getReg5foldTxt:
     input:
-        lambda wildcards: "analysis/regulatory/%s/%s_gene_score_5fold.txt" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/targets/%s/%s_gene_score_5fold.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/attic/{run}_gene_score_5fold.txt" % chilinpath
+        "%s/{run}/attic/{run}_gene_score_5fold.txt" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -184,9 +184,9 @@ rule getReg5foldTxt:
 
 rule getRegTxt:
     input:
-        lambda wildcards: "analysis/regulatory/%s/%s_gene_score.txt" % (chilin_getRunAndRep(wildcards), chilin_getRunAndRep(wildcards))
+        lambda wildcards: "analysis/targets/%s/%s_gene_score.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/{run}/attic/{run}_gene_score.txt" % chilinpath
+        "%s/{run}/attic/{run}_gene_score.txt" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -194,11 +194,11 @@ rule getRegTxt:
 
 rule getMotif:
    input:
-       lambda wildcards: "analysis/motif/%s/results/mdseqpos_index.html" % chilin_getRunAndRep(wildcards)
+       lambda wildcards: "analysis/motif/%s/results/mdseqpos_index.html" % cistrome_getRunAndRep(wildcards)
    output:
-       directory("%s/{run}/attic/{run}_seqpos/" % chilinpath )
+       directory("%s/{run}/attic/{run}_seqpos/" % cistromepath )
    params:
-       abspath = lambda wildcards: os.path.abspath(str("analysis/motif/%s" % chilin_getRunAndRep(wildcards)))
+       abspath = lambda wildcards: os.path.abspath(str("analysis/motif/%s" % cistrome_getRunAndRep(wildcards)))
    shell:
        "ln -s {params.abspath}/* {output}"
 
@@ -206,7 +206,7 @@ rule getFastqc:
     input:
         "analysis/fastqc/{sample}/{sample}_100k_fastqc/"
     output:
-        directory("%s/{run}/attic/{sample}_100k_fastqc/" % chilinpath)
+        directory("%s/{run}/attic/{sample}_100k_fastqc/" % cistromepath)
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
@@ -216,7 +216,7 @@ rule getJson:
    input:
        getJsonInput
    output:
-       directory("%s/{run}/attic/json/" % chilinpath)
+       directory("%s/{run}/attic/json/" % cistromepath)
    params:
        abspath = lambda wildcards, input: str(os.path.abspath(os.path.dirname(input[0])))
    shell:
@@ -226,6 +226,6 @@ rule getJson:
 #    input:
 #        "%s/{run}/"
 #    output:
-#        "%s/{run}/{run}.md5 % chilinpath"
+#        "%s/{run}/{run}.md5 % cistromepath"
 #    shell:
 #        "cidc_chips/modules/scripts/md5check.py -d {input} -I {wildcards.run}"

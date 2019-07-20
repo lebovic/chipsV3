@@ -115,7 +115,7 @@ def all_targets(wildcards):
     ls.extend(conservation_targets(wildcards))
     ls.extend(ceas_targets(wildcards))
     ls.extend(frips_targets(wildcards))
-    ls.extend(regulatory_targets(wildcards))
+    ls.extend(targets_targets(wildcards))
     #Check to see if motif is enabled
     if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] == False:
         if 'motif' in config:
@@ -142,9 +142,9 @@ def all_targets(wildcards):
         if hasInput:
             ls.extend(qdnaseq_targets(wildcards))
     # skip running modules that useless in cistrome db 
-    if 'ChilinApi' in config and config['ChilinApi'] == True:
+    if 'CistromeApi' in config and config['CistromeApi'] == True:
         ls.extend(json_targets(wildcards))
-        ls.extend(chilin_targets(wildcards))
+        ls.extend(cistrome_targets(wildcards))
     else:
         ls.extend(contamination_targets(wildcards))
         # ls.extend(mapmaker_targets(wildcards))
@@ -183,10 +183,10 @@ include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
 include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
 include: "./modules/epicypher.snakefile"     # epicypher spike-in module
 include: "./modules/bam_snapshots.snakefile" # generate bam snapshots module
-include: "./modules/regulatory.snakefile"    # regulatory module
+include: "./modules/targets.snakefile"       # targets module
 include: "./modules/report.snakefile"        # report module
 include: "./modules/json.snakefile"          # json module
-include: "./modules/chilin.snakefile"        # chilin adapter module
+include: "./modules/cistrome.snakefile"      # cistrome adapter module
 include: "./modules/empty_checking.snakefile"# checking empty file module
 
 

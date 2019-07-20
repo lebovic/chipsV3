@@ -29,7 +29,7 @@ def json_targets(wildcards):
         # run_samples = config['runs'][run]
         # for sample in run_samples:
         #     if sample:
-        #         #contam is sample-- see chilin.snakefile- fastqc as example
+        #         #contam is sample-- see cistrome.snakefile- fastqc as example
         #         ls.append("analysis/json/%s/%s_contam.json" % (run, sample))
 
     return ls
@@ -59,7 +59,7 @@ def json_getRunAndRep(wildcards):
     #         continue
     # return "%s.%s" % (run, rep)
 
-    # assume chips's {run}.{rep1} = chilin {run}
+    # assume chips's {run}.{rep1} = cistrome {run}
     run_rep = "%s.rep1" % wildcards.run
     return run_rep
 
