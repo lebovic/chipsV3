@@ -82,6 +82,7 @@ rule conservation:
         score="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.txt",
     params:
         db=config['conservation'],
+        script="conservation_plot.py" if os.path.isdir(config['conservation']) else "conservation_onebw_plot.py",
         width=4000,
         #run = lambda wildcards: wildcards.run,
         run="{run}.{rep}" ,
@@ -90,5 +91,5 @@ rule conservation:
     log: "analysis/logs/conservation/{run}.{rep}.log"
     conda: "../envs/conservation/conservation.yaml"
     shell:
-        "{params.pypath} {config[python2]} cidc_chips/modules/scripts/conservation_plot.py -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
+        "{params.pypath} {config[python2]} cidc_chips/modules/scripts/{script} -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 

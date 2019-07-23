@@ -148,7 +148,7 @@ def all_targets(wildcards):
     else:
         ls.extend(contamination_targets(wildcards))
         # ls.extend(mapmaker_targets(wildcards))
-        #ls.extend(bam_snapshots_targets(wildcards))
+        # ls.extend(bam_snapshots_targets(wildcards))
         ls.extend(report_targets(wildcards))
         if "epicypher_analysis" in config and config["epicypher_analysis"]:
             ls.extend(epicypher_targets(wildcards))
