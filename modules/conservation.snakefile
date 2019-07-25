@@ -91,5 +91,5 @@ rule conservation:
     log: "analysis/logs/conservation/{run}.{rep}.log"
     conda: "../envs/conservation/conservation.yaml"
     shell:
-        "{params.pypath} {config[python2]} cidc_chips/modules/scripts/{script} -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
+        "{params.pypath} {config[python2]} cidc_chips/modules/scripts/{params.script} -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 
