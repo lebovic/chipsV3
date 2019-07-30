@@ -32,6 +32,7 @@ def cistrome_targets(wildcards):
         for sample in run_samples:
             if sample:
                 ls.append("%s/%s/attic/%s_100k_fastqc/" % (cistromepath, run, sample))
+                ls.append("%s/%s/attic/%s_unique.sorted.bam" % (cistromepath, run, sample))
     return ls
 
 def getJsonInput(wildcards):
@@ -191,6 +192,17 @@ rule getRegTxt:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
         "ln -s {params.abspath} {output}"
+
+rule getBam:
+    input:
+        "analysis/align/{sample}/{sample}_unique.sorted.bam"
+    output:
+        "%s/{run}/attic/{sample}_unique.sorted.bam" % cistromepath
+    params:
+        abspath = lambda wildcards, input: os.path.abspath(str(input))
+    shell:
+        "ln -s {params.abspath} {output}"
+
 
 rule getMotif:
    input:
