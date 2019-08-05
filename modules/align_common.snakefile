@@ -33,11 +33,21 @@ def getBam(wildcards):
         ret = first_file
     return [ret]
 
+def getSortMemory(wildcards):
+    bam_size = math.ceil(os.path.getsize(checkpoints.aggregate_align.get(sample=wildcards.sample).output[0])/1024/1024/1024)
+    memory = bam_size*2
+    return str(memory)
+
+def getUniqueSortMemory(wildcards):
+    bam_size = math.ceil(os.path.getsize(checkpoints.uniquely_mapped_reads.get(sample=wildcards.sample).output[0])/1024/1024/1024)
+    memory = bam_size*2
+    return str(memory)
+
 rule align_all:
     input:
         align_targets
 
-rule uniquely_mapped_reads:
+checkpoint uniquely_mapped_reads:
     """Get the uniquely mapped reads"""
     input:
         #"analysis/align/{sample}/{sample}.bam"
@@ -108,9 +118,11 @@ rule sortBams:
     message: "ALIGN: sort bam file"
     log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
+    params:
+        memory = lambda wildcards: getSortMemory(wildcards)
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} -m 100G 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
 
 rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 
@@ -124,9 +136,11 @@ rule sortUniqueBams:
     message: "ALIGN: sort bam file"
     log: "analysis/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
+    params:
+        memory = lambda wildcards: getUniqueSortMemory(wildcards)
     threads: _align_threads
     shell:
-        "sambamba sort {input} -o {output} -t {threads} -m 100G 2>>{log}"
+        "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
 
 if "sentieon" in config and config["sentieon"]:
     rule scoreSample:

@@ -99,7 +99,7 @@ def aggregate_align_input(wildcards):
             return "analysis/align/{sample}/{sample}_aln.bam"
 
 
-rule aggregate_align:
+checkpoint aggregate_align:
     input:
         aggregate_align_input
     output:
