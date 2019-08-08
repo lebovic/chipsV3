@@ -26,7 +26,7 @@ def cistrome_targets(wildcards):
         if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
             if ("motif" in config) and config["motif"] == "mdseqpos":
                 ls.append("%s/dataset%s/attic/%s_seqpos/" % (cistromepath, run, run))
-        ls.append("%s/%s/attic/json/" % (cistromepath, run))
+        ls.append("%s/dataset%s/attic/json/" % (cistromepath, run))
         #handle samples:
         run_samples = config['runs'][run]
         for sample in run_samples:
