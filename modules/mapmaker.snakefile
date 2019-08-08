@@ -1,14 +1,14 @@
 #MODULE: mapmaker- generating the analysis/mapmaker folder
 #The folder should be a fully runnable version of the latest mapmaker USING
 #the chips run information
-_logfile="analysis/logs/mapmaker.log"
+_logfile=output_path + "/logs/mapmaker.log"
 
 def mapmaker_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
-    # ls.append("analysis/mapmaker")
-    ls.append("analysis/mapmaker/config.yaml")
-    ls.append("analysis/mapmaker/metasheet.csv")
+    # ls.append(output_path + "/mapmaker")
+    ls.append(output_path + "/mapmaker/config.yaml")
+    ls.append(output_path + "/mapmaker/metasheet.csv")
     return ls
 
 def make_relative(path):
@@ -32,9 +32,9 @@ rule mapmaker:
     message: "MAPMAKER: cloning the mapmaker project from github"
     log: _logfile
     output:
-        # "analysis/mapmaker",
-        "analysis/mapmaker/.config.yaml",
-        "analysis/mapmaker/.metasheet.csv"
+        # output_path + "/mapmaker",
+        output_path + "/mapmaker/.config.yaml",
+        output_path + "/mapmaker/.metasheet.csv"
     conda: "../envs/mapmaker/mapmaker.yaml"
     shell:
         # "git clone git@bitbucket.org:cfce/mapmaker analysis/mapmaker > {log} 2>&1 && "
@@ -48,11 +48,11 @@ rule mapmaker:
 rule mapmaker_config:
     """Tries to configure the mapmaker run based on the chips run info"""
     input:
-        bed_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_sorted_peaks.bed", run=config['runs']),
-        bw_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_treat_pileup.bw", run=config['runs']),
-        bam_files = expand("analysis/align/{sample}/{sample}_unique.sorted.dedup.bam", sample=[getTreat(r) for r in config['runs']]),
-        igv_files= expand("analysis/peaks/{run}.rep1/{run}.rep1_treatment.igv.xml", run=config['runs']),
-        config="analysis/mapmaker/.config.yaml"
+        bed_files= expand(output_path + "/peaks/{run}.rep1/{run}.rep1_sorted_peaks.bed", run=config['runs']),
+        bw_files= expand(output_path + "/peaks/{run}.rep1/{run}.rep1_treat_pileup.bw", run=config['runs']),
+        bam_files = expand(output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam", sample=[getTreat(r) for r in config['runs']]),
+        igv_files= expand(output_path + "/peaks/{run}.rep1/{run}.rep1_treatment.igv.xml", run=config['runs']),
+        config=output_path + "/mapmaker/.config.yaml"
     params:
         # run_names=config['runs']
         bed_files = lambda wildcards, input: [" -b %s" % make_relative(b) for b in input.bed_files],
@@ -64,7 +64,7 @@ rule mapmaker_config:
     log: _logfile
     conda: "../envs/mapmaker/mapmaker.yaml"
     output:
-        "analysis/mapmaker/config.yaml"
+        output_path + "/mapmaker/config.yaml"
     # run:
         #TRANSFORM to analysis/mapmaker relative
         #input.bed_files = [make_relative(b) for b in bed_files]
@@ -80,7 +80,7 @@ rule mapmaker_config:
 rule mapmaker_meta:
     """Tries to configure the mapmaker meta based on the chips run info"""
     input:
-        meta="analysis/mapmaker/.metasheet.csv"
+        meta=output_path + "/mapmaker/.metasheet.csv"
     params:
         #run_names=config['runs']
         names = lambda wildcards : [" -n %s" % i for i in config['runs']]
@@ -88,7 +88,7 @@ rule mapmaker_meta:
     log: _logfile
     conda: "../envs/mapmaker/mapmaker.yaml"
     output:
-        "analysis/mapmaker/metasheet.csv"
+        output_path + "/mapmaker/metasheet.csv"
     # run:
     #     names = " -n ".join(params.run_names)
     #     shell("cidc_chips/modules/scripts/mapmaker_meta.py -n {names} -o {output}")

@@ -1,7 +1,7 @@
 #MODULE: conservation- module to create conservation plots
 import math
 
-# _logfile="analysis/logs/conservation.log"
+# _logfile=output_path + "/logs/conservation.log"
 #_numPngs is used in conservation_plot rule to see how many pngs to expect
 #note: the rule plots 3 runs per png, so for example, 12 runs results in 4 pngs
 _nPerPlot = 3
@@ -16,14 +16,14 @@ def conservation_targets(wildcards):
         for rep in _reps[run]:
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
-            # ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
+            # ls.append(output_path + "/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
             if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
-                ls.append("analysis/peaks/%s/%s_sorted_5k_peaks.bed" % (runRep,runRep))
+                ls.append(output_path + "/peaks/%s/%s_sorted_5k_peaks.bed" % (runRep,runRep))
             else:
-                ls.append("analysis/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
-            ls.append("analysis/conserv/%s/%s_conserv.R" % (runRep,runRep))
-            ls.append("analysis/conserv/%s/%s_conserv.png" % (runRep,runRep))
-            ls.append("analysis/conserv/%s/%s_conserv_thumb.png" % (runRep,runRep))
+                ls.append(output_path + "/peaks/%s/%s_sorted_5k_summits.bed" % (runRep,runRep))
+            ls.append(output_path + "/conserv/%s/%s_conserv.R" % (runRep,runRep))
+            ls.append(output_path + "/conserv/%s/%s_conserv.png" % (runRep,runRep))
+            ls.append(output_path + "/conserv/%s/%s_conserv_thumb.png" % (runRep,runRep))
     return ls
 
 def conservationInput(wildcards):
@@ -31,9 +31,9 @@ def conservationInput(wildcards):
     rep = wildcards.rep
     runRep = "%s.%s" % (run,rep)
     if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
-        temp = "analysis/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep)
+        temp = output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep)
     else:
-        temp = "analysis/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep)
+        temp = output_path + "/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep)
     return temp
 
 rule conservation_all:
@@ -43,14 +43,14 @@ rule conservation_all:
 rule top5k_broad_peaks:
     """take the top 5000 peaks, sorted by score"""
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
-        # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        # output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed"
     params:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
-    log: "analysis/logs/conservation/{run}.{rep}.log"
+    log: output_path + "/logs/conservation/{run}.{rep}.log"
     conda: "../envs/conservation/conservation.yaml"
     shell:
         "head -n {params.lines} {input} > {output}"
@@ -58,13 +58,13 @@ rule top5k_broad_peaks:
 rule top5k_peaks:
     """take the top 5000 peaks, sorted by score"""
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
     output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     params:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
-    log: "analysis/logs/conservation/{run}.{rep}.log"
+    log: output_path + "/logs/conservation/{run}.{rep}.log"
     conda: "../envs/conservation/conservation.yaml"
     shell:
         "head -n {params.lines} {input} > {output}"
@@ -72,14 +72,14 @@ rule top5k_peaks:
 rule conservation:
     """generate conservation plots"""
     input:
-        # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
-        # "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        # output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
+        # output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
         conservationInput
     output:
-        png="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.png",
-        thumb="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv_thumb.png",
-        r="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.R",
-        score="analysis/conserv/{run}.{rep}/{run}.{rep}_conserv.txt",
+        png=output_path + "/conserv/{run}.{rep}/{run}.{rep}_conserv.png",
+        thumb=output_path + "/conserv/{run}.{rep}/{run}.{rep}_conserv_thumb.png",
+        r=output_path + "/conserv/{run}.{rep}/{run}.{rep}_conserv.R",
+        score=output_path + "/conserv/{run}.{rep}/{run}.{rep}_conserv.txt",
     params:
         db=config['conservation'],
         script="conservation_plot.py" if os.path.isdir(config['conservation']) else "conservation_onebw_plot.py",
@@ -87,9 +87,10 @@ rule conservation:
         #run = lambda wildcards: wildcards.run,
         run="{run}.{rep}" ,
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        main_output_path=output_path
     message: "CONSERVATION: calling conservation script"
-    log: "analysis/logs/conservation/{run}.{rep}.log"
+    log: output_path + "/logs/conservation/{run}.{rep}.log"
     conda: "../envs/conservation/conservation.yaml"
     shell:
-        "{params.pypath} {config[python2]} cidc_chips/modules/scripts/{params.script} -t Conservation_at_summits -d {params.db} -o analysis/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
+        "{params.pypath} {config[python2]} cidc_chips/modules/scripts/{params.script} -t Conservation_at_summits -d {params.db} -o  {params.main_output_path}/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
 

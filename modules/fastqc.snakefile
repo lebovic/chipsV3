@@ -1,20 +1,20 @@
 #MODULE: fastqc- sequence quality scores
 #RULES:
 #    sample_fastq: subsample 100k reads from each sample to perform fastqc analysis
-# _logfile="analysis/logs/fastqc.log"
+# _logfile=output_path + "/logs/fastqc.log"
 
 def fastqc_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for sample in config["samples"]:
-        ls.append("analysis/fastqc/%s/%s_perSeqGC.txt" % (sample,sample))
-        ls.append("analysis/fastqc/%s/%s_perSeqQual.txt" % (sample,sample))
-        ls.append("analysis/fastqc/%s/%s_stats.csv" % (sample,sample))
-        ls.append("analysis/fastqc/%s/%s_perSeqGC.png" % (sample,sample))
-        ls.append("analysis/fastqc/%s/%s_perSeqGC_thumb.png" % (sample,sample))
-        ls.append("analysis/fastqc/%s/%s_100k_fastqc/" % (sample, sample))
-        ls.append("analysis/fastqc/%s/%s_100k_fastqc/fastqc_data.txt" % (sample, sample))
-    ls.append("analysis/fastqc/fastqc.csv")
+        ls.append(output_path + "/fastqc/%s/%s_perSeqGC.txt" % (sample,sample))
+        ls.append(output_path + "/fastqc/%s/%s_perSeqQual.txt" % (sample,sample))
+        ls.append(output_path + "/fastqc/%s/%s_stats.csv" % (sample,sample))
+        ls.append(output_path + "/fastqc/%s/%s_perSeqGC.png" % (sample,sample))
+        ls.append(output_path + "/fastqc/%s/%s_perSeqGC_thumb.png" % (sample,sample))
+        ls.append(output_path + "/fastqc/%s/%s_100k_fastqc/" % (sample, sample))
+        ls.append(output_path + "/fastqc/%s/%s_100k_fastqc/fastqc_data.txt" % (sample, sample))
+    ls.append(output_path + "/fastqc/fastqc.csv")
     return ls
 
 def getFastqcInput(wildcards):
@@ -27,10 +27,10 @@ def getFastqcInput(wildcards):
         #ret = [first_file]
         #HACK to get fastqc to name things correctly.  IF we returned
         #the bam file, fastqc will name the output files accordingly
-        ret = ["analysis/align/%s/%s_100k.bam" % (s,s)]
+        ret = [output_path + "/align/%s/%s_100k.bam" % (s,s)]
     else:
         #HACK: need to give the EVALUATED cannonical path
-        ret = ["analysis/align/%s/%s_100k.fastq" % (s,s)]
+        ret = [output_path + "/align/%s/%s_100k.fastq" % (s,s)]
     #print(ret)
     return ret
 
@@ -57,13 +57,13 @@ rule sample_fastq:
     input:
         getFastq3
     output:
-        temp("analysis/align/{sample}/{sample}_100k.fastq")
+        temp(output_path + "/align/{sample}/{sample}_100k.fastq")
     params:
         seed=11,
         #how many to sample
         size=100000
     message: "FASTQC: sample_fastq"
-    log:"analysis/logs/fastqc/{sample}.log"
+    log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "seqtk sample -s {params.seed} {input} {params.size} > {output} 2>>{log}"
@@ -76,9 +76,9 @@ rule sample_bam:
     params:
         n=100000
     output:
-        temp("analysis/align/{sample}/{sample}_100k.bam")
+        temp(output_path + "/align/{sample}/{sample}_100k.bam")
     message: "FASTQC: sampling 100k reads from bam"
-    log:"analysis/logs/fastqc/{sample}.log"
+    log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/sampleBam.sh -i {input} -n {params.n} -o {output}"
@@ -86,11 +86,11 @@ rule sample_bam:
 rule convertBamToFastq:
     """USED only when the sample-input is a bam file."""
     input:
-        "analysis/align/{sample}/{sample}_100k.bam"
+        output_path + "/align/{sample}/{sample}_100k.bam"
     output:
-        temp("analysis/align/{sample}/{sample}_100k.bam.fastq")
+        temp(output_path + "/align/{sample}/{sample}_100k.bam.fastq")
     message: "FASTQC: converting 100k.bam to 100k.fastq"
-    log:"analysis/logs/fastqc/{sample}.log"
+    log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} 2>> {log}"
@@ -101,30 +101,31 @@ rule call_fastqc:
         getFastqcInput
     output:
         #MAKE temp
-        directory("analysis/fastqc/{sample}/{sample}_100k_fastqc/"),
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt",
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc.html",
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc.zip"
+        directory(output_path + "/fastqc/{sample}/{sample}_100k_fastqc/"),
+        output_path + "/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt",
+        output_path + "/fastqc/{sample}/{sample}_100k_fastqc.html",
+        output_path + "/fastqc/{sample}/{sample}_100k_fastqc.zip"
     #threads:
     params:
-        sample = lambda wildcards: wildcards.sample
+        sample = lambda wildcards: wildcards.sample,
+        main_output_path = output_path
     message: "FASTQC: call fastqc"
-    log:"analysis/logs/fastqc/{sample}.log"
+    log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
-        "fastqc {input} --extract -o analysis/fastqc/{params.sample} 2>>{log}"
+        "fastqc {input} --extract -o {params.main_output_path}/fastqc/{params.sample} 2>>{log}"
 
 rule get_PerSequenceQual:
     """extract per sequence quality from fastqc_data.txt"""
     input:
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
+        output_path + "/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
     output:
-        "analysis/fastqc/{sample}/{sample}_perSeqQual.txt"
+        output_path + "/fastqc/{sample}/{sample}_perSeqQual.txt"
     params:
         #DON'T forget quotes
         section="'Per sequence quality'"
     message: "FASTQC: get_PerSequenceQual"
-    log:"analysis/logs/fastqc/{sample}.log"
+    log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -132,14 +133,14 @@ rule get_PerSequenceQual:
 rule get_PerSequenceGC:
     """extract per sequence GC contentfrom fastqc_data.txt"""
     input:
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
+        output_path + "/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
     output:
-        "analysis/fastqc/{sample}/{sample}_perSeqGC.txt"
+        output_path + "/fastqc/{sample}/{sample}_perSeqGC.txt"
     params:
         #DON'T forget quotes
         section="'Per sequence GC content'"
     message: "FASTQC: get_PerSequenceGC"
-    log:"analysis/logs/fastqc/{sample}.log"
+    log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -147,12 +148,12 @@ rule get_PerSequenceGC:
 rule extract_FastQCStats:
     """extract per sequence GC content, and seq qual stats from fastqc run"""
     input:
-        gc = "analysis/fastqc/{sample}/{sample}_perSeqGC.txt",
-        qual = "analysis/fastqc/{sample}/{sample}_perSeqQual.txt"
+        gc = output_path + "/fastqc/{sample}/{sample}_perSeqGC.txt",
+        qual = output_path + "/fastqc/{sample}/{sample}_perSeqQual.txt"
     output:
-        "analysis/fastqc/{sample}/{sample}_stats.csv"
+        output_path + "/fastqc/{sample}/{sample}_stats.csv"
     message: "FASTQC: extract_FastQCStats"
-    log:"analysis/logs/fastqc/{sample}.log"
+    log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_stats.py -a {input.qual} -b {input.gc} > {output} 2>>{log}"
@@ -160,11 +161,11 @@ rule extract_FastQCStats:
 rule collect_fastQCStats:
     """Collect and parse out the fastqc stats for the ALL of the samples"""
     input:
-        expand("analysis/fastqc/{sample}/{sample}_stats.csv", sample=sorted(config["samples"]))
+        expand(output_path + "/fastqc/{sample}/{sample}_stats.csv", sample=sorted(config["samples"]))
     output:
-        "analysis/fastqc/fastqc.csv"
+        output_path + "/fastqc/fastqc.csv"
     message: "FASTQC: collect and parse ALL mapping stats"
-    # log: "analysis/logs/fastqc/{sample}.log"
+    # log: output_path + "/logs/fastqc/{sample}.log"
     #conda: "../envs/fastqc/fastqc.yaml"
     run:
         files = " -f ".join(input)
@@ -176,13 +177,13 @@ rule plot_fastQC_GC:
     Generates a full-size image and *thumbnail image* (embedded into report)
     """
     input:
-        gc = "analysis/fastqc/{sample}/{sample}_perSeqGC.txt",
+        gc = output_path + "/fastqc/{sample}/{sample}_perSeqGC.txt",
     output:
-        png="analysis/fastqc/{sample}/{sample}_perSeqGC.png",
-        thumb="analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png",
+        png=output_path + "/fastqc/{sample}/{sample}_perSeqGC.png",
+        thumb=output_path + "/fastqc/{sample}/{sample}_perSeqGC_thumb.png",
     message:
         "FASTQC: generating GC content distrib. plots"
-    log: "analysis/logs/fastqc/{sample}.log"
+    log: output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/fastqc_plotGC.R {input.gc} {output.png} {output.thumb}"

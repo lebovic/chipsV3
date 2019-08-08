@@ -2,7 +2,7 @@ import os
 
 def checking_targets(wildcards):
     ls = []
-    ls.append("analysis/logs/empty_file_list.txt")
+    ls.append(output_path + "/logs/empty_file_list.txt")
     return ls
 
 
@@ -21,7 +21,7 @@ rule emptyChecking:
     input:
         emptyCheckingInput
     output:
-        file="analysis/logs/empty_file_list.txt"
+        file=output_path + "/logs/empty_file_list.txt"
     message:
         "EMPTYCHECKING: checking whether any files are empty"
     run:

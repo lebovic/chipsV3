@@ -1,11 +1,11 @@
 #MODULE: cistrome - a cistrome adapter of chips
-# _logfile="analysis/logs/cistrome.log"
+# _logfile=output_path + "/logs/cistrome.log"
 import os
 
 if "Cistrome_path" in config and config["Cistrome_path"]:
     cistromepath = config["Cistrome_path"]
 else:
-    cistromepath = "analysis/cistrome"
+    cistromepath = output_path + "/cistrome"
 
 def cistrome_targets(wildcards):
     ls = []
@@ -38,22 +38,22 @@ def cistrome_targets(wildcards):
 def getJsonInput(wildcards):
     ls = []
     for run in config["runs"]:
-        ls.append("analysis/json/%s/%s_conserv.json" % (run, run))
+        ls.append(output_path + "/json/%s/%s_conserv.json" % (run, run))
         if config["DHS"]:
-            ls.append("analysis/json/%s/%s_dhs.json" % (run, run))        
-        ls.append("analysis/json/%s/%s_frip.json" % (run, run))
-        ls.append("analysis/json/%s/%s_macs2.json" % (run, run))
+            ls.append(output_path + "/json/%s/%s_dhs.json" % (run, run))        
+        ls.append(output_path + "/json/%s/%s_frip.json" % (run, run))
+        ls.append(output_path + "/json/%s/%s_macs2.json" % (run, run))
         if config['runs'][run][2]:
-            ls.append("analysis/json/%s/%s_macs2_rep.json" % (run, run))
-        ls.append("analysis/json/%s/%s_meta.json" % (run, run))
-        ls.append("analysis/json/%s/%s_fastqc.json" % (run, run))
-        ls.append("analysis/json/%s/%s_map.json" % (run, run))
-        ls.append("analysis/json/%s/%s_enrich_meta.json" % (run, run))
-        ls.append("analysis/json/%s/%s_pbc.json"% (run, run))
-        ls.append("analysis/json/%s/%s_frag.json" % (run, run))
+            ls.append(output_path + "/json/%s/%s_macs2_rep.json" % (run, run))
+        ls.append(output_path + "/json/%s/%s_meta.json" % (run, run))
+        ls.append(output_path + "/json/%s/%s_fastqc.json" % (run, run))
+        ls.append(output_path + "/json/%s/%s_map.json" % (run, run))
+        ls.append(output_path + "/json/%s/%s_enrich_meta.json" % (run, run))
+        ls.append(output_path + "/json/%s/%s_pbc.json"% (run, run))
+        ls.append(output_path + "/json/%s/%s_frag.json" % (run, run))
         if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] == False:
             if ("motif" in config) and config["motif"] == "mdseqpos":
-                ls.append("analysis/json/%s/%s_seqpos.json" % (run, run))
+                ls.append(output_path + "/json/%s/%s_seqpos.json" % (run, run))
     return ls
 
 def cistrome_getRunAndRep(wildcards):
@@ -95,7 +95,7 @@ rule cistrome_all:
 
 rule getPeaksXls:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_peaks.xls" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_peaks.xls" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_peaks.xls" % cistromepath
     params:
@@ -105,7 +105,7 @@ rule getPeaksXls:
 
 rule getNarrowPeakBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_sorted_peaks.narrowPeak.bed" % cistromepath
     params:
@@ -115,7 +115,7 @@ rule getNarrowPeakBed:
 
 rule getBroadPeakBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_sorted_peaks.broadPeak.bed" % cistromepath
     params:
@@ -125,7 +125,7 @@ rule getBroadPeakBed:
 
 rule getSortedSummitsBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_sorted_summits.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_sorted_summits.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_sorted_summits.bed" % cistromepath
     params:
@@ -135,7 +135,7 @@ rule getSortedSummitsBed:
 
 rule getPeaksBed:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_peaks.bed" % cistromepath
     params:
@@ -145,7 +145,7 @@ rule getPeaksBed:
 
 rule getTreatBw:
     input:
-        lambda wildcards: "analysis/peaks/%s/%s_treat_pileup.bw" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_treat_pileup.bw" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_treat.bw" % cistromepath
     params:
@@ -155,7 +155,7 @@ rule getTreatBw:
 
 rule getConservPng:
     input:
-        lambda wildcards: "analysis/conserv/%s/%s_conserv.png" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/conserv/%s/%s_conserv.png" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/attic/{run}_conserv_img.png" % cistromepath
     params:
@@ -165,7 +165,7 @@ rule getConservPng:
 
 rule getConservTxt:
     input:
-        lambda wildcards: "analysis/conserv/%s/%s_conserv.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/conserv/%s/%s_conserv.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/attic/{run}_conserv.txt" % cistromepath
     params:
@@ -175,7 +175,7 @@ rule getConservTxt:
 
 rule getReg5foldTxt:
     input:
-        lambda wildcards: "analysis/targets/%s/%s_gene_score_5fold.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/targets/%s/%s_gene_score_5fold.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/attic/{run}_gene_score_5fold.txt" % cistromepath
     params:
@@ -185,7 +185,7 @@ rule getReg5foldTxt:
 
 rule getRegTxt:
     input:
-        lambda wildcards: "analysis/targets/%s/%s_gene_score.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/targets/%s/%s_gene_score.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/attic/{run}_gene_score.txt" % cistromepath
     params:
@@ -195,7 +195,7 @@ rule getRegTxt:
 
 rule getBam:
     input:
-        "analysis/align/{sample}/{sample}_unique.sorted.bam"
+        output_path + "/align/{sample}/{sample}_unique.sorted.bam"
     output:
         "%s/dataset{run}/attic/{sample}_unique.sorted.bam" % cistromepath
     params:
@@ -206,17 +206,17 @@ rule getBam:
 
 rule getMotif:
    input:
-       lambda wildcards: "analysis/motif/%s/results/mdseqpos_index.html" % cistrome_getRunAndRep(wildcards)
+       lambda wildcards: output_path + "/motif/%s/results/mdseqpos_index.html" % cistrome_getRunAndRep(wildcards)
    output:
        directory("%s/dataset{run}/attic/{run}_seqpos/" % cistromepath )
    params:
-       abspath = lambda wildcards: os.path.abspath(str("analysis/motif/%s" % cistrome_getRunAndRep(wildcards)))
+       abspath = lambda wildcards: os.path.abspath(str(output_path + "/motif/%s" % cistrome_getRunAndRep(wildcards)))
    shell:
        "ln -s {params.abspath}/* {output}"
 
 rule getFastqc:
     input:
-        "analysis/fastqc/{sample}/{sample}_100k_fastqc/"
+        output_path + "/fastqc/{sample}/{sample}_100k_fastqc/"
     output:
         directory("%s/dataset{run}/attic/{sample}_100k_fastqc/" % cistromepath)
     params:

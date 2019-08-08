@@ -1,5 +1,5 @@
 #MODULE: contamination module to check for sample contamination
-# _logfile="analysis/logs/contamination.log"
+# _logfile=output_path + "/logs/contamination.log"
 _bwa_q="5"
 _bwa_l="32"
 _bwa_k="2"
@@ -25,9 +25,9 @@ def contamination_targets(wildcards):
     ls = []
     for sample in config["samples"]:
         for panel in _contaminationNames:
-            ls.append("analysis/contam/%s/%s.%s.txt" % (sample, sample, panel))
-            ls.append("analysis/contam/%s/%s_contamination.txt" % (sample, sample))
-    ls.append("analysis/contam/contamination.csv")
+            ls.append(output_path + "/contam/%s/%s.%s.txt" % (sample, sample, panel))
+            ls.append(output_path + "/contam/%s/%s_contamination.txt" % (sample, sample))
+    ls.append(output_path + "/contam/contamination.csv")
     return ls
 
 def get100k_sample(wildcards):
@@ -40,9 +40,9 @@ def get100k_sample(wildcards):
     s = wildcards.sample
     first_file = config["samples"][wildcards.sample][0]
     if first_file.endswith('.bam'):
-        ret = ["analysis/align/%s/%s_100k.bam.fastq" % (s,s)]
+        ret = [output_path + "/align/%s/%s_100k.bam.fastq" % (s,s)]
     else:
-        ret = ["analysis/align/%s/%s_100k.fastq" % (s,s)]
+        ret = [output_path + "/align/%s/%s_100k.fastq" % (s,s)]
     return ret
 
 rule contamination_all:
@@ -55,7 +55,7 @@ rule contamination:
     input:
         get100k_sample
     output:
-        temp("analysis/contam/{sample}/{sample}.{panel}.bam")
+        temp(output_path + "/contam/{sample}/{sample}.{panel}.bam")
     params:
         index=lambda wildcards: _contaminationDict[wildcards.panel],
         bwa_q = _bwa_q,
@@ -65,7 +65,7 @@ rule contamination:
         panel = lambda wildcards: wildcards.panel
     threads: _bwa_threads
     message: "CONTAMINATION: checking {params.sample} against {params.panel}"
-    # log: "analysis/logs/contamination/{sample}.log"
+    # log: output_path + "/logs/contamination/{sample}.log"
     conda: "../envs/contamination/contamination.yaml"
     shell:
         "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} "#2>> {log}"
@@ -73,17 +73,17 @@ rule contamination:
 rule contaminationStats:
     """Extract the mapping stats for each species"""
     input:
-        "analysis/contam/{sample}/{sample}.{panel}.bam"
+        output_path + "/contam/{sample}/{sample}.{panel}.bam"
     output:
         #TEMP
-        "analysis/contam/{sample}/{sample}.{panel}.txt"
+        output_path + "/contam/{sample}/{sample}.{panel}.txt"
     params:
         sample = lambda wildcards: wildcards.sample,
         panel = lambda wildcards: wildcards.panel,
         #READ out the 5th row, the first element (and divide by 100/100000)
         awk_cmd = "\'BEGIN {RS=\'\\t\'}{print $23 / $1 * 100}\'"
     message: "CONTAMINATION: get mapping stats {params.sample}:{params.panel}"
-    # log: "analysis/logs/contamination/{sample}.log"
+    # log: output_path + "/logs/contamination/{sample}.log"
     conda: "../envs/contamination/contamination.yaml"
     shell:
         "samtools flagstat {input} | awk {params.awk_cmd} > {output} "#2>>{log}"
@@ -91,9 +91,9 @@ rule contaminationStats:
 rule contaminationCollectStats:
     """Collect the mapping stats across the entire panel"""
     input:
-        expand("analysis/contam/{{sample}}/{{sample}}.{panel}.txt", panel=_contaminationNames)
+        expand(output_path + "/contam/{{sample}}/{{sample}}.{panel}.txt", panel=_contaminationNames)
     output:
-        "analysis/contam/{sample}/{sample}_contamination.txt"
+        output_path + "/contam/{sample}/{sample}_contamination.txt"
     #conda: "../envs/contamination/contamination.yaml"
     run:
         for (n, f) in zip(_contaminationNames, input):
@@ -102,11 +102,11 @@ rule contaminationCollectStats:
 rule collect_allContamination:
     """Aggregate all of the contamination stats into one large table/panel"""
     input:
-        expand("analysis/contam/{sample}/{sample}_contamination.txt", sample=config['samples'])
+        expand(output_path + "/contam/{sample}/{sample}_contamination.txt", sample=config['samples'])
     message: "Contamination: collecting contamination panel"
-    # log: "analysis/logs/contamination/{sample}.log"
+    # log: output_path + "/logs/contamination/{sample}.log"
     output:
-        "analysis/contam/contamination.csv"
+        output_path + "/contam/contamination.csv"
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     conda: "../envs/contamination/contamination.yaml"

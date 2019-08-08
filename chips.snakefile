@@ -5,6 +5,7 @@ import sys
 import subprocess
 import pandas as pd
 import yaml
+import re
 
 from string import Template
 
@@ -75,6 +76,12 @@ for run in config['runs'].keys():
         if r[i]: tmp.append("rep%s" % str(rep+1))
     _reps[run] = tmp
 #print(_reps)
+
+# Set output path
+if ("output_path" not in config) or config["output_path"] == "":
+    output_path = "analysis"
+else:
+    output_path = re.sub("^\./","", config["output_path"].rstrip("/"))
 
 #NOTE: Template class allows for _ in the variable names, we want to DISALLOW
 #that for replicates

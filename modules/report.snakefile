@@ -8,14 +8,14 @@ from snakemake.report import data_uri_from_file
 from tabulate import tabulate
 
 _ReportTemplate = Template(open("cidc_chips/static/chips_report.txt").read())
-_logfile = "analysis/logs/report.log"
+_logfile = output_path + "/logs/report.log"
 
 def report_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
-    ls.append('analysis/report/sequencingStatsSummary.csv')
-    ls.append('analysis/report/peaksSummary.csv')
-    ls.append('analysis/report/report.html')
+    ls.append(output_path + '/report/sequencingStatsSummary.csv')
+    ls.append(output_path + '/report/peaksSummary.csv')
+    ls.append(output_path + '/report/report.html')
     return ls
 
 def csvToSimpleTable(csv_file):
@@ -157,20 +157,20 @@ def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
 def getReportInputs(wildcards):
     """Input function created just so we can switch-off motif analysis"""
     ret = {'cfce_logo':"cidc_chips/static/CFCE_Logo_Final.jpg",
-           'run_info':"analysis/peaks/run_info.txt",
-           'map_stat':"analysis/report/mapping.png",
-           'pbc_stat':"analysis/report/pbc.png",
-           'peakFoldChange_png':"analysis/report/peakFoldChange.png",
-           'conservPlots': sorted(_getRepInput("analysis/conserv/$runRep/$runRep_conserv_thumb.png")),
-           'samples_summary':"analysis/report/sequencingStatsSummary.csv",
-           'runs_summary':"analysis/report/peaksSummary.csv",
-           'contam_panel':"analysis/contam/contamination.csv",
+           'run_info':output_path + "/peaks/run_info.txt",
+           'map_stat':output_path + "/report/mapping.png",
+           'pbc_stat':output_path + "/report/pbc.png",
+           'peakFoldChange_png':output_path + "/report/peakFoldChange.png",
+           'conservPlots': sorted(_getRepInput(output_path + "/conserv/$runRep/$runRep_conserv_thumb.png")),
+           'samples_summary':output_path + "/report/sequencingStatsSummary.csv",
+           'runs_summary':output_path + "/report/peaksSummary.csv",
+           'contam_panel':output_path + "/contam/contamination.csv",
            #MOTIF handled after
-           'fastqc_stats':"analysis/fastqc/fastqc.csv",
-           'fastqc_gc_plots': expand("analysis/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"])
+           'fastqc_stats':output_path + "/fastqc/fastqc.csv",
+           'fastqc_gc_plots': expand(output_path + "/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"])
            }
     if 'motif' in config:
-        ret['motif'] = "analysis/motif/motifSummary.csv"
+        ret['motif'] = output_path + "/motif/motifSummary.csv"
     return ret
 
 
@@ -185,21 +185,21 @@ rule report:
         #OBSOLETE, but keeping around
         samples = config['samples']
    # conda: "../envs/report/report.yaml"
-    output: html="analysis/report/report.html"
+    output: html=output_path + "/report/report.html"
     run:
         (macsVersion, fdr) = processRunInfo(input.run_info)
         samplesSummaryTable = csvToSimpleTable(input.samples_summary)
         runsSummaryTable = csvToSimpleTable(input.runs_summary)
         #HACK b/c unpack is ruining the input.fastqc_gc_plots element--the list
         #becomes a singleton
-        conservPlots = sorted(_getRepInput("analysis/conserv/$runRep/$runRep_conserv_thumb.png"))
+        conservPlots = sorted(_getRepInput(output_path + "/conserv/$runRep/$runRep_conserv_thumb.png"))
         if 'motif' in config:
             peakSummitsTable = genPeakSummitsTable(conservPlots, input.motif)
         else:
             peakSummitsTable = genPeakSummitsTable(conservPlots, None)
         #HACK b/c unpack is ruining the input.fastqc_gc_plots element--the list
         #becomes a singleton
-        fastqc_gc_plots = ["analysis/fastqc/%s/%s_perSeqGC_thumb.png" % (s,s) for s in config['samples']]
+        fastqc_gc_plots = [output_path + "/fastqc/%s/%s_perSeqGC_thumb.png" % (s,s) for s in config['samples']]
         sampleGCandContam = sampleGCandContam_table(input.fastqc_stats, fastqc_gc_plots, input.contam_panel)
         git_commit_string = "XXXXXX"
         git_link = 'https://bitbucket.org/plumbers/cidc_chips/commits/'
@@ -215,11 +215,11 @@ rule report:
 
 rule samples_summary_table:
     input:
-        fastqc = "analysis/fastqc/fastqc.csv",
-        mapping = "analysis/align/mapping.csv",
-        pbc = "analysis/frips/pbc.csv",
+        fastqc = output_path + "/fastqc/fastqc.csv",
+        mapping = output_path + "/align/mapping.csv",
+        pbc = output_path + "/frips/pbc.csv",
     output:
-        "analysis/report/sequencingStatsSummary.csv"
+        output_path + "/report/sequencingStatsSummary.csv"
     log: _logfile
     #conda: "../envs/report/report.yaml"
     shell:
@@ -227,12 +227,12 @@ rule samples_summary_table:
 
 rule runs_summary_table:
     input:
-        peaks = "analysis/peaks/peakStats.csv",
-        frips = "analysis/frips/frips.csv",
-        dhs = "analysis/ceas/dhs.csv",
-        meta = "analysis/ceas/meta.csv",
+        peaks = output_path + "/peaks/peakStats.csv",
+        frips = output_path + "/frips/frips.csv",
+        dhs = output_path + "/ceas/dhs.csv",
+        meta = output_path + "/ceas/meta.csv",
     output:
-        "analysis/report/peaksSummary.csv"
+        output_path + "/report/peaksSummary.csv"
     log: _logfile
     #conda: "../envs/report/report.yaml"
     shell:
@@ -241,9 +241,9 @@ rule runs_summary_table:
 ######## PLOTS ######
 rule plot_map_stat:
     input:
-        "analysis/align/mapping.csv"
+        output_path + "/align/mapping.csv"
     output:
-        "analysis/report/mapping.png"
+        output_path + "/report/mapping.png"
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
@@ -251,10 +251,10 @@ rule plot_map_stat:
 
 rule plot_pbc_stat:
     input:
-        #"analysis/align/pbc.csv"
-        "analysis/frips/pbc.csv"
+        #output_path + "/align/pbc.csv"
+        output_path + "/frips/pbc.csv"
     output:
-        "analysis/report/pbc.png"
+        output_path + "/report/pbc.png"
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
@@ -262,9 +262,9 @@ rule plot_pbc_stat:
 
 rule plot_peakFoldChange:
     input: 
-        "analysis/peaks/peakStats.csv"
+        output_path + "/peaks/peakStats.csv"
     output:
-        "analysis/report/peakFoldChange.png"
+        output_path + "/report/peakFoldChange.png"
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
@@ -273,9 +273,9 @@ rule plot_peakFoldChange:
 #DEPRECATED!! this plot is no longer used!
 rule plot_nonChrM_stats:
     input:
-        "analysis/frips/nonChrM_stats.csv"
+        output_path + "/frips/nonChrM_stats.csv"
     output:
-        "analysis/report/attic/nonChrM_stats.png"
+        output_path + "/report/attic/nonChrM_stats.png"
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:

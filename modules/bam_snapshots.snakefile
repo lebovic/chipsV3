@@ -1,5 +1,5 @@
 #MODULE: bam_snapshots- takes bam read pile up snapshots for a set of genes
-# _logfile="analysis/logs/bam_snapshot.log"
+# _logfile=output_path + "/logs/bam_snapshot.log"
 
 #LIST of target genes and zoom factor
 _gene_list=[("ACTB",3),
@@ -13,7 +13,7 @@ def bam_snapshots_targets(wildcards):
     ls = []
     for sample in config["samples"]:
         for (gene, zoom_f) in _gene_list:
-            ls.append("analysis/bam_snapshots/%s/%s_%s_%sXzoom.png" % (sample,sample,gene,zoom_f))
+            ls.append(output_path + "/bam_snapshots/%s/%s_%s_%sXzoom.png" % (sample,sample,gene,zoom_f))
     return ls
 
 rule bam_snapshots_all:
@@ -23,11 +23,11 @@ rule bam_snapshots_all:
 rule bam_snapshot:
     """Generates a snapshot of a sample's read pileup in given gene"""
     input:
-        "analysis/align/{sample}/{sample}.sorted.bam"
+        output_path + "/align/{sample}/{sample}.sorted.bam"
     output:
-        "analysis/bam_snapshots/{sample}/{sample}_{gene}_{zoom_f}Xzoom.png"
+        output_path + "/bam_snapshots/{sample}/{sample}_{gene}_{zoom_f}Xzoom.png"
     message: "BAM_SNAPSHOT: generate snapshot for sample {wildcards.sample} in gene {wildcards.gene}"
-    # log: "analysis/logs/bam_snapshot/{sample}.log"
+    # log: output_path + "/logs/bam_snapshot/{sample}.log"
     conda: "../envs/bam_snapshots/bam_snapshots.yaml"
     params:
         isPaired= lambda wildcards: "TRUE" if len(config["samples"][wildcards.sample]) == 2 else "FALSE",

@@ -5,7 +5,7 @@
 #TODO: centralize these helper fns!
 
 #PARAMETERS:
-# _logfile="analysis/logs/frips.log"
+# _logfile=output_path + "/logs/frips.log"
 _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
@@ -17,15 +17,15 @@ def frips_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for sample in config["samples"]:
-        ls.append("analysis/frag/%s/%s_fragDist.png" % (sample,sample))
-        ls.append("analysis/frips/%s/%s_pbc.txt" % (sample,sample))
+        ls.append(output_path + "/frag/%s/%s_fragDist.png" % (sample,sample))
+        ls.append(output_path + "/frips/%s/%s_pbc.txt" % (sample,sample))
     for run in config["runs"].keys():
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
-            ls.append("analysis/frips/%s/%s_frip.txt" % (runRep,runRep))
-    ls.append("analysis/frips/pbc.csv")
-    ls.append("analysis/frips/nonChrM_stats.csv")
-    ls.append("analysis/frips/frips.csv")
+            ls.append(output_path + "/frips/%s/%s_frip.txt" % (runRep,runRep))
+    ls.append(output_path + "/frips/pbc.csv")
+    ls.append(output_path + "/frips/nonChrM_stats.csv")
+    ls.append(output_path + "/frips/frips.csv")
     return ls
 
 #NOTE: this takes the Treatment of the FIRST replicate!!!--ignores the rest!
@@ -35,7 +35,7 @@ def frip_getTreatBam(wildcards):
     #GET first treatement sample
     first = r[0]
     #print(first)
-    ret = "analysis/align/%s/%s_4M_nonChrM.bam" % (first, first)
+    ret = output_path + "/align/%s/%s_4M_nonChrM.bam" % (first, first)
     return ret
 
 rule frips_all:
@@ -48,18 +48,18 @@ rule create_nonChrM:
     """RULE that will generate the base file for both 
     4M_nonChrM.bam AND 4M_unique_nonChrM.bam so we save some redundancy here"""
     input:
-        "analysis/align/{sample}/{sample}.sorted.bam"
+        output_path + "/align/{sample}/{sample}.sorted.bam"
     params:
         #hack to get the regex in to filter out chrM, random, chrUn
         regex="\'/chrM/d;/random/d;/chrUn/d\'",
         #msg just for message below
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: creating the nonChrM SAM file {params.msg}"
-    log:"analysis/logs/frips/{sample}.log"
+    log:output_path + "/logs/frips/{sample}.log"
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:
-        temp('analysis/align/{sample}/{sample}_nonChrM.sam')
+        temp(output_path + '/align/{sample}/{sample}_nonChrM.sam')
     shell:
         "samtools view -@ {threads} -h {input} | sed -e {params.regex} > {output} 2>>{log}"
 
@@ -69,14 +69,14 @@ rule sample_4M_from_nonChrM:
     see '-s 21.5'
     """
     input:
-        'analysis/align/{sample}/{sample}_nonChrM.sam'
+        output_path + '/align/{sample}/{sample}_nonChrM.sam'
     params:
         n="4000000"
     message: "FRiPs: sample- 4M from non-chrM reads"
-    log:"analysis/logs/frips/{sample}.log"
+    log:output_path + "/logs/frips/{sample}.log"
     conda: "../envs/frips/frips.yaml"
     output:
-        temp('analysis/align/{sample}/{sample}_4M_nonChrM.bam')
+        temp(output_path + '/align/{sample}/{sample}_4M_nonChrM.bam')
     shell:
         """
         cidc_chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
@@ -87,16 +87,16 @@ rule create_unique_nonChrM:
     Filter out non-uniquely mapped reads from _nonChrM.sam
     """
     input:
-        "analysis/align/{sample}/{sample}_nonChrM.sam"
+        output_path + "/align/{sample}/{sample}_nonChrM.sam"
     params:
         #msg just for message below
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: create uniquely mapped non-chrM reads {params.msg}"
-    log:"analysis/logs/frips/{sample}.log"
+    log:output_path + "/logs/frips/{sample}.log"
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:
-        temp('analysis/align/{sample}/{sample}_unique_nonChrM.bam')
+        temp(output_path + '/align/{sample}/{sample}_unique_nonChrM.bam')
     shell:
         "samtools view -@ {threads} -b -h -F 4 {input} > {output} 2>>{log}"
 
@@ -106,16 +106,16 @@ rule sample_4M_from_uniqueNonChrM:
     see '-s 21.5'
     """
     input:
-        'analysis/align/{sample}/{sample}_unique_nonChrM.bam'
+        output_path + '/align/{sample}/{sample}_unique_nonChrM.bam'
     params:
         n="4000000",
         #msg just for message below
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads {params.msg}"
-    log:"analysis/logs/frips/{sample}.log"
+    log:output_path + "/logs/frips/{sample}.log"
     conda: "../envs/frips/frips.yaml"
     output:
-        temp('analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam')
+        temp(output_path + '/align/{sample}/{sample}_4M_unique_nonChrM.bam')
     shell:
         """
         cidc_chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
@@ -127,13 +127,13 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         #TODO: if there are more than 1 treatment, merge them??!
         input:
             treat=frip_getTreatBam,
-            bed="analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak",
+            bed=output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak",
         output:
-            "analysis/frips/{run}.{rep}/{run}.{rep}_frip.txt"
+            output_path + "/frips/{run}.{rep}/{run}.{rep}_frip.txt"
         params:
             pval="1E-9"
         message: "FRiPs: calculate frips"
-        # log:"analysis/logs/frips/{sample}.log"
+        # log:output_path + "/logs/frips/{sample}.log"
         conda: "../envs/frips/frips.yaml"
         shell:
             "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
@@ -143,13 +143,13 @@ else:
         #TODO: if there are more than 1 treatment, merge them??!
         input:
             treat=frip_getTreatBam,
-            bed="analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak",
+            bed=output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak",
         output:
-            "analysis/frips/{run}.{rep}/{run}.{rep}_frip.txt"
+            output_path + "/frips/{run}.{rep}/{run}.{rep}_frip.txt"
         params:
             pval="1E-9"
         message: "FRiPs: calculate frips"
-        # log:"analysis/logs/frips/{sample}.log"
+        # log:output_path + "/logs/frips/{sample}.log"
         conda: "../envs/frips/frips.yaml"
         shell:
             "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
@@ -160,14 +160,14 @@ rule frip_pbc:
     used to calculate N1, Nd, and PBC (for the report)
     """
     input:
-        "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
+        output_path + "/align/{sample}/{sample}_4M_unique_nonChrM.bam"
     output:
-        "analysis/frips/{sample}/{sample}_pbc.txt"
+        output_path + "/frips/{sample}/{sample}_pbc.txt"
     params:
         #msg just for message below
         msg= lambda wildcards: wildcards.sample
     message: "FRiP: generate PBC histogram for each sample/bam {params.msg}"
-    log: "analysis/logs/frips/{sample}.log"
+    log: output_path + "/logs/frips/{sample}.log"
     conda: "../envs/frips/frips.yaml"
     shell:
         "cidc_chips/modules/scripts/frips_pbc.sh -i {input} -o {output} " #2>> {log}"
@@ -175,13 +175,13 @@ rule frip_pbc:
 rule collect_pbc:
     """Collect and parse out the PBC for the ALL of the samples"""
     input:
-        expand("analysis/frips/{sample}/{sample}_pbc.txt", sample=sorted(config["samples"]))
+        expand(output_path + "/frips/{sample}/{sample}_pbc.txt", sample=sorted(config["samples"]))
     output:
-        "analysis/frips/pbc.csv"
+        output_path + "/frips/pbc.csv"
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "ALIGN: collect and parse ALL pbc stats"
-    # log: "analysis/logs/frips/{sample}.log"
+    # log: output_path + "/logs/frips/{sample}.log"
     conda: "../envs/frips/frips.yaml"
     # run:
     #     files = " -f ".join(input)
@@ -194,14 +194,14 @@ rule nonChrM_stats:
     input:
         #NOTE: uniq_bam is generated in align_common module-
         #HACK- taking advantage that this module is loaded AFTER align_common
-        uniq_bam="analysis/align/{sample}/{sample}_unique.bam",
-        nonChrM_bam="analysis/align/{sample}/{sample}_unique_nonChrM.bam"
+        uniq_bam=output_path + "/align/{sample}/{sample}_unique.bam",
+        nonChrM_bam=output_path + "/align/{sample}/{sample}_unique_nonChrM.bam"
     output:
         #NOTE: CHIPS-RESUME- IT's better to keep this file around, b/c
         #it's inputs are both temp files that are hard to generate
-        "analysis/align/{sample}/{sample}_nonChrM_stat.txt"
+        output_path + "/align/{sample}/{sample}_nonChrM_stat.txt"
     message: "ALIGN: get nonChrM mapping stats for each bam"
-    log: "analysis/logs/frips/{sample}.log"
+    log: output_path + "/logs/frips/{sample}.log"
     params:
         sam_th = _samtools_threads / 2
     threads: _samtools_threads
@@ -215,11 +215,11 @@ rule nonChrM_stats:
 rule collect_nonChrM_stats:
     """Aggregate all nonChrM stats for ALL of the samples"""
     input:
-        expand("analysis/align/{sample}/{sample}_nonChrM_stat.txt", sample=sorted(config["samples"]))
+        expand(output_path + "/align/{sample}/{sample}_nonChrM_stat.txt", sample=sorted(config["samples"]))
     output:
-        "analysis/frips/nonChrM_stats.csv"
+        output_path + "/frips/nonChrM_stats.csv"
     message: "FRiPs: collect and parse ALL nonChrM stats"
-    # log: "analysis/logs/frips/{sample}.log"
+    # log: output_path + "/logs/frips/{sample}.log"
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     conda: "../envs/frips/frips.yaml"
@@ -234,15 +234,15 @@ rule get_SampleFragLength:
     frag/{sample}/{sample}_frags.txt, so we can generate the distribution plot in make_FragPlot
     """
     input:
-        "analysis/align/{sample}/{sample}_unique.sorted.bam"
+        output_path + "/align/{sample}/{sample}_unique.sorted.bam"
     params:
         awk_cmd = """awk ' $1 <= 1000 && $1 > 0 '"""
     message: "FRAG: get fragment sizes"
-    log:"analysis/logs/frips/{sample}.log"
+    log:output_path + "/logs/frips/{sample}.log"
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:
-        temp("analysis/frag/{sample}/{sample}_frags.txt")
+        temp(output_path + "/frag/{sample}/{sample}_frags.txt")
     shell:
         #GRAB out the 9th column, ensuring it's in 1-1000
         "samtools view -@ {threads} {input} | cut -f 9 | {params.awk_cmd} > {output} " #2>>{log}"
@@ -252,29 +252,29 @@ rule make_FragPlot:
     generate the R plot by running frag_plotFragDist.R on _frags.txt
     """
     input:
-        "analysis/frag/{sample}/{sample}_frags.txt"
+        output_path + "/frag/{sample}/{sample}_frags.txt"
     params:
         name= lambda wildcards: wildcards.sample
     message: "FRAG: plot fragment size distribution plot"
-    log:"analysis/logs/frips/{sample}.log"
+    log:output_path + "/logs/frips/{sample}.log"
     conda: "../envs/frips/frips.yaml"
     output:
-        "analysis/frag/{sample}/{sample}_fragDist.png"
+        output_path + "/frag/{sample}/{sample}_fragDist.png"
     shell:
         #RUN the R script to get the plot
         "cidc_chips/modules/scripts/frag_plotFragDist.R {input} {output} {params.name} " #2>>{log}"
     
 rule getFripStats:
-    """Collect the frips statistics from analysis/frips/{run}/{run}_frip.txt"""
+    """Collect the frips statistics fromoutput_path +  /frips/{run}/{run}_frip.txt"""
     input:
         #Generalized INPUT fn defined in chips.snakefile
-        _getRepInput("analysis/frips/$runRep/$runRep_frip.txt")
+        _getRepInput(output_path + "/frips/$runRep/$runRep_frip.txt")
     output:
-        "analysis/frips/frips.csv"
+        output_path + "/frips/frips.csv"
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "FRiPs: collecting frips stats for each run"
-    # log:"analysis/logs/frips/{sample}.log"
+    # log:output_path + "/logs/frips/{sample}.log"
     conda: "../envs/frips/frips.yaml"
     # run:
     #     files = " -f ".join(input)

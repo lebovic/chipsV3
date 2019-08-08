@@ -6,17 +6,17 @@ def align_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     for sample in config["samples"]:
-        ls.append("analysis/align/%s/%s.sorted.bam" % (sample,sample))
-        ls.append("analysis/align/%s/%s.sorted.bam.bai" % (sample,sample))
-        ls.append("analysis/align/%s/%s_unique.sorted.bam" % (sample,sample))
-        ls.append("analysis/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
-        ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
-        ls.append("analysis/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
+        ls.append(output_path + "/align/%s/%s.sorted.bam" % (sample,sample))
+        ls.append(output_path + "/align/%s/%s.sorted.bam.bai" % (sample,sample))
+        ls.append(output_path + "/align/%s/%s_unique.sorted.bam" % (sample,sample))
+        ls.append(output_path + "/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
+        ls.append(output_path + "/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
+        ls.append(output_path + "/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
         if len(config["samples"][sample]) > 1 and ('cutoff' in config) and config['cutoff']:
-            ls.append("analysis/align/%s/%s_unique.sorted.dedup.sub%s.bam"%(sample,sample,config['cutoff']))
-        ls.append("analysis/align/%s/%s.unmapped.fq.gz" % (sample,sample))
-        ls.append("analysis/align/%s/%s_readsPerChrom.txt" % (sample,sample))
-    ls.append("analysis/align/mapping.csv")
+            ls.append(output_path + "/align/%s/%s_unique.sorted.dedup.sub%s.bam"%(sample,sample,config['cutoff']))
+        ls.append(output_path + "/align/%s/%s.unmapped.fq.gz" % (sample,sample))
+        ls.append(output_path + "/align/%s/%s_readsPerChrom.txt" % (sample,sample))
+    ls.append(output_path + "/align/mapping.csv")
     return ls
 
 
@@ -27,7 +27,7 @@ def getBam(wildcards):
     #CHECK first entry's file suffix
     s = wildcards.sample
     first_file = config["samples"][wildcards.sample][0]
-    ret = "analysis/align/%s/%s.bam" % (s,s)
+    ret = output_path + "/align/%s/%s.bam" % (s,s)
     if first_file.endswith('.bam'):
         #CLEANER to check for .bam vs (.fastq, fq, fq.gz, etc)
         ret = first_file
@@ -50,13 +50,13 @@ rule align_all:
 checkpoint uniquely_mapped_reads:
     """Get the uniquely mapped reads"""
     input:
-        #"analysis/align/{sample}/{sample}.bam"
+        #output_path + "/align/{sample}/{sample}.bam"
         # getBam
-        "analysis/align/{sample}/{sample}.sorted.bam"
+        output_path + "/align/{sample}/{sample}.sorted.bam"
     output:
-        temp("analysis/align/{sample}/{sample}_unique.bam")
+        temp(output_path + "/align/{sample}/{sample}_unique.bam")
     message: "ALIGN: Filtering for uniquely mapped reads"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     threads: _align_threads
     conda: "../envs/align/align_common.yaml"
     shell:
@@ -68,16 +68,16 @@ checkpoint uniquely_mapped_reads:
 rule map_stats:
     """Get the mapping stats for each aligment run"""
     input:
-        #bam="analysis/align/{sample}/{sample}.bam",
+        #bam=output_path + "/align/{sample}/{sample}.bam",
         # bam=getBam,
-        bam="analysis/align/{sample}/{sample}.sorted.bam",
-        uniq_bam="analysis/align/{sample}/{sample}_unique.bam"
+        bam=output_path + "/align/{sample}/{sample}.sorted.bam",
+        uniq_bam=output_path + "/align/{sample}/{sample}_unique.bam"
     output:
-        #temp("analysis/align/{sample}/{sample}_mapping.txt")
-        "analysis/align/{sample}/{sample}_mapping.txt"
+        #temp(output_path + "/align/{sample}/{sample}_mapping.txt")
+        output_path + "/align/{sample}/{sample}_mapping.txt"
     threads: _align_threads
     message: "ALIGN: get mapping stats for each bam"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     #CAN/should samtools view be multi-threaded--
     #UPDATE: tricky on how to do this right w/ compounded commands
@@ -91,13 +91,13 @@ rule collect_map_stats:
     """Collect and parse out the mapping stats for the ALL of the samples"""
     input:
         #samples sorted to match order of rest of report
-        expand("analysis/align/{sample}/{sample}_mapping.txt", sample=sorted(config["samples"]))
+        expand(output_path + "/align/{sample}/{sample}_mapping.txt", sample=sorted(config["samples"]))
     output:
-        "analysis/align/mapping.csv"
+        output_path + "/align/mapping.csv"
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "ALIGN: collect and parse ALL mapping stats"
-    # log: "analysis/logs/align/{sample}.log"
+    # log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     #NOTE: can't do conda envs with run
     #run:
@@ -110,13 +110,13 @@ rule sortBams:
     """General sort rule--take a bam {filename}.bam and 
     output {filename}.sorted.bam"""
     input:
-        #"analysis/align/{sample}/{filename}.bam"
+        #output_path + "/align/{sample}/{filename}.bam"
         getBam
     output:
-        "analysis/align/{sample}/{sample}.sorted.bam",
-        #"analysis/align/{sample}/{sample}.sorted.bam.bai"
+        output_path + "/align/{sample}/{sample}.sorted.bam",
+        #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
     message: "ALIGN: sort bam file"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     params:
         memory = lambda wildcards: getSortMemory(wildcards)
@@ -128,13 +128,13 @@ rule sortUniqueBams:
     """General sort rule--take a bam {filename}.bam and 
     output {filename}.sorted.bam"""
     input:
-        "analysis/align/{sample}/{sample}_unique.bam"
+        output_path + "/align/{sample}/{sample}_unique.bam"
     output:
         #CANNOT temp this b/c it's used by qdnaseq!
-        "analysis/align/{sample}/{sample}_unique.sorted.bam",
-        #"analysis/align/{sample}/{sample}_unique.sorted.bam.bai"
+        output_path + "/align/{sample}/{sample}_unique.sorted.bam",
+        #output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai"
     message: "ALIGN: sort bam file"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     params:
         memory = lambda wildcards: getUniqueSortMemory(wildcards)
@@ -146,13 +146,13 @@ if "sentieon" in config and config["sentieon"]:
     rule scoreSample:
         "Calls sentieon driver  --fun score_info on the sample"
         input:
-            bam="analysis/align/{sample}/{sample}_unique.sorted.bam",
-            bai="analysis/align/{sample}/{sample}_unique.sorted.bam.bai",
+            bam=output_path + "/align/{sample}/{sample}_unique.sorted.bam",
+            bai=output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai",
         output:   
-            score=temp("analysis/align/{sample}/{sample}_unique.sorted.score.txt"),
-            idx=temp("analysis/align/{sample}/{sample}_unique.sorted.score.txt.idx"),
+            score=temp(output_path + "/align/{sample}/{sample}_unique.sorted.score.txt"),
+            idx=temp(output_path + "/align/{sample}/{sample}_unique.sorted.score.txt.idx"),
         message: "ALIGN: score sample"
-        log: "analysis/logs/align/{sample}/align.scoreSample.{sample}.log"
+        log: output_path + "/logs/align/{sample}/align.scoreSample.{sample}.log"
         threads: _align_threads
         params:
             sentieon=config['sentieon'],
@@ -166,15 +166,15 @@ if "sentieon" in config and config["sentieon"]:
         """Dedup sorted unique bams using sentieon
          output {sample}_unique.sorted.dedup.bam"""
         input:
-            bam="analysis/align/{sample}/{sample}_unique.sorted.bam",
-            bai="analysis/align/{sample}/{sample}_unique.sorted.bam.bai",
-            score="analysis/align/{sample}/{sample}_unique.sorted.score.txt",
-            idx="analysis/align/{sample}/{sample}_unique.sorted.score.txt.idx"
+            bam=output_path + "/align/{sample}/{sample}_unique.sorted.bam",
+            bai=output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai",
+            score=output_path + "/align/{sample}/{sample}_unique.sorted.score.txt",
+            idx=output_path + "/align/{sample}/{sample}_unique.sorted.score.txt.idx"
         output:
-            bamm="analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
-            met=temp("analysis/align/{sample}/{sample}_unique.sorted.dedup.metric.txt"),
+            bamm=output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam",
+            met=temp(output_path + "/align/{sample}/{sample}_unique.sorted.dedup.metric.txt"),
         message: "ALIGN: dedup sorted unique bam file"
-        log: "analysis/logs/align/{sample}/align.dedupSortedUniqueBam.{sample}.log"
+        log: output_path + "/logs/align/{sample}/align.dedupSortedUniqueBam.{sample}.log"
         threads: _align_threads
         params:
             sentieon=config['sentieon'],
@@ -189,12 +189,12 @@ else:
         """Dedup sorted unique bams using PICARD
         output {sample}_unique.sorted.dedup.bam"""
         input:
-            "analysis/align/{sample}/{sample}_unique.sorted.bam"
+            output_path + "/align/{sample}/{sample}_unique.sorted.bam"
         output:
-            bam = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam",
-            # bai = "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
+            bam = output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam",
+            # bai = output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
         message: "ALIGN: dedup sorted unique bam file"
-        log: "analysis/logs/align/{sample}.log"
+        log: output_path + "/logs/align/{sample}.log"
         conda: "../envs/align/align_common.yaml"
         threads: _align_threads
         shell:
@@ -204,11 +204,11 @@ else:
 rule filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""
     input:
-        "analysis/align/{sample}/{sample}_unique.sorted.dedup.bam"
+        output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam"
     output:
-        "analysis/align/{sample}/{sample}_unique.sorted.dedup.sub%s.bam" % str(config['cutoff'])
+        output_path + "/align/{sample}/{sample}_unique.sorted.dedup.sub%s.bam" % str(config['cutoff'])
     message: "ALIGN: filter bam files"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     params:
         cutoff = config['cutoff']
     conda: "../envs/align/align_common.yaml"
@@ -218,11 +218,11 @@ rule filterBams:
 rule indexBam:
     """Index bam file"""
     input:
-        "analysis/align/{sample}/{prefix}.bam"
+        output_path + "/align/{sample}/{prefix}.bam"
     output:
-        "analysis/align/{sample}/{prefix}.bam.bai"
+        output_path + "/align/{sample}/{prefix}.bam.bai"
     message: "ALIGN: indexing bam file {input}"
-    # log: "analysis/logs/align/{sample}.log"
+    # log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "sambamba index {input} {output}"
@@ -230,13 +230,13 @@ rule indexBam:
 rule extractUnmapped:
     """Extract the unmapped reads and save as {sample}.unmapped.bam"""
     input:
-        #"analysis/align/{sample}/{sample}.bam"
+        #output_path + "/align/{sample}/{sample}.bam"
         # getBam
-        "analysis/align/{sample}/{sample}.sorted.bam"
+        output_path + "/align/{sample}/{sample}.sorted.bam"
     output:
-        temp("analysis/align/{sample}/{sample}.unmapped.bam")
+        temp(output_path + "/align/{sample}/{sample}.unmapped.bam")
     message: "ALIGN: extract unmapped reads"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
@@ -250,14 +250,14 @@ rule extractUnmapped:
 rule bamToFastq:
     """Convert the unmapped.bam to fastq"""
     input:
-        "analysis/align/{sample}/{sample}.unmapped.bam"
+        output_path + "/align/{sample}/{sample}.unmapped.bam"
     output:
-        "analysis/align/{sample}/{sample}.unmapped.fq"
+        output_path + "/align/{sample}/{sample}.unmapped.fq"
     params:
         #handle PE alignments!
-        mate2 = lambda wildcards: "-fq2 analysis/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
+        mate2 = lambda wildcards: "-fq2 " + output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: convert unmapped bam to fastq"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} {params.mate2}"
@@ -265,14 +265,14 @@ rule bamToFastq:
 rule gzipUnmappedFq:
     """gzip unmapped fq(s)"""
     input:
-        "analysis/align/{sample}/{sample}.unmapped.fq"
+        output_path + "/align/{sample}/{sample}.unmapped.fq"
     output:
-        "analysis/align/{sample}/{sample}.unmapped.fq.gz"
+        output_path + "/align/{sample}/{sample}.unmapped.fq.gz"
     params:
         #handle PE alignments!
-        mate2 = lambda wildcards: "analysis/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
+        mate2 = lambda wildcards: output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: gzip unmapped fq files"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "gzip {input} {params} 2>>{log}"
@@ -284,15 +284,15 @@ rule readsPerChromStat:
     chrX   #readsOnChrX
     """
     input:
-        bam = "analysis/align/{sample}/{sample}.sorted.bam",
+        bam = output_path + "/align/{sample}/{sample}.sorted.bam",
         #NOTE: even though we don't use the bai, we need to ensure bam sorted
-        bai = "analysis/align/{sample}/{sample}.sorted.bam.bai"
+        bai = output_path + "/align/{sample}/{sample}.sorted.bam.bai"
     params:
         awk_call = """awk '{print $1 \"\\t\" $3; s+=$3} END {print \"total reads = \" s}'"""
     output:
-        "analysis/align/{sample}/{sample}_readsPerChrom.txt"
+        output_path + "/align/{sample}/{sample}_readsPerChrom.txt"
     message: "ALIGN: collecting the number of reads per chrom"
-    log: "analysis/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
         "cidc_chips/modules/scripts/align_readsPerChrom.sh -a {input.bam} > {output} 2>> {log}"

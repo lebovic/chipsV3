@@ -1,7 +1,7 @@
 #MODULE: motif module--uses MDSeqPos.py to perform motif analysis and generate 
 #motif table
 import subprocess
-# _logfile="analysis/logs/motif.log"
+# _logfile=output_path + "/logs/motif.log"
 
 _minPeaks = 500
 
@@ -13,10 +13,10 @@ def motif_targets(wildcards):
         for rep in _reps[run]:
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
-            # ls.append("analysis/motif/%s/" % runRep)
-            ls.append("analysis/motif/%s/results/mdseqpos_index.html" % runRep)
-            ls.append("analysis/motif/%s/results/motif_list.json" % runRep)
-    ls.append("analysis/motif/motifSummary.csv")
+            # ls.append(output_path + "/motif/%s/" % runRep)
+            ls.append(output_path + "/motif/%s/results/mdseqpos_index.html" % runRep)
+            ls.append(output_path + "/motif/%s/results/motif_list.json" % runRep)
+    ls.append(output_path + "/motif/motifSummary.csv")
     return ls
 
 rule motif_all:
@@ -50,16 +50,17 @@ rule motif:
     """call MDSeqpos on top 5k summits"""
     input:
         #KEY: Since motif analysis is costly, we're only running it on rep1
-        bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
+        bed = output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
-        # path=directory("analysis/motif/{run}.{rep}/"),
-        # results="analysis/motif/{run}.{rep}/results",
-        html="analysis/motif/{run}.{rep}/results/mdseqpos_index.html",
-        json="analysis/motif/{run}.{rep}/results/motif_list.json",
+        # path=directory(output_path + "/motif/{run}.{rep}/"),
+        # results=output_path + "/motif/{run}.{rep}/results",
+        html=output_path + "/motif/{run}.{rep}/results/mdseqpos_index.html",
+        json=output_path + "/motif/{run}.{rep}/results/motif_list.json",
     params:
         genome=config['motif_path'],
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        runName="{run}.{rep}"
+        runName="{run}.{rep}",
+        main_output_path = output_path
     message: "MOTIF: calling MDSeqPos on top 5k summits"
     # log: _logfile
     run:
@@ -70,7 +71,7 @@ rule motif:
         wc = int(wc[2:-1].split()[0])
         if wc >= _minPeaks:
             #PASS- run motif scan
-            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O analysis/motif/{params.runName}/results") #1>>{log}")
+            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O {params.main_output_path}/motif/{params.runName}/results") #1>>{log}")
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html, output.json)
@@ -78,9 +79,9 @@ rule motif:
 rule getMotifSummary:
     """Summarize the top hits for each run into a file"""
     input:
-        _getRepInput("analysis/motif/$runRep/results/motif_list.json")
+        _getRepInput(output_path + "/motif/$runRep/results/motif_list.json")
     output:
-        "analysis/motif/motifSummary.csv"
+        output_path + "/motif/motifSummary.csv"
     message: "MOTIF: summarizing motif runs"
     # log: _logfile
     params:

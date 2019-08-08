@@ -1,6 +1,6 @@
 #MODULE: homer motif module--performs motif analysis and generates motif table
 import subprocess
-# _logfile="analysis/logs/motif.log"
+# _logfile=output_path + "/logs/motif.log"
 _threads=8
 _minPeaks = 500
 
@@ -11,12 +11,12 @@ def motif_targets(wildcards):
     for run in config["runs"].keys():
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
-            # ls.append("analysis/motif/%s/" % runRep)
-            ls.append("analysis/motif/%s/results/homerResults.html" % runRep)
-            ls.append("analysis/peaks/%s/%s_annotatePeaks.txt" % (runRep,runRep))
-            ls.append("analysis/peaks/%s/%s_annotatePeaks.tsv" % (runRep,runRep))
-            ls.append("analysis/peaks/%s/%s_annotatePeaks.csv" % (runRep,runRep))
-    #ls.append("analysis/motif/motifSummary.csv")
+            # ls.append(output_path + "/motif/%s/" % runRep)
+            ls.append(output_path + "/motif/%s/results/homerResults.html" % runRep)
+            ls.append(output_path + "/peaks/%s/%s_annotatePeaks.txt" % (runRep,runRep))
+            ls.append(output_path + "/peaks/%s/%s_annotatePeaks.tsv" % (runRep,runRep))
+            ls.append(output_path + "/peaks/%s/%s_annotatePeaks.csv" % (runRep,runRep))
+    #ls.append(output_path + "/motif/motifSummary.csv")
     return ls
 
 rule motif_all:
@@ -38,18 +38,18 @@ def _createEmptyMotif(motif_html):
 rule motif_homer:
     """call HOMER on top 5k summits"""
     input:
-        bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
+        bed = output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
-        # path=directory("analysis/motif/{run}.{rep}/"),
-        # results=directory("analysis/motif/{run}.{rep}/results"),
-        html="analysis/motif/{run}.{rep}/results/homerResults.html",
+        # path=directory(output_path + "/motif/{run}.{rep}/"),
+        # results=directory(output_path + "/motif/{run}.{rep}/results"),
+        html=output_path + "/motif/{run}.{rep}/results/homerResults.html",
     params:
         genome=config['motif_path'],
         size=600,
-        results=lambda wildcards: "analysis/motif/%s.%s/results" % (wildcards.run,wildcards.rep)
+        results=lambda wildcards: output_path + "/motif/%s.%s/results" % (wildcards.run,wildcards.rep)
     message: "MOTIF: calling HOMER on top 5k summits"
     threads:_threads
-    log: "analysis/logs/motif/{run}.{rep}.log"
+    log: output_path + "/logs/motif/{run}.{rep}.log"
     #conda: "../envs/motif/motif.yaml"
     run:
         #check to see if _sorted_5k_summits.bed is valid
@@ -69,11 +69,11 @@ rule getMotifSummary:
     """Summarize the top hits for each run into a file"""
     input:
         #Generalized INPUT fn defined in chips.snakefile
-        _getRepInput("analysis/motif/$runRep/results/homerResults.html")
+        _getRepInput(output_path + "/motif/$runRep/results/homerResults.html")
     output:
-        "analysis/motif/motifSummary.csv"
+        output_path + "/motif/motifSummary.csv"
     message: "MOTIF: summarizing motif runs"
-    # log: "analysis/logs/motif/{run}.{rep}.log"
+    # log: output_path + "/logs/motif/{run}.{rep}.log"
     params:
         files = lambda wildcards, input: [" -m %s" % i for i in input]
     conda: "../envs/motif/motif.yaml"
@@ -88,13 +88,13 @@ rule homer_annotatePeaks:
     NOTE: only for motif_homer modules
     """
     input:
-        bed = "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        bed = output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     output:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
     params:
         genome=config['motif_path'],
     message: "MOTIF: homer annotatePeaks"
-    log: "analysis/logs/motif/{run}.{rep}.log"
+    log: output_path + "/logs/motif/{run}.{rep}.log"
     #conda: "../envs/motif/motif.yaml"
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
@@ -102,12 +102,12 @@ rule homer_annotatePeaks:
 rule homer_processAnnPeaks:
     """Process peaks/{run}/{run}_annotatePeaks.txt files"""
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"
     output:
-        tsv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.tsv",
-        csv="analysis/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.csv",
+        tsv=output_path + "/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.tsv",
+        csv=output_path + "/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.csv",
     message: "MOTIF: Post-process homer annotatePeaks.txt file"
-    log: "analysis/logs/motif/{run}.{rep}.log"
+    log: output_path + "/logs/motif/{run}.{rep}.log"
     #conda: "../envs/motif/motif.yaml"
     shell:
         "cidc_chips/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"

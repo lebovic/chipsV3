@@ -1,5 +1,5 @@
 #MODULE: CEAS- annotating where the peaks fall (promoter, exon, intron, interg)
-# _logfile="analysis/logs/ceas.log"
+# _logfile=output_path + "/logs/ceas.log"
 
 #NOTE: using the _refs from chips.snakefile
 def ceas_targets(wildcards):
@@ -9,23 +9,23 @@ def ceas_targets(wildcards):
         for rep in _reps[run]:
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
-            ls.append("analysis/ceas/%s/%s_summary.txt" % (runRep,runRep))
-            ls.append("analysis/ceas/%s/%s_DHS_peaks.bed" % (runRep,runRep))
-            ls.append("analysis/ceas/%s/%s_DHS_stats.txt" % (runRep,runRep))
-            ls.append("analysis/ceas/%s/%s_velcro_peaks.bed" % (runRep,runRep))
-            ls.append("analysis/ceas/%s/%s_velcro_stats.txt" % (runRep,runRep))
-            ls.append("analysis/ceas/%s/%s_DHS_summary.dhs" % (runRep,runRep))
+            ls.append(output_path + "/ceas/%s/%s_summary.txt" % (runRep,runRep))
+            ls.append(output_path + "/ceas/%s/%s_DHS_peaks.bed" % (runRep,runRep))
+            ls.append(output_path + "/ceas/%s/%s_DHS_stats.txt" % (runRep,runRep))
+            ls.append(output_path + "/ceas/%s/%s_velcro_peaks.bed" % (runRep,runRep))
+            ls.append(output_path + "/ceas/%s/%s_velcro_stats.txt" % (runRep,runRep))
+            ls.append(output_path + "/ceas/%s/%s_DHS_summary.dhs" % (runRep,runRep))
     #ADD bam_regionStats
     for sample in config["samples"]:
         if config['exons']:
-            ls.append("analysis/ceas/samples/%s/%s.exons" % (sample,sample))
+            ls.append(output_path + "/ceas/samples/%s/%s.exons" % (sample,sample))
         if config['promoters']:
-            ls.append("analysis/ceas/samples/%s/%s.promoters" % (sample,sample))
+            ls.append(output_path + "/ceas/samples/%s/%s.promoters" % (sample,sample))
         if config['DHS']:
-            ls.append("analysis/ceas/samples/%s/%s.DHS" % (sample,sample))
-    ls.append("analysis/ceas/samples/bamRegionStats.csv")
-    ls.append("analysis/ceas/dhs.csv")
-    ls.append("analysis/ceas/meta.csv")
+            ls.append(output_path + "/ceas/samples/%s/%s.DHS" % (sample,sample))
+    ls.append(output_path + "/ceas/samples/bamRegionStats.csv")
+    ls.append(output_path + "/ceas/dhs.csv")
+    ls.append(output_path + "/ceas/meta.csv")
     return ls
 
 def collect_BamRegionStats_dirs(file_paths):
@@ -39,9 +39,9 @@ def ceasInput(wildcards):
     rep = wildcards.rep
     runRep = "%s.%s" % (run,rep)
     if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
-        temp = "analysis/peaks/%s/%s_peaks.bed" % (runRep,runRep)
+        temp = output_path + "/peaks/%s/%s_peaks.bed" % (runRep,runRep)
     else:
-        temp = "analysis/peaks/%s/%s_summits.bed" % (runRep,runRep)
+        temp = output_path + "/peaks/%s/%s_summits.bed" % (runRep,runRep)
     return temp
 
 rule ceas_all:
@@ -51,21 +51,21 @@ rule ceas_all:
 rule ceas:
     """Annotate peak regions"""
     input:
-        # "analysis/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
-        # "analysis/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
+        # output_path + "/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
+        # output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
         ceasInput
     output:
-        promoter="analysis/ceas/{run}.{rep}/{run}.{rep}_summits_promoter.bed",
-        exon="analysis/ceas/{run}.{rep}/{run}.{rep}_summits_exon.bed",
-        intron="analysis/ceas/{run}.{rep}/{run}.{rep}_summits_intron.bed",
-        intergenic="analysis/ceas/{run}.{rep}/{run}.{rep}_summits_intergenic.bed",
-        summary="analysis/ceas/{run}.{rep}/{run}.{rep}_summary.txt",
+        promoter=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summits_promoter.bed",
+        exon=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summits_exon.bed",
+        intron=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summits_intron.bed",
+        intergenic=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summits_intergenic.bed",
+        summary=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt",
     message: "CEAS: annotating peak regions"
-    log: "analysis/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     params:
         db=config['geneTable'],
-        path="analysis/ceas/{run}.{rep}/",
+        path=output_path + "/ceas/{run}.{rep}/",
         name= "{run}.{rep}_summits",
     shell:
         #TWO ways to run bedAnnotate: w/ basename param (-n) or w/o
@@ -77,14 +77,14 @@ rule ceas:
 rule takeTop5k:
     """Take the top 5000 sites"""
     input:
-        "analysis/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     params:
         n=5000
     message: "DHS: Take top sites"
-    log: "analysis/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        temp('analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed')
+        temp(output_path + '/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed')
     shell:
         "head -n {params.n} {input} > {output} " #2>>{log}"
 
@@ -92,15 +92,15 @@ rule takeTop5k:
 rule DHS_intersectDHS:
     """Intersect PEAKS with DHS regions"""
     input:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed'
     params:
         #check for config['DHS'] defined, otherwise, use null
         dhs=config['DHS'] if config['DHS'] else "/dev/null"
     message: "DHS: intersect PEAKS with DHS regions"
-    log: "analysis/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
     shell:
         "intersectBed -wa -u -a {input} -b {params.dhs} > {output} " #2>>{log}"
     #run:
@@ -117,24 +117,24 @@ rule DHS_intersectDHS:
 rule DHS_stat:
     """collect DHS stats"""
     input:
-        n='analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed',
-        dhs='analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
+        n=output_path + '/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed',
+        dhs=output_path + '/ceas/{run}.{rep}/{run}.{rep}_DHS_peaks.bed'
     message: "DHS: collecting stats"
-    log: "analysis/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
     shell:
         "wc -l {input.n} {input.dhs} > {output} " #2>>{log}"
 
 rule DHS_summary:
     """get DHS summary"""
     input:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_DHS_stats.txt'
     output:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_DHS_summary.dhs'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_DHS_summary.dhs'
     message: "DHS: collecting stats"
-    log: "analysis/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     shell:
         """cat {input} | awk '{{printf"%s,", $1}}' > {output}"""
@@ -143,15 +143,15 @@ rule DHS_summary:
 rule VELCRO_intersectVelcro:
     """Intersect PEAKS with velcro regions"""
     input:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed'
     params:
         #CHECK for if config is set, otherwise use /dev/null
         velcro=config['velcro_regions'] if config['velcro_regions'] else "/dev/null"
     message: "VELCRO: intersect PEAKS with velcro regions"
-    log: "analysis/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
     shell:
         #NOTE: if no velcro defined, then maybe we should print out warning
         "intersectBed -wa -u -a {input} -b {params.velcro} > {output} " # 2>>{log}"
@@ -166,13 +166,13 @@ rule VELCRO_intersectVelcro:
 rule VELCRO_stat:
     """collect VELCRO stats"""
     input:
-        n='analysis/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed',
-        velcro='analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
+        n=output_path + '/ceas/{run}.{rep}/{run}.{rep}_sorted_5k_peaks.bed',
+        velcro=output_path + '/ceas/{run}.{rep}/{run}.{rep}_velcro_peaks.bed'
     message: "VELCRO: collecting stats"
-    log: "analysis/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        'analysis/ceas/{run}.{rep}/{run}.{rep}_velcro_stats.txt'
+        output_path + '/ceas/{run}.{rep}/{run}.{rep}_velcro_stats.txt'
     shell:
         "wc -l {input.n} {input.velcro} > {output}" # 2>>{log}"
 
@@ -180,17 +180,17 @@ rule bam_regionStat:
     """count the number of reads in promoter, exon, dhs--these regions
     are defined in the config.yaml"""
     input:
-        "analysis/align/{sample}/{sample}_4M_unique_nonChrM.bam"
+        output_path + "/align/{sample}/{sample}_4M_unique_nonChrM.bam"
     params:
         bed = lambda wildcards: config[wildcards.region],
         #for use in message only
         msg = lambda wildcards: "%s:%s" % (wildcards.sample, wildcards.region)
     message: "CEAS: bam stat region {params.msg}"
-    # log: "analysis/logs/ceas/{run}.{rep}.log"
+    # log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
         #make temp
-        'analysis/ceas/samples/{sample}/{sample}.{region}'
+        output_path + '/ceas/samples/{sample}/{sample}.{region}'
     shell:
         "cidc_chips/modules/scripts/meta_bamRegionCount.sh -i {input} -b {params.bed} -o {output}" # 2>> {log}"
 
@@ -200,16 +200,16 @@ rule collect_BamRegionStats:
         #INPUT the stats directories--
         #hack just add all of the file so we dont get a missing input exception
         #and collect the directories down below
-        dhs = expand("analysis/ceas/samples/{sample}/{sample}.DHS", sample=config['samples']),
-        prom = expand("analysis/ceas/samples/{sample}/{sample}.promoters", sample=config['samples']),
-        exon = expand("analysis/ceas/samples/{sample}/{sample}.exons", sample=config['samples'])
+        dhs = expand(output_path + "/ceas/samples/{sample}/{sample}.DHS", sample=config['samples']),
+        prom = expand(output_path + "/ceas/samples/{sample}/{sample}.promoters", sample=config['samples']),
+        exon = expand(output_path + "/ceas/samples/{sample}/{sample}.exons", sample=config['samples'])
     params:
         dirs = lambda wildcards,input: collect_BamRegionStats_dirs(input.exon)
     message: "CEAS: collect bam region stats"
-    # log: "analysis/logs/ceas/{run}.{rep}.log"
+    # log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        'analysis/ceas/samples/bamRegionStats.csv'
+        output_path + '/ceas/samples/bamRegionStats.csv'
     shell:
         "cidc_chips/modules/scripts/ceas_collectBamRegStats.py {params.dirs} > {output}" # 2>>{log}"
 
@@ -217,14 +217,14 @@ rule collect_DHSstats:
     """collect the DHS stats into a single file"""
     input:
         #Generalized INPUT fn defined in chips.snakefile
-        _getRepInput("analysis/ceas/$runRep/$runRep_DHS_stats.txt")
+        _getRepInput(output_path + "/ceas/$runRep/$runRep_DHS_stats.txt")
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "CEAS: collect DHS stats"
-    # log: "analysis/logs/ceas/{run}.{rep}.log"
+    # log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        'analysis/ceas/dhs.csv'
+        output_path + '/ceas/dhs.csv'
     shell:
         "cidc_chips/modules/scripts/peaks_getDHSstats.py {params.files} -o {output} " # 2>>{log}"
 
@@ -232,13 +232,13 @@ rule collect_CEASstats:
     """collect the CEAS stats into a single file"""
     input:
         #Generalized INPUT fn defined in chips.snakefile
-        _getRepInput("analysis/ceas/$runRep/$runRep_summary.txt")
+        _getRepInput(output_path + "/ceas/$runRep/$runRep_summary.txt")
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "CEAS: collect CEAS stats"
-    # log: "analysis/logs/ceas/{run}.{rep}.log"
+    # log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
-        'analysis/ceas/meta.csv'
+        output_path + '/ceas/meta.csv'
     shell:
         "cidc_chips/modules/scripts/ceas_getMetaStats.py {params.files} -o {output} " #2>>{log}"

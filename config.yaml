@@ -2,6 +2,10 @@
 metasheet: 'metasheet.csv'
 ref: "cidc_chips/ref.yaml"
 
+#Where you want to store your results
+#NOTE: you could comment this line, the default path is "analysis"
+output_path: "analysis"
+
 #Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
 assembly: GDC_hg38
 
