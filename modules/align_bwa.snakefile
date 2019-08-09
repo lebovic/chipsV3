@@ -17,7 +17,7 @@ def getAlnFastq(wildcards):
 def getMates(wildcards):
     s = wildcards.sample
     files = config["samples"][s]
-    return [output_path + "/align/%s/%s_%s_aln.sai" % (s,s,m) for m in range(len(files))]
+    return ["%s/align/%s/%s_%s_aln.sai" % (output_path,s,s,m) for m in range(len(files))]
 
 
 def getRunType(wildcards):
