@@ -73,7 +73,7 @@ mm10:
   geneTable: ./ref_files/mm10/mm10.refGene
   conservation: ./ref_files/mm10/conservation/vertebrate
 
-  DHS: 
+  DHS: ./ref_files/mm10/regions/mm10.DHS.bed
   exons: ./ref_files/mm10/regions/mm10.exon.bed
   promoters: ./ref_files/mm10/regions/mm10.promoter.bed
   velcro_regions: 
