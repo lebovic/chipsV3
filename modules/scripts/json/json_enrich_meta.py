@@ -50,24 +50,21 @@ def json_enrich_meta(options):
         with open(input['meta'][n]) as input_meta:
             meta_string = input_meta.readline().replace('\'','\"')
             meta_dict = json.loads(meta_string)
-        # meta is something like: {'Intron': 68017, 'Exon': 7659, 'Intergenic': 73090, 'Promoter': 11229}
-        meta = [meta_dict['Exon'], meta_dict['Promoter'], 4000000.0]
+        # meta is something like: {'Exon': 68017, 'Promoter': 7659, 'DHS': 73090, 'Total': 11229}
+        meta = [meta_dict['Exon'], meta_dict['Promoter'], meta_dict['DHS'], meta_dict['Total']]
         # print(meta)
         if not param["down"]:
             json_dict['stat'][s]['exon'] = meta[0]/mapped
             json_dict['stat'][s]['promoter'] = meta[1]/mapped ## use all mapped reads
         else:
-            json_dict['stat'][s]['exon'] = meta[0]/meta[2]
-            json_dict['stat'][s]['promoter'] = meta[1]/meta[2] ## use 4M reads
+            json_dict['stat'][s]['exon'] = meta[0]/meta[3]
+            json_dict['stat'][s]['promoter'] = meta[1]/meta[3] ## use 4M reads
 
         if param['has_dhs']:
-            with open(param["dhs"][n]) as input_dhs:
-                dhs = input_dhs.read().strip().split(",")
-            dhs = list(map(float, list(map(int, dhs[0:3]))))
             if not param["down"]:
-                json_dict['stat'][s]['dhs'] = dhs[1]/mapped
+                json_dict['stat'][s]['dhs'] = meta[2]/mapped
             else:
-                json_dict['stat'][s]['dhs'] = dhs[1]/dhs[2]
+                json_dict['stat'][s]['dhs'] = meta[2]/meta[3]
     json_dump(json_dict)
 
 

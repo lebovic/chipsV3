@@ -23,6 +23,8 @@ def ceas_targets(wildcards):
             ls.append(output_path + "/ceas/samples/%s/%s.promoters" % (sample,sample))
         if config['DHS']:
             ls.append(output_path + "/ceas/samples/%s/%s.DHS" % (sample,sample))
+        if config['exons'] and config['promoters'] and config['DHS']:
+            ls.append(output_path + "/ceas/samples/%s/%s_meta.json" % (sample,sample))
     ls.append(output_path + "/ceas/samples/bamRegionStats.csv")
     ls.append(output_path + "/ceas/dhs.csv")
     ls.append(output_path + "/ceas/meta.csv")
@@ -193,6 +195,23 @@ rule bam_regionStat:
         output_path + '/ceas/samples/{sample}/{sample}.{region}'
     shell:
         "cidc_chips/modules/scripts/meta_bamRegionCount.sh -i {input} -b {params.bed} -o {output}" # 2>> {log}"
+
+rule collect_BamRegionStatsToJson:
+    """collect the BAM region stats into a single file"""
+    input:
+        #INPUT the stats directories--
+        #hack just add all of the file so we dont get a missing input exception
+        #and collect the directories down below
+        dhs = output_path + "/ceas/samples/{sample}/{sample}.DHS",
+        prom = output_path + "/ceas/samples/{sample}/{sample}.promoters",
+        exon = output_path + "/ceas/samples/{sample}/{sample}.exons",
+    message: "CEAS: collect bam region stats into json file"
+    # log: output_path + "/logs/ceas/{run}.{rep}.log"
+    conda: "../envs/ceas/ceas.yaml"
+    output:
+        output_path + "/ceas/samples/{sample}/{sample}_meta.json"
+    shell:
+        "cidc_chips/modules/scripts/ceas_collectBamRegStatsIntoJson.py -d {input.dhs} -p {input.prom} -e {input.exon} -o {output}"
 
 rule collect_BamRegionStats:
     """collect the BAM region stats into a single file"""

@@ -140,7 +140,7 @@ rule json_dhs:
 
 rule json_enrich_meta:
     input:
-        meta = lambda wildcards: output_path + "/ceas/%s/%s_summary.txt" % (json_getRunAndRep(wildcards), json_getRunAndRep(wildcards)),
+        meta = lambda wildcards: output_path + "/ceas/samples/%s/%s_meta.json" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0]),
         mapped = lambda wildcards: output_path + "/align/%s/%s_mapping.txt" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0]),
         dhs = lambda wildcards: output_path + "/ceas/%s/%s_DHS_summary.dhs" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
     output:

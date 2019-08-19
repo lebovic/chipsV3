@@ -210,7 +210,7 @@ rule getMotif:
    output:
        directory("%s/dataset{run}/attic/{run}_seqpos/" % cistromepath )
    params:
-       abspath = lambda wildcards: os.path.abspath(str(output_path + "/motif/%s" % cistrome_getRunAndRep(wildcards)))
+       abspath = lambda wildcards: os.path.abspath(str(output_path + "/motif/%s/results" % cistrome_getRunAndRep(wildcards)))
    shell:
        "ln -s {params.abspath}/* {output}"
 
