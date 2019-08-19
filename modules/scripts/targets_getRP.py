@@ -19,7 +19,7 @@ CHROM_CONVERT = {'chrI':'chr1','chrII':'chr2','chrIII':'chr3','chrIV':'chr4','ch
                  'chrXIX':'chr19','chrXX':'chr20','chrXXI':'chr21','chrXXII':'chr22','chrX':'chrX','chrY':'chrY','chrM':'chrM'}
 
 #Score calc function
-Sg = lambda ldx: sum([math.exp(-0.5-4*t) for t in ldx])
+Sg = lambda ldx: sum([2**(-t) for t in ldx])
 
 # print current time and information on screen
 def Info(infoStr):

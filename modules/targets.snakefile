@@ -3,6 +3,8 @@
 #PARAMETERS
 # _logfile=output_path + "/logs/targets.log"
 
+target_decay_rate = 10000
+
 def targets_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
@@ -38,11 +40,12 @@ rule get_5Fold_Peaks_RP_Score:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score_5fold.txt"
     params:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTable']
+        genome=config['geneTable'],
+        decay=target_decay_rate
     message: "REGULATORY: get RP score of 5 fold peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
     shell:
-        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d 100000"
+        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
 
 rule get_top_peaks:
     input:
@@ -60,12 +63,27 @@ rule get_top_Peaks_RP_Score:
     input:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_peaks_top_reg.bed"
     output:
-        output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
+        output_path + "/targets/{run}.{rep}/{run}.{rep}_top10k_gene_score.txt"
     params:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTable']
+        genome=config['geneTable'],
+        decay=target_decay_rate
     message: "REGULATORY: get RP score of top peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
     shell:
-        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d 100000"
+        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
 
+
+rule get_all_Peaks_RP_Score:
+    input:
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+    output:
+        output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
+    params:
+        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        genome=config['geneTable'],
+        decay=target_decay_rate
+    message: "REGULATORY: get RP score of all peaks"
+    log:output_path + "/logs/targets/{run}.{rep}.log"
+    shell:
+        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
