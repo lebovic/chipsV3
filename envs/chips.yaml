@@ -12,3 +12,5 @@ dependencies:
 - numpy
 - tabulate
 - ruamel.yaml
+- pandas
+- seaborn

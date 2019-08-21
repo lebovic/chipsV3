@@ -406,7 +406,6 @@ else:
             "sort -r -n -k 5 {input} > {output} "#2>>{log}"
 
 
-
 rule macs2_get_fragment:
     input:
         treat=getTreats,
@@ -417,11 +416,12 @@ rule macs2_get_fragment:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         treatment = lambda wildcards, input: [" -i %s" % i for i in input.treat] if input.treat else "",
+        genome = config['genome_size']
     message: "PEAKS: Get fragment size with macs2"
     log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g 'hs' "#2>>{log}"
+       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
 
 rule sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""

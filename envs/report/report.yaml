@@ -7,3 +7,6 @@ dependencies:
 - r-base=3.4.1
 - r-ggplot2>=2.2.0
 - r-reshape2>=1.4.2
+- pandas
+- seaborn
+
