@@ -23,6 +23,7 @@ def frips_targets(wildcards):
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
             ls.append(output_path + "/frips/%s/%s_frip.txt" % (runRep,runRep))
+            ls.append(output_path + "/frips/%s/%s_frip.png" % (runRep,runRep))
     ls.append(output_path + "/frips/pbc.csv")
     ls.append(output_path + "/frips/nonChrM_stats.csv")
     ls.append(output_path + "/frips/frips.csv")
@@ -154,6 +155,15 @@ else:
         shell:
             "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
 
+rule frip_plot:
+    input:
+        output_path + "/frips/{run}.{rep}/{run}.{rep}_frip.txt"
+    output:
+        output_path + "/frips/{run}.{rep}/{run}.{rep}_frip.png"
+    message:"FRiP: generate FRiP plot for each replicate"
+    conda: "../envs/frips/frips.yaml"
+    shell:
+        "cidc_chips/modules/scripts/frips_figure.py -f {input} -o {output}"
 
 rule frip_pbc:
     """Generate the PBC histogram for each normalized sample, which will be 

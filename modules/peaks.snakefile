@@ -128,6 +128,7 @@ def peaks_targets(wildcards):
                 ls.append(output_path + "/peaks/%s/%s_sorted_peaks.narrowPeak" % (runRep,runRep))
                 ls.append(output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
                 ls.append(output_path + "/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
+            ls.append(output_path + "/peaks/%s/%s_peaks.png" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_treat_pileup.bw" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_control_lambda.bw" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_treat_pileup.sorted.bdg.gz" % (runRep,runRep))
@@ -270,6 +271,16 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
 
+    rule broadPeaksPlot:
+        input:
+            peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak",
+            ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
+        message: "PEAKS: Plot peaks region"
+        shell:
+            "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
+
 else:
     rule macs2_callpeaks:
         input:
@@ -404,6 +415,16 @@ else:
         conda: "../envs/peaks/peaks.yaml"
         shell:
             "sort -r -n -k 5 {input} > {output} "#2>>{log}"
+
+    rule broadPeaksPlot:
+        input:
+            peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
+            ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
+        message: "PEAKS: Plot peaks region"
+        shell:
+            "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
 
 rule macs2_get_fragment:

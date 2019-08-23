@@ -6,3 +6,5 @@ channels:
 dependencies:
 - ucsc-bedsort>=332
 - ucsc-bedgraphtobigwig>=332
+- seaborn
+- pandas

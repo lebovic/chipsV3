@@ -253,7 +253,7 @@ def main():
 
     #read in the bed regions:
     total = 0
-    dist = {'Promoter':0, 'Exon':0, 'Intron':0, 'Intergenic': 0}
+    dist = {"Promoter":0, "Exon":0, "Intron":0, "Intergenic": 0}
     f = open(options.bed)
 
     #output files

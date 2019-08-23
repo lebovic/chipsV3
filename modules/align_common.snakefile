@@ -12,6 +12,7 @@ def align_targets(wildcards):
         ls.append(output_path + "/align/%s/%s_unique.sorted.bam.bai"%(sample,sample))
         ls.append(output_path + "/align/%s/%s_unique.sorted.dedup.bam" % (sample,sample))
         ls.append(output_path + "/align/%s/%s_unique.sorted.dedup.bam.bai" % (sample,sample))
+        ls.append(output_path + "/align/%s/%s_mapping.png" % (sample,sample))
         if len(config["samples"][sample]) > 1 and ('cutoff' in config) and config['cutoff']:
             ls.append(output_path + "/align/%s/%s_unique.sorted.dedup.sub%s.bam"%(sample,sample,config['cutoff']))
         ls.append(output_path + "/align/%s/%s.unmapped.fq.gz" % (sample,sample))
@@ -86,6 +87,15 @@ rule map_stats:
         #reads to the end of the file
         "samtools flagstat {input.bam} > {output} 2>>{log}"
         " && samtools view -c {input.uniq_bam} >> {output} 2>> {log}"
+
+rule map_figure:
+    input:
+        output_path + "/align/{sample}/{sample}_mapping.txt"
+    output:
+        output_path + "/align/{sample}/{sample}_mapping.png"
+    message: "ALIGN: plot mapping rate"
+    shell:
+        "cidc_chips/modules/scripts/align_mapped_figure.py -f {input} -o {output}"
 
 rule collect_map_stats:
     """Collect and parse out the mapping stats for the ALL of the samples"""

@@ -42,11 +42,12 @@ def main():
 
     c = options.ceas
     with open(c,"r") as ceas_meta:
-        ceas = json.load(ceas_meta)
-        prom = ceas["Promoter"]
-        exon = ceas["Exon"]
-        intr = ceas["Intron"]
-        inte = ceas["Intergenic"]
+        ceas_meta=(ceas_meta.read().replace("\'","\""))
+        ceas = json.loads(ceas_meta)
+        prom = ceas['Promoter']
+        exon = ceas['Exon']
+        intr = ceas['Intron']
+        inte = ceas['Intergenic']
 
     data = pd.Series([tot,fc_10,fc_20,prom, exon, intr, inte],
                       index=['Total Peaks','10 Fold Change','20 Fold Change','Promoter', 'Exon', 'Intron', 'Intergenic'])

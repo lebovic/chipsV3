@@ -5,7 +5,6 @@ import sys
 from optparse import OptionParser
 import seaborn as sns
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
@@ -28,8 +27,8 @@ def main():
         sampleID = sampleID.replace(".rep1_frip.txt","")
 
     f = open(f)
-    total = int(f.readline().strip().split()[1])
     ReadsInPeaks = int(f.readline().strip().split()[1])
+    total = int(f.readline().strip().split()[1])
     f.close()
     
     data = pd.Series([total,ReadsInPeaks],
