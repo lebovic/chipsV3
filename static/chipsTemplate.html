@@ -12,7 +12,92 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <!-- Defined CSS -->
-    <link href="./dashboard.css" rel="stylesheet">
+    <style type="text/css">
+    body {
+        font-size: .875rem;
+    }
+
+
+    /*
+ * Sidebar
+ */
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        padding: 48px 0 0;
+        /* Height of navbar */
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    }
+
+    .sidebar-sticky {
+        position: relative;
+        top: 0;
+        height: calc(100vh - 48px);
+        padding-top: .5rem;
+        overflow-x: hidden;
+        overflow-y: auto;
+        /* Scrollable contents if viewport is shorter than content. */
+    }
+
+    @supports ((position: -webkit-sticky) or (position: sticky)) {
+        .sidebar-sticky {
+            position: -webkit-sticky;
+            position: sticky;
+        }
+    }
+
+    .sidebar .nav-link {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .sidebar .nav-link:hover {
+        font-weight: 800;
+        color: #777;
+    }
+
+    .sidebar .nav-link:active {
+        color: #82bce5;
+    }
+
+    .sidebar-heading {
+        font-size: .75rem;
+        text-transform: uppercase;
+    }
+
+
+    /*
+ * Content
+ */
+
+    [role="main"] {
+        padding-top: 133px;
+        /* Space for fixed navbar */
+    }
+
+    @media (min-width: 768px) {
+        [role="main"] {
+            padding-top: 48px;
+            /* Space for fixed navbar */
+        }
+    }
+
+    /*
+ * Navbar
+ */
+
+    .navbar-brand {
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+        font-size: 1.25rem;
+        background-color: rgba(0, 0, 0, 0);
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0);
+    }
+    </style>
     <!-- <link href="./bootstrap4.css" rel="stylesheet"> -->
     <!-- <link href="http://cistrome.org/~xindong/Chips_report/dashboard.css" rel="stylesheet"> -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
@@ -671,36 +756,36 @@ function update_Targets_information() {
         };
     });
     $('#myTable').DataTable({
-    initComplete: function() {
-        var api = this.api();
-        api.columns().indexes().flatten().each(function(i) {
-            var column = api.column(i);
-            var select = $('<select><option value=""></option></select>')
-                .appendTo($(column.footer()).empty())
-                .on('change', function() {
-                    var val = $.fn.dataTable.util.escapeRegex(
-                        $(this).val()
-                    );
-                    column
-                        .search(val ? '^' + val + '$' : '', true, false)
-                        .draw();
+        initComplete: function() {
+            var api = this.api();
+            api.columns().indexes().flatten().each(function(i) {
+                var column = api.column(i);
+                var select = $('<select><option value=""></option></select>')
+                    .appendTo($(column.footer()).empty())
+                    .on('change', function() {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+                        column
+                            .search(val ? '^' + val + '$' : '', true, false)
+                            .draw();
+                    });
+                column.data().unique().sort().each(function(d, j) {
+                    select.append('<option value="' + d + '">' + d + '</option>')
                 });
-            column.data().unique().sort().each(function(d, j) {
-                select.append('<option value="' + d + '">' + d + '</option>')
             });
-        });
-    }
-});
+        }
+    });
 
 };
 
 function update_Motifs_information() {
     $.each(Object.keys(Chips_result["Motifs"][get_current_run()]), function(i, item) {
-        var html_content = '<div class="container-fluid m-0 p-0" id="MotifInformation"><div class="container-fluid mb-3"><h4>' + item + '</h4><div class="row"><div class="col-12"><iframe src='+ Chips_result["Motifs"][get_current_run()][item]['MotifHtml'] +' width="800" height="600"></iframe></div></div></div></div>';
+        var html_content = '<div class="container-fluid mb-3"><h4>' + item + '</h4><div class="row"><div class="col-12"><iframe src="' + Chips_result["Motifs"][get_current_run()][item]['MotifHtml'] + '" width="850" height="600"></iframe></div></div></div>';
         if (i == 0) {
-            $("#Information").html(html_content);
+            $("#MotifInformation").html(html_content);
         } else {
-            $("#Information").append(html_content);
+            $("#MotifInformation").append(html_content);
         };
     });
 

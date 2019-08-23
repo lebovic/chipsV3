@@ -4,16 +4,6 @@ from snakemake.report import data_uri_from_file
 import json
 import pandas as pd
 
-# config = {'metasheet': 'metasheet.csv', 'ref': 'cidc_chips/ref.yaml', 'assembly': 'hg38', 'aligner': 'bwa', 'cutoff': 150, 'macs2_broadpeaks': False, 'motif': 'mdseqpos', 'contamination_panel': ['./ref_files/contam_panel/hg19/hg19.fa', './ref_files/contam_panel/mm9/mm9.fa', './ref_files/contam_panel/dm3/dm3.fa'], 'cnv_analysis': True, 'CistromeApi': False, 'samples': {'GSM1892614': ['data/GSM1892614.fastq.gz'], 'GSM2439073': ['data/GSM2439073_R1.fastq.gz', 'data/GSM2439073_R2.fastq.gz']}, 'runs': {'SESample': ['GSM1892614', '', '', ''], 'PESample': ['GSM2439073', '', '', '']}, 'python2_pythonpath': '/mnt/Storage/home/dongxin/Applications/miniconda3/envs/chips_py2/lib/python2.7/site-packages', 'python2': '/mnt/Storage/home/dongxin/Applications/miniconda3/envs/chips_py2/bin/python2.7', 'mdseqpos_path': '/mnt/Storage/home/dongxin/Applications/miniconda3/envs/chips_py2/bin/MDSeqPos.py', 'macs2_path': '/mnt/Storage/home/dongxin/Applications/miniconda3/envs/chips_py2/bin/macs2', 'bwa_index': './ref_files/hg38/bwa_indices/hg38/hg38.fa', 'bwt2_index': './ref_files/hg38/bowtie/indexes/hg38', 'geneTable': './ref_files/hg38/hg38.refGene', 'conservation': './ref_files/hg38/conservation/hg38', 'DHS': './ref_files/hg38/regions/DHS_hg38.bed', 'exons': './ref_files/hg38/regions/exon.bed', 'promoters': './ref_files/hg38/regions/promoter.bed', 'velcro_regions': None, 'chrom_lens': './ref_files/hg38/regions/chromInfo_hg38.txt', 'genome_size': '2.7e9', 'motif_path': 'hg38'}
-# _reps = {}
-# for run in config['runs'].keys():
-#     r = config['runs'][run]
-#     tmp = []
-#     for (rep, i) in enumerate(range(0, len(r), 2)):
-#         if r[i]: tmp.append("rep%s" % str(rep+1))
-#     _reps[run] = tmp
-# output_path = "analysis"
-
 def parse_mapped_rate(sample):
     file = output_path + "/align/%s/%s_mapping.txt" %(sample,sample)
     f = open(file)
@@ -150,9 +140,9 @@ def result_dict(wildcards):
             for rep in _reps[run]:
                 runRep = "%s.%s" % (run, rep)
                 if config["motif"] == "mdseqpos":
-                    report_dict["Motifs"][run][runRep]={"MotifHtml": output_path + "/motif/%s/results/table.html"% runRep}
+                    report_dict["Motifs"][run][runRep]={"MotifHtml": "motif/%s/results/table.html"% runRep}
                 if config["motif"] == "homer":
-                    report_dict["Motifs"][run][runRep]={"MotifHtml": output_path + "/motif/%s/results/homerResults.html"% runRep}
+                    report_dict["Motifs"][run][runRep]={"MotifHtml": "motif/%s/results/homerResults.html"% runRep}
     report_dict["Config"]["MotifFinder"]=MotifFinder
     # contamination
     ContaminationPanel = "None"
@@ -257,6 +247,8 @@ def report_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     ls.append(output_path + '/report/report.html')
+    if "motif" in config and config["motif"]:
+        ls.append(output_path + '/report/report.zip')
     return ls
 
 
@@ -277,8 +269,27 @@ rule report:
         with open(str(output),"w") as o:
             o.write(report.read().replace("{RESULT_DICT}",json.dumps(report_dict)))
         report.close()
-        
 
+rule reportCopyMotif:
+    input:
+        motif_targets
+    output:
+        directory(output_path + '/report/motif')
+    message: "REPORT: Copy motif results to report"
+    params:
+        motif_path = output_path + "/motif/"
+    shell:
+        "cp -r {params.motif_path} {output}"
+
+rule reportZipReport:
+    input:
+        report=output_path + '/report/report.html',
+        motif=output_path + '/report/motif'
+    output:
+        output_path + '/report/report.zip'
+    message: "REPORT: Compress report"
+    shell:
+        "zip -q -r {output} {input.report} {input.motif}"
 
 
 
