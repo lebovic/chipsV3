@@ -283,6 +283,9 @@ def main():
     for f in bedfiles:
         info("extract phastcons scores using %s" % f)
         scores = extract_phastcons(f, options.phasdb, options.w, options.pf_res)
+        if not scores:
+            #PRESET to 100 0s
+            scores = [0]*100
         avgValues.append(scores)
     if options.w == 4000:
         ## 100 points for 4000, 40bp resolution
@@ -343,10 +346,10 @@ def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
     ## outimg should be id/prefix, that is, conf.prefix
     fileName = os.path.join(wd, os.path.basename(outimg))
     rFile = open(fileName+'.R','w')
-    bmpname = fileName+'.pdf'
+    bmpname = fileName+'.png'
     rscript = 'sink(file=file("/dev/null", "w"), type="message")\n'
     rscript += 'sink(file=file("/dev/null", "w"), type="output")\n'
-    rscript += 'pdf("%s",height=%d,width=%d)\n' %(bmpname,h,w)
+    # rscript += 'pdf("%s",height=%d,width=%d)\n' %(bmpname,h,w)
     xInfo = range(int(-width/2),int(width/2), pf_res)
     rscript += 'x<-c('+','.join(map(str,xInfo[:-1]))+')\n' # throw the last point which may be buggy
     for i in range(len(avgValues)):
@@ -361,15 +364,22 @@ def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
     rscript += "ymax <- max("+ ",".join(tmplist) +")\n"
     rscript += "ymin <- min("+ ",".join(tmplist) +")\n"
     rscript += "yquart <- (ymax-ymin)/4\n"
-
+    rscript += "png(\"%s\",height=%d,width=%d, unit='in', res=300)\n" %(bmpname,h,w)
     rscript += 'plot(x,y0,type="l",col=rainbow(%d)[1],main=\"%s\",xlab="Distance from the Center (bp)",ylab="Average Phastcons",ylim=c(ymin-yquart,ymax+yquart))\n' % (len(avgValues),title)
     for i in range(1,len(avgValues)):
         rscript += 'lines(x,y'+str(i)+',col=rainbow(%d)[%d])\n' % (len(avgValues),i+1)
     rscript += 'abline(v=0)\n'
-    legend_list = map(lambda x:"'"+x+"'", bedlabel)
-    rscript += 'legend("topright",c(%s),col=rainbow(%d),lty=c(%s))\n' % (','.join(legend_list),len(avgValues),','.join(['1']*len(avgValues)))
-
+    # legend_list = map(lambda x:"'"+x+"'", bedlabel)
+    # rscript += 'legend("topright",c(%s),col=rainbow(%d),lty=c(%s))\n' % (','.join(legend_list),len(avgValues),','.join(['1']*len(avgValues)))
     rscript += 'dev.off()\n'
+
+    _wh = 85
+    thumbname = "%s_thumb.png" % fileName
+    rscript += "png(\"%s\",height=%d,width=%d, unit='px')\n" %(thumbname,_wh,_wh)
+    rscript += "par(mar=c(0,0,0,0))\n"
+    rscript += "plot(x,y0,type='l',col=rainbow(1)[1],bty='n', lwd=5, xaxs='i', yaxs='i', ann=FALSE, xaxt='n', yaxt='n', bty='n')\n"
+    rscript += 'dev.off()\n'
+
     rFile.write(rscript)
     rFile.close()
     #executing the R file and forming the pdf file
