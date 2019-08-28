@@ -196,9 +196,10 @@ def result_dict(wildcards):
             tot,fc_10,fc_20,dhs,prom,exon,intr,inte=parse_peaks(runRep)
             report_dict["Peaks"][run][runRep]={"TotalPeaks":tot, "10FoldChangePeaks":fc_10, "20FoldChangePeaks":fc_20, "DHSPeaks":dhs, 
                                                "PromoterPeaks":prom, "ExonPeaks":exon, "IntronPeaks":intr, "IntergenicPeaks":inte, 
-                                               "PeaksFigure":data_uri_from_file(output_path+"/peaks/%s/%s_peaks.png"%(runRep,runRep))[0]}
+                                               "PeaksFigure":data_uri_from_file(output_path+"/peaks/%s/%s_peaks.png"%(runRep,runRep))[0],
+                                               "PeaksFile":output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep)}
             html_table = parse_targets(runRep)
-            report_dict["Targets"][run][runRep]={"TargetsTable": html_table}
+            report_dict["Targets"][run][runRep]={"TargetsTable": html_table, "TargetFile": output_path + "/targets/%s/%s_gene_score.txt" % (runRep,runRep)}
         for sample in config["runs"][run]:
             if sample:
                 total,mapped,uniq_mapped = parse_mapped_rate(sample)
@@ -211,11 +212,18 @@ def result_dict(wildcards):
                 report_dict["PBC"][run][sample]={"N1Score":N1,"NdScore":Nd,"PBCScore":"%.2f%%" % (N1*100/Nd)}
                 if len(config["samples"][sample]) > 1:
                     report_dict["Fragments"][run][sample]={"FragmentFigure": data_uri_from_file(output_path + "/frag/%s/%s_fragDist.png"% (sample,sample))[0]}
+    report_dict["Group"]={}
+    report_dict["Group"]["Mapping"]=data_uri_from_file(output_path + "/report/image/mapping.png")[0]
+    report_dict["Group"]["PBC"]=data_uri_from_file(output_path + "/report/image/pbc.png")[0]
+    report_dict["Group"]["Peaks"]=data_uri_from_file(output_path + "/report/image/peakFoldChange.png")[0]
     return report_dict
 
 
 def getReportInputs(wildcards):
     ret = []
+    ret.append(output_path + '/report/image/mapping.png')
+    ret.append(output_path + '/report/image/pbc.png')
+    ret.append(output_path + '/report/image/peakFoldChange.png')
     for run in config["runs"].keys():
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
@@ -232,6 +240,8 @@ def getReportInputs(wildcards):
             ret.append(output_path +"/targets/%s/%s_gene_score.txt"%(runRep,runRep))
             ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
             ret.append(output_path+"/conserv/%s/%s_conserv.png"%(runRep,runRep))
+            ret.append(output_path + "/targets/%s/%s_gene_score.txt" % (runRep,runRep))
+            ret.append(output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
         for sample in config["runs"][run]:
             if sample:
                 ret.append(output_path + "/align/%s/%s_mapping.txt" %(sample,sample))
@@ -243,12 +253,33 @@ def getReportInputs(wildcards):
                     ret.append(output_path + "/contam/%s/%s_contamination.txt"% (sample,sample))
     return ret
 
+def getZipReportInput(wildcards):
+    ret = []
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ret.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
+            ret.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
+    if "motif" in config and config["motif"]:
+        ret.append(output_path + "/motif")
+    return ret
+
+
 def report_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
     ls.append(output_path + '/report/report.html')
+    ls.append(output_path + '/report/image/mapping.png')
+    ls.append(output_path + '/report/image/pbc.png')
+    ls.append(output_path + '/report/image/peakFoldChange.png')
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ls.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
+            ls.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
     if "motif" in config and config["motif"]:
-        ls.append(output_path + '/report/report.zip')
+        ls.append(output_path + '/report/motif')
+    ls.append(output_path + '/report/report.zip')
     return ls
 
 
@@ -267,7 +298,7 @@ rule report:
         template = "cidc_chips/static/chipsTemplate.html"
         report = open(template)
         with open(str(output),"w") as o:
-            o.write(report.read().replace("{RESULT_DICT}",json.dumps(report_dict)))
+            o.write(report.read().replace("{ RESULT_DICT }",json.dumps(report_dict)))
         report.close()
 
 rule reportCopyMotif:
@@ -281,15 +312,67 @@ rule reportCopyMotif:
     shell:
         "cp -r {params.motif_path} {output}"
 
+rule reportCopyTargets:
+    input:
+        output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
+    output:
+        score=output_path + "/report/files/{run}.{rep}_gene_score.txt",
+    message: "REPORT: Copy targets results to report"
+    shell:
+        "cp {input} {output}"
+
+rule reportCopyPeaks:
+    input:
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+    output:
+        output_path + "/report/files/{run}.{rep}_sorted_peaks.bed",
+    message: "REPORT: Copy peaks results to report"
+    shell:
+        "cp {input} {output}"
+
+rule reportPlotMapStat:
+    input:
+        output_path + "/align/mapping.csv"
+    output:
+        output_path + "/report/image/mapping.png"
+    log: _logfile
+    conda: "../envs/report/report.yaml"
+    shell:
+        "Rscript cidc_chips/modules/scripts/map_stats.R {input} {output}"
+
+rule reportPlotPBCStat:
+    input:
+        #output_path + "/align/pbc.csv"
+        output_path + "/frips/pbc.csv"
+    output:
+        output_path + "/report/image/pbc.png"
+    log: _logfile
+    conda: "../envs/report/report.yaml"
+    shell:
+        "Rscript cidc_chips/modules/scripts/plot_pbc.R {input} {output}"
+
+rule reportPlotPeakFoldChange:
+    input: 
+        output_path + "/peaks/peakStats.csv"
+    output:
+        output_path + "/report/image/peakFoldChange.png"
+    log: _logfile
+    conda: "../envs/report/report.yaml"
+    shell:
+        "Rscript cidc_chips/modules/scripts/plot_foldChange.R {input} {output}"
+
 rule reportZipReport:
     input:
         report=output_path + '/report/report.html',
-        motif=output_path + '/report/motif'
+        files=getZipReportInput,
     output:
         output_path + '/report/report.zip'
     message: "REPORT: Compress report"
+    params: 
+        motif = output_path + '/report/motif' if ("motif" in config and config["motif"]) else "" ,
+        files = output_path + '/report/files'
     shell:
-        "zip -q -r {output} {input.report} {input.motif}"
+        "zip -q -r {output} {input.report} {params.files} {params.motif}"
 
 
 
