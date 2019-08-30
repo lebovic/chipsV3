@@ -139,7 +139,7 @@
                     </button>
                 </div>
                 <div id="overallInformation" class="card-body collapse show">
-                    <table class="table table-hover table-condensed" style="font-size: 0.5rem">
+                    <table class="table table-hover table-condensed" style="font-size: 0.8rem">
                         <tbody>
                             <tr>
                                 <th scope="row">Chips Version</th>
@@ -215,6 +215,10 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>Mapped Rate Summary</h3>
                                         </div>
+                                        <div>The raw reads for each sample were mapped to the reference genome using alignment software (see <span data-toggle="collapse" data-target="#overallInformation" style="color: #007bff; cursor: pointer;">Overall Information</span>).</div>
+                                        <div> The <b>mapped reads</b> represent the number of reads which successfully map to the genome, while the <b>uniquely mapped reads</b> represent the subset of <b>mapped reads</b> that map to only one location in the genome.</div>
+                                        <div> In most cases, more than <b>60% of the total reads</b> should be <b>uniquely mapped</b>. Contamination, low quality sequencing data, or poor library construction are just some of the reasons that a sample's uniquely mapped reads might not reach this threshold.</div>
+                                        <br />
                                         <div id="groupMappedInformation">
                                             <img src="{groupMappedFigure}" width="500" height="500" class="float-left">
                                         </div>
@@ -223,6 +227,12 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>PCR Bottleneck Coefficient (PBC) Summary</h3>
                                         </div>
+                                        <div><b>PBC</b> is a common measure used for determining sample complexity.</div>
+                                        <div>After alignment the samples are then normalized (by <b>downsampling</b>) to <b>4 million reads</b>.</div>
+                                        <div>The uniquely mapped reads of that downsample are then piled-up.</div>
+                                        <div><b>Nd</b> is defined as the number of <b>unique region locations</b>. <b>N1</b> is defined as then number of <b>unique region locations with only one read</b>. </div>
+                                        <div>The PBC is then simply calculated as <b>N1/Nd</b>. Good ChIP-seq samples typically have a <b>PBC score >= 0.90</b> (ref).</div>
+                                        <br />
                                         <div id="groupPBCInformation">
                                             <img src="{groupPBCFigure}" width="500" height="500" class="float-left">
                                         </div>
@@ -231,6 +241,10 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>Peaks Summary</h3>
                                         </div>
+                                        <div>Peak calling is a computational method used to identify areas in a genome that have been enriched with aligned reads as a consequence of performing a ChIP-seq or ATAC-seq experiment.</div>
+                                        <div>The Peaks Fold Change figure plots the peaks number at different fold change among each replicate in Chips run.</div>
+                                        <div>The peaks result was called by <strong>MACS2</strong>. Typically, a good ChIP enrichment should include <strong>more than 500</strong> 10 fold change peaks.</div>
+                                        <br />
                                         <div id="groupPeaksInformation">
                                             <img src="{groupPeaksFigure}" width="500" height="500" class="float-left">
                                         </div>
@@ -248,8 +262,8 @@
                     <div class="container-fluid">
                         <div class="row align-items-center">
                             <div class="col-2 m-0 p-0">
-                                <button class="btn m-0 p-0" data-toggle="collapse" data-target="#singleview" aria-expanded="true" aria-controls="singleView">
-                                    <h4 class="m-0 p-0">Single View</h4>
+                                <button class="btn m-0 p-0" data-toggle="collapse" data-target="#sampleview" aria-expanded="true" aria-controls="sampleView">
+                                    <h4 class="m-0 p-0">Sample View</h4>
                                 </button></div>
                             <div class="col-2">
                                 <select class="selectpicker" data-live-search="true" id="SampleSelector" onchange="update_current_run()">
@@ -263,7 +277,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="singleview" class="card-body collapse show m-0 p-0">
+                <div id="sampleview" class="card-body collapse show m-0 p-0">
                     <div class="row m-0">
                         <div class="col-2" style="background-color: rgba(0, 0, 0, 0.03); border-right: 1px solid rgba(0, 0, 0, 0.125)">
                             <ul class="nav nav-pills flex-column pt-2 pb-2" aria-orientation="vertical">
@@ -532,13 +546,17 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>Peaks Summary</h3>
                                         </div>
+                                        <div>Peak calling is a computational method used to identify areas in a genome that have been enriched with aligned reads as a consequence of performing a ChIP-seq or ATAC-seq experiment.</div>
                                         <div>The Peaks Summary table not only shows the statisics represented in the "Peak FoldChange" plots, but also give other statistics such as <b>the number of DHS peaks, and peak characterization.</b></div>
                                         <div><b>DNAse hyper-sensitive (DHS)</b> sites have been shown to be very active regions of the genome (ref). Using a list of known DHS regions (specific to each species), the DHS peaks represent the number of 4M downsampled peaks that intersect with DHS peaks.</div>
                                         <div>The fraction of peaks that fall in <b>promoter, exon, intron, and intergenic regions are also shown.</b></div>
                                         <br />
                                         <div class="container-fluid m-0 p-0" id="PeaksInformation">
                                             <div class="container-fluid mb-3">
-                                                <h4>{RunRepName}</h4>
+                                                <div class="row align-items-center mb-3">
+                                                    <h4 class="col-4 mb-0 p-0">{RunRepName}</h4>
+                                                    <a class="col-3 m-0 p-0" href="">Download this peaks file</a>
+                                                </div>
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <table class="table table-bordered table-striped" style="font-size: 15px">
@@ -590,11 +608,15 @@
                                             <h3>Targets</h3>
                                         </div>
                                         <div><b>Binding and Expression Target Analysis (BETA)</b> is a software package that integrates ChIP-seq of transcription factors or chromatin regulators with differential gene expression data to infer direct target genes. </div>
-                                        <div>Here shows the <b>5 fold change peaks</b>' results after BETA running. </div>
+                                        <div>Chips used all of peaks to get putative targets result by BETA regulatory potential score formula. </div>
+                                        <div>Here only shows the <b>top 2000 genes</b>' results after BETA running in the below table. The full results could be download below as well.</div>
                                         <br />
                                         <div class="container-fluid m-0 p-0" id="TargetsInformation">
                                             <div class="container-fluid mb-3">
-                                                <h4>{RunRepName}</h4>
+                                                <div class="row align-items-center mb-3">
+                                                    <h4 class="col-4 mb-0 p-0">{RunRepName}</h4>
+                                                    <a class="col-3 m-0 p-0" href="">Download this putative targets file</a>
+                                                </div>
                                                 <div class="row">
                                                     <div class="col-md-12">
                                                         <table class="table table-bordered table-striped" id="myTable" style="font-size: 15px">
@@ -802,7 +824,7 @@ function update_Conserv_information() {
 
 function update_Peaks_information() {
     $.each(Object.keys(Chips_result["Peaks"][get_current_run()]), function(i, item) {
-        var html_content = '<div class="container-fluid mb-3"><h4>' + item + '</h4><div class="row"><div class="col-md-6"><table class="table table-bordered table-striped" style="font-size: 15px"><tbody><tr><th scope="row">Total Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['TotalPeaks'] + '</td></tr><tr><th scope="row">>10 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['10FoldChangePeaks'] + '</td></tr><tr><th scope="row">>20 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['20FoldChangePeaks'] + '</td></tr><tr><th scope="row">DHS Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['DHSPeaks'] + '</td></tr><tr><th scope="row">Peaks In Promoter</th><td>' + Chips_result["Peaks"][get_current_run()][item]['PromoterPeaks'] + '</td></tr><tr><th scope="row">Peaks In Exon</th><td>' + Chips_result["Peaks"][get_current_run()][item]['ExonPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intron</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntronPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intergenic</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntergenicPeaks'] + '</td></tr></tbody></table></div><div class="col-md-6"><a href=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + '><img src=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + ' width="400" height="377" class="float-left"></a></div></div></div>';
+        var html_content = '<div class="container-fluid mb-3"><div class="row align-items-center mb-3"><h4 class="col-6 mb-0 p-0">' + item + '</h4><a class="col-6 m-0 p-0" href="' + Chips_result["Peaks"][get_current_run()][item]['PeaksFile'] + '">Download file</a></div><div class="row"><div class="col-md-6"><table class="table table-bordered table-striped" style="font-size: 15px"><tbody><tr><th scope="row">Total Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['TotalPeaks'] + '</td></tr><tr><th scope="row">>10 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['10FoldChangePeaks'] + '</td></tr><tr><th scope="row">>20 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['20FoldChangePeaks'] + '</td></tr><tr><th scope="row">DHS Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['DHSPeaks'] + '</td></tr><tr><th scope="row">Peaks In Promoter</th><td>' + Chips_result["Peaks"][get_current_run()][item]['PromoterPeaks'] + '</td></tr><tr><th scope="row">Peaks In Exon</th><td>' + Chips_result["Peaks"][get_current_run()][item]['ExonPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intron</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntronPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intergenic</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntergenicPeaks'] + '</td></tr></tbody></table></div><div class="col-md-6"><a href=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + '><img src=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + ' width="400" height="377" class="float-left"></a></div></div></div>';
         if (i == 0) {
             $("#PeaksInformation").html(html_content);
         } else {
@@ -814,7 +836,7 @@ function update_Peaks_information() {
 
 function update_Targets_information() {
     $.each(Object.keys(Chips_result["Targets"][get_current_run()]), function(i, item) {
-        var html_content = '<div class="container-fluid mb-3"><h4>' + item + '</h4><div class="row"><div class="col-md-12"><table class="table table-bordered table-striped" id="myTable" style="font-size: 15px"><thead class="thead"><th scope="col" style="vertical-align: middle">Gene</th><th scope="col" style="vertical-align: middle">Score</th><th scope="col" style="vertical-align: middle">Coordinate</th></thead><tbody style="font-size: 0.9rem">' + Chips_result["Targets"][get_current_run()][item]['TargetsTable'] + '</tbody></table></div></div></div>';
+        var html_content = '<div class="container-fluid mb-3"><div class="row align-items-center mb-3"><h4 class="col-6 mb-0 p-0">' + item + '</h4><a class="col-6 m-0 p-0" href="' + Chips_result["Targets"][get_current_run()][item]['TargetsFile'] + '">Download file</a></div><div class="row"><div class="col-md-12"><table class="table table-bordered table-striped" id="myTable" style="font-size: 15px"><thead class="thead"><th scope="col" style="vertical-align: middle">Gene</th><th scope="col" style="vertical-align: middle">Score</th><th scope="col" style="vertical-align: middle">Coordinate</th></thead><tbody style="font-size: 0.9rem">' + Chips_result["Targets"][get_current_run()][item]['TargetsTable'] + '</tbody></table></div></div></div>';
         if (i == 0) {
             $("#TargetsInformation").html(html_content);
         } else {

@@ -197,9 +197,9 @@ def result_dict(wildcards):
             report_dict["Peaks"][run][runRep]={"TotalPeaks":tot, "10FoldChangePeaks":fc_10, "20FoldChangePeaks":fc_20, "DHSPeaks":dhs, 
                                                "PromoterPeaks":prom, "ExonPeaks":exon, "IntronPeaks":intr, "IntergenicPeaks":inte, 
                                                "PeaksFigure":data_uri_from_file(output_path+"/peaks/%s/%s_peaks.png"%(runRep,runRep))[0],
-                                               "PeaksFile":output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep)}
+                                               "PeaksFile":"files/%s_sorted_peaks.bed" % runRep}
             html_table = parse_targets(runRep)
-            report_dict["Targets"][run][runRep]={"TargetsTable": html_table, "TargetFile": output_path + "/targets/%s/%s_gene_score.txt" % (runRep,runRep)}
+            report_dict["Targets"][run][runRep]={"TargetsTable": html_table, "TargetsFile": "files/%s_gene_score.txt" % runRep}
         for sample in config["runs"][run]:
             if sample:
                 total,mapped,uniq_mapped = parse_mapped_rate(sample)

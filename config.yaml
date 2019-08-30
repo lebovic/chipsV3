@@ -34,7 +34,7 @@ cutoff: 150
 #OTHERWISE leave it as 'homer' (default)
 #
 #To skip motif scanning, simply comment out BOTH lines
-motif: 'homer'
+#motif: 'homer'
 #motif: 'mdseqpos'
 
 #NOTE: optional contamination panel to check sample contamination against
