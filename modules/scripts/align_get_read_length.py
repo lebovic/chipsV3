@@ -29,7 +29,7 @@ def main():
                     intReadLength = [int(i) for i in ReadLength]
                     outputlenth = int(round(np.median(intReadLength)))
     with open(options.output, "w") as o:
-        o.write(outputlenth)
+        o.write(str(outputlenth))
 
 if __name__=='__main__':
     main()

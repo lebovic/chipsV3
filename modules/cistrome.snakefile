@@ -57,7 +57,7 @@ def getJsonInput(wildcards):
     return ls
 
 def cistrome_getRunAndRep(wildcards):
-    #Xindong, this is a hack until we figure out a cleaner way to do this
+    #This is a hack until we figure out a cleaner way to do this
     #PROBLEM: the cistrome "run" does not have any idea about replicates
     #chips runs do.
     #HACK/Solution: we just eliminate the rep part because cistromedb
@@ -234,10 +234,3 @@ rule getJson:
    shell:
        "ln -s {params.abspath}/* {output}"
 
-#rule md5check:
-#    input:
-#        "%s/{run}/"
-#    output:
-#        "%s/dataset{run}/{run}.md5 % cistromepath"
-#    shell:
-#        "cidc_chips/modules/scripts/md5check.py -d {input} -I {wildcards.run}"
