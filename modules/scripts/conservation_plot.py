@@ -408,7 +408,7 @@ def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
     rscript += "ymin <- min("+ ",".join(tmplist) +")\n"
     rscript += "yquart <- (ymax-ymin)/4\n"
     #LEN: change output to png
-    rscript += "png(\"%s\",height=%d,width=%d, unit='in', res=300)\n" %(bmpname,h,w)
+    rscript += "png(\"%s\",height=%d,width=%d, unit='in', res=300, bg=FALSE)\n" %(bmpname,h,w)
     rscript += 'plot(x,y0,type="l",col=rainbow(%d)[1],main=\"%s\",xlab="Distance from the Center (bp)",ylab="Average Phastcons",ylim=c(ymin-yquart,ymax+yquart))\n' % (len(avgValues),title)
     for i in range(1,len(avgValues)):
         rscript += 'lines(x,y'+str(i)+',col=rainbow(%d)[%d])\n' % (len(avgValues),i+1)
