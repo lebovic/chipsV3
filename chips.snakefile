@@ -162,6 +162,7 @@ def all_targets(wildcards):
     ls.extend(checking_targets(wildcards))
     return ls
 
+
 rule target:
     input: 
         all_targets,

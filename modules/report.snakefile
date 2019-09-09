@@ -1,177 +1,286 @@
-#REPORT module - must come last in includes!
-import sys
-from string import Template
-from snakemake.utils import report
+import os
+import subprocess
 from snakemake.report import data_uri_from_file
+import json
+import pandas as pd
 
-#DEPENDENCIES
-from tabulate import tabulate
+def parse_mapped_rate(sample):
+    file = output_path + "/align/%s/%s_mapping.txt" %(sample,sample)
+    f = open(file)
+    total = int(f.readline().strip().split()[0])
+    #skip 3 lines
+    l = f.readline()
+    l = f.readline()
+    l = f.readline()
+    mapped = int(f.readline().strip().split()[0])
+    #skip 8 lines
+    l = f.readline()
+    l = f.readline()
+    l = f.readline()
+    l = f.readline()
+    l = f.readline()
+    l = f.readline()
+    l = f.readline()
+    l = f.readline()
+    uniq_mapped = int(f.readline().strip())
+    f.close()
+    return total,mapped,uniq_mapped
 
-_ReportTemplate = Template(open("cidc_chips/static/chips_report.txt").read())
-_logfile = output_path + "/logs/report.log"
+def parse_GC_rate(sample):
+    file = output_path + "/fastqc/%s/%s_stats.csv" %(sample,sample)
+    f = open(file)
+    MQ = int(f.readline().strip().split(",")[1])
+    GC = int(f.readline().strip().split(",")[1])
+    f.close()
+    return MQ,GC
+
+def parse_contamination(sample):
+    file = output_path + "/contam/%s/%s_contamination.txt"%(sample,sample)
+    f = open(file)
+    percentage = [item.strip().split() for item in f.readlines()]
+    f.close()
+    return percentage
+
+def parse_PBC(sample):
+    file = output_path + "/frips/%s/%s_pbc.txt"%(sample,sample)
+    f = open(file)
+    firstLine = f.readline().strip().split()
+    N1 = int(firstLine[1]) 
+    Nd = N1
+    for l in f:
+        tmp = l.strip().split()
+        Nd += int(tmp[1])
+    f.close()
+    return N1,Nd
+
+def parse_FRiP(runRep):
+    file = output_path + "/frips/%s/%s_frip.txt"%(runRep,runRep)
+    f = open(file)
+    ReadsInPeaks = int(f.readline().strip().split()[1])
+    Total = int(f.readline().strip().split()[1])
+    f.close()
+    return ReadsInPeaks,Total
+
+def parse_peaks(runRep):
+    f = open(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
+    #start the counts
+    tot = fc_10 = fc_20 = 0
+    for l in f:
+        tmp = l.strip().split("\t") 
+        #note FC is 7th col
+        fc = float(tmp[6])
+        if fc >= 20.0:
+            fc_20 += 1
+        if fc >= 10.0:
+            fc_10 += 1
+        tot += 1
+    f.close()
+    with open(output_path+"/ceas/%s/%s_summary.txt"%(runRep,runRep),"r") as ceas_meta:
+        ceas_meta=(ceas_meta.read().replace("\'","\""))
+        ceas = json.loads(ceas_meta)
+        prom = ceas['Promoter']
+        exon = ceas['Exon']
+        intr = ceas['Intron']
+        inte = ceas['Intergenic']
+    with open(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep),"r") as dhs_meta:
+        dhs_list = dhs_meta.readline().strip().split(",")
+        dhs="%.2f%%" % (int(dhs_list[1])*100/int(dhs_list[0]))
+    return tot,fc_10,fc_20,dhs,prom,exon,intr,inte
+
+def parse_targets(runRep):
+    file = output_path +"/targets/%s/%s_gene_score.txt" % (runRep,runRep)
+    table = pd.read_csv(file,comment = "#",sep = "\t",header = None)
+    table = table.iloc[:,[0,1,2,4,6]]
+    table.columns = ["chr","start","end","score","gene"]
+    table = table.drop_duplicates().head(2000)
+    table.index = range(0,2000)
+    coordinate = []
+    for i in range(len(table)):
+        tmp = table.loc[i,["chr","start","end"]].values.tolist()
+        coordinate.append("%s:%s-%s" % (tmp[0],tmp[1],tmp[2]))
+    table["coordinate"] = coordinate
+    table = table.loc[:,["gene","score","coordinate"]]
+    html = "<tr><td>{Gene}</td><td>{Score:.2f}</td><td>{Coordinate}</td></tr>"
+    txt = ""
+    for i in range(table.shape[0]):
+        gene = table.loc[i,"gene"]
+        score = table.loc[i,"score"]
+        coor = table.loc[i,"coordinate"]
+        txt += html.format(Gene=gene, Score=score, Coordinate=coor)
+    return txt
+
+def result_dict(wildcards):
+    report_dict={}
+    report_dict["Config"]={}
+    # ChipsVersion
+    git_commit_string = "XXXXXX"
+    if os.path.exists("cidc_chips/.git"):
+        git_commit_string = subprocess.check_output('git --git-dir="cidc_chips/.git" rev-parse --short HEAD',shell=True).decode('utf-8').strip()
+    report_dict["Config"]["ChipsVersion"]=git_commit_string
+    # result path
+    report_dict["Config"]["ResultsPath"]=os.path.abspath(output_path)
+    # assembly
+    report_dict["Config"]["AssemblyVersion"]=config["assembly"]
+    # sentieon
+    UsingSentieon = "No"
+    if "sentieon" in config and config["sentieon"]:
+        UsingSentieon = "Yes"
+    report_dict["Config"]["UsingSentieon"]=UsingSentieon
+    # aligner
+    report_dict["Config"]["Aligner"]=config["aligner"]
+    # cutoff of filtering 
+    report_dict["Config"]["Cutoff"]=config["cutoff"]
+    # motif
+    MotifFinder = "No"
+    report_dict["Motifs"]={}
+    if "motif" in config and config["motif"]:
+        MotifFinder = config["motif"]
+        for run in config["runs"].keys():
+            report_dict["Motifs"][run]={}
+            for rep in _reps[run]:
+                runRep = "%s.%s" % (run, rep)
+                if config["motif"] == "mdseqpos":
+                    report_dict["Motifs"][run][runRep]={"MotifHtml": "motif/%s/results/table.html"% runRep}
+                if config["motif"] == "homer":
+                    report_dict["Motifs"][run][runRep]={"MotifHtml": "motif/%s/results/homerResults.html"% runRep}
+    report_dict["Config"]["MotifFinder"]=MotifFinder
+    # contamination
+    ContaminationPanel = "None"
+    if "contamination_panel" in config and len(config["contamination_panel"]) > 0:
+        ContaminationPanel = "; ".join([c.split("/")[-1] for c in config["contamination_panel"]])
+        report_dict["Contam"]={}
+        ## write something
+        for run in config["runs"].keys():
+            report_dict["Contam"][run] = {}
+            for sample in config["runs"][run]:
+                if sample:
+                    report_dict["Contam"][run][sample]={}
+                    for i in parse_contamination(sample):
+                        report_dict["Contam"][run][sample][i[0]]="%.2f%%" % float(i[1])
+    report_dict["Config"]["ContaminationPanel"]=ContaminationPanel
+    # CNV
+    CNVAnalysis = "No"
+    if "cnv_analysis" in config and config["cnv_analysis"]:
+        CNVAnalysis = "Yes"
+    report_dict["Config"]["CNVAnalysis"]=CNVAnalysis
+    # Run information
+    RunsInformation=[]
+    for run in config["runs"].keys():
+        RunsInformation.append("%s: %s" % (run, ", ".join([s for s in config["runs"][run] if s])))
+    report_dict["Config"]["Runlist"]=list(config["runs"].keys())
+    report_dict["Config"]["RunsInformation"]="; ".join(RunsInformation)
+    # Mapped GC PBC FRiP Fragments Conserv
+    report_dict["Mapped"]={}
+    report_dict["GC"]={}
+    report_dict["PBC"]={}
+    report_dict["FRiP"]={}
+    report_dict["Fragments"]={}
+    report_dict["Conserv"]={}
+    report_dict["Peaks"]={}
+    report_dict["Targets"]={}
+    for run in config["runs"].keys():
+        report_dict["Mapped"][run]={}
+        report_dict["GC"][run]={}
+        report_dict["PBC"][run]={}
+        report_dict["Fragments"][run]={}
+        report_dict["Conserv"][run]={}
+        report_dict["FRiP"][run]={}
+        report_dict["Peaks"][run]={}
+        report_dict["Targets"][run]={}
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ReadsInPeaks,Total=parse_FRiP(runRep)
+            report_dict["FRiP"][run][runRep]={"ReadsInPeaks":ReadsInPeaks, "FRiP":"%.2f%%" % (ReadsInPeaks*100/Total), 
+                                              "FRiPFigure": data_uri_from_file(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))[0]}
+            report_dict["Conserv"][run][runRep]={"ConservationFigure": data_uri_from_file(output_path+"/conserv/%s/%s_conserv.png"%(runRep,runRep))[0]}
+            tot,fc_10,fc_20,dhs,prom,exon,intr,inte=parse_peaks(runRep)
+            report_dict["Peaks"][run][runRep]={"TotalPeaks":tot, "10FoldChangePeaks":fc_10, "20FoldChangePeaks":fc_20, "DHSPeaks":dhs, 
+                                               "PromoterPeaks":prom, "ExonPeaks":exon, "IntronPeaks":intr, "IntergenicPeaks":inte, 
+                                               "PeaksFigure":data_uri_from_file(output_path+"/peaks/%s/%s_peaks.png"%(runRep,runRep))[0],
+                                               "PeaksFile":"files/%s_sorted_peaks.bed" % runRep}
+            html_table = parse_targets(runRep)
+            report_dict["Targets"][run][runRep]={"TargetsTable": html_table, "TargetsFile": "files/%s_gene_score.txt" % runRep}
+        for sample in config["runs"][run]:
+            if sample:
+                total,mapped,uniq_mapped = parse_mapped_rate(sample)
+                report_dict["Mapped"][run][sample]={"TotalReads":total, "MappedReads":mapped, "UniquelyMappedReads":uniq_mapped, 
+                                                    "MappedRate":"%.2f%%" % (mapped*100/total), "UniquelyMappedRate":"%.2f%%" % (uniq_mapped*100/total),
+                                                    "MappedFigure":data_uri_from_file(output_path + "/align/%s/%s_mapping.png"% (sample,sample))[0]}
+                MQ,GC=parse_GC_rate(sample)
+                report_dict["GC"][run][sample]={"MedianQuality":MQ, "GCMedian":GC, "GCFigure": data_uri_from_file(output_path + "/fastqc/%s/%s_perSeqGC.png"% (sample,sample))[0]}
+                N1,Nd=parse_PBC(sample)
+                report_dict["PBC"][run][sample]={"N1Score":N1,"NdScore":Nd,"PBCScore":"%.2f%%" % (N1*100/Nd)}
+                if len(config["samples"][sample]) > 1:
+                    report_dict["Fragments"][run][sample]={"FragmentFigure": data_uri_from_file(output_path + "/frag/%s/%s_fragDist.png"% (sample,sample))[0]}
+    report_dict["Group"]={}
+    report_dict["Group"]["Mapping"]=data_uri_from_file(output_path + "/report/image/mapping.png")[0]
+    report_dict["Group"]["PBC"]=data_uri_from_file(output_path + "/report/image/pbc.png")[0]
+    report_dict["Group"]["Peaks"]=data_uri_from_file(output_path + "/report/image/peakFoldChange.png")[0]
+    return report_dict
+
+
+def getReportInputs(wildcards):
+    ret = []
+    ret.append(output_path + '/report/image/mapping.png')
+    ret.append(output_path + '/report/image/pbc.png')
+    ret.append(output_path + '/report/image/peakFoldChange.png')
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            if "motif" in config and config["motif"]:
+                if config["motif"] == "mdseqpos":
+                    ret.append(output_path + "/motif/%s/results/table.html"% runRep)
+                if config["motif"] == "homer":
+                    ret.append(output_path + "/motif/%s/results/homerResults.html"% runRep)
+            ret.append(output_path + "/frips/%s/%s_frip.txt"%(runRep,runRep))
+            ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
+            ret.append(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
+            ret.append(output_path+"/ceas/%s/%s_summary.txt"%(runRep,runRep))
+            ret.append(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep))
+            ret.append(output_path +"/targets/%s/%s_gene_score.txt"%(runRep,runRep))
+            ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
+            ret.append(output_path+"/conserv/%s/%s_conserv.png"%(runRep,runRep))
+            ret.append(output_path + "/targets/%s/%s_gene_score.txt" % (runRep,runRep))
+            ret.append(output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
+        for sample in config["runs"][run]:
+            if sample:
+                ret.append(output_path + "/align/%s/%s_mapping.txt" %(sample,sample))
+                ret.append(output_path + "/frips/%s/%s_pbc.txt"%(sample,sample))
+                ret.append(output_path + "/align/%s/%s_mapping.png"% (sample,sample))
+                ret.append(output_path + "/fastqc/%s/%s_perSeqGC.png"% (sample,sample))
+                ret.append(output_path + "/frag/%s/%s_fragDist.png"% (sample,sample))
+                if "contamination_panel" in config and len(config["contamination_panel"]) > 0:
+                    ret.append(output_path + "/contam/%s/%s_contamination.txt"% (sample,sample))
+    return ret
+
+def getZipReportInput(wildcards):
+    ret = []
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ret.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
+            ret.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
+    if "motif" in config and config["motif"]:
+        ret.append(output_path + "/motif")
+    return ret
+
 
 def report_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
-    ls.append(output_path + '/report/sequencingStatsSummary.csv')
-    ls.append(output_path + '/report/peaksSummary.csv')
     ls.append(output_path + '/report/report.html')
+    ls.append(output_path + '/report/image/mapping.png')
+    ls.append(output_path + '/report/image/pbc.png')
+    ls.append(output_path + '/report/image/peakFoldChange.png')
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ls.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
+            ls.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
+    if "motif" in config and config["motif"]:
+        ls.append(output_path + '/report/motif')
+    ls.append(output_path + '/report/report.zip')
     return ls
-
-def csvToSimpleTable(csv_file):
-    """function to translate a .csv file into a reStructuredText simple table
-    ref: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
-    """
-    #read in file
-    f = open(csv_file)
-    stats = [l.strip().split(",") for l in f]
-    f.close()
-
-    hdr = stats[0]
-    rest = stats[1:]
-    #RELY on the tabulate pkg
-    ret = tabulate(rest, hdr, tablefmt="rst")
-    return ret
-
-def processRunInfo(run_info_file):
-    """extracts the macs version and the fdr used first and second line"""
-    f = open(run_info_file)
-    ver = f.readline().strip()
-    fdr = f.readline().strip()
-    return (ver,fdr)
-
-def genPeakSummitsTable(conservPlots,motifSummary):
-    """generates rst formatted table that will contain the conservation plot
-    and motif analysis for ALL runs
-    hdr = array of header/column elms
-    """
-    #parse MotifSummary
-    motifs = parseMotifSummary(motifSummary) if motifSummary else {}
-    runs = sorted(_getRepInput("$runRep"))
-    #HEADER- PROCESS the different modules differently
-    if 'motif' in config and config['motif'] == 'mdseqpos':
-        hdr = ["Run", "Conservation","MotifID","MotifName","Logo","Zscore"]
-    else:
-        hdr = ["Run", "Conservation","Motif","Logo","Pval","LogPval"]
-    #BUILD up the rest of the table
-    rest = []
-    for run,img in zip(runs,conservPlots):
-        #HANDLE null values
-        if img and (img != 'NA'):
-            conserv = ".. image:: %s" % data_uri_from_file(img)[0]
-        else:
-            conserv = "NA"
-        #HANDLE null values--Also check that we're doing motif analysis
-        if 'motif' in config and motifs[run]['logo'] and (motifs[run]['logo'] != 'NA'):
-            motif_logo = ".. image:: %s" % data_uri_from_file(motifs[run]['logo'])[0]
-        else:
-            motif_logo = "NA"
-
-        #PROCESS the different modules differently
-        if 'motif' in config:
-            if config['motif'] == 'mdseqpos':
-                rest.append([run, conserv, motifs[run]['motifId'], motifs[run]['motifName'], motif_logo,  motifs[run]['zscore']])
-            else:
-                rest.append([run, conserv, motifs[run]['motifName'], motif_logo, motifs[run]['pval'],motifs[run]['logp']])
-        else:
-            #motif analysis was skipped
-            rest.append([run, conserv, 'NA', 'NA', 'NA','NA'])
-
-    ret = tabulate(rest, hdr, tablefmt="rst")
-    return ret
-
-def parseMotifSummary(motif_csv):
-    """Given a motifSummary.csv file, parses this into a dictionary 
-    {run: {motifId: , motifName: , logo: , zscore: }}
-    Returns this dictionary
-    """
-    ret = {}
-    f = open(motif_csv)
-    hdr = f.readline().strip().split(",")
-    for l in f:
-        tmp = l.strip().split(",")
-        if config['motif'] == 'mdseqpos':
-            ret[tmp[0]] = {'motifId': tmp[1], 'motifName': tmp[2], 'logo': tmp[3], 'zscore': tmp[4]}
-        else:
-            ret[tmp[0]] = {'motifName':tmp[1], 'logo':tmp[2], 'pval': tmp[3], 'logp': tmp[4]}
-    f.close()
-    return ret
-
-def sampleGCandContam_table(fastqc_stats, fastqc_gc_plots, contam_table):
-    """generates rst formatted table that will contain the fastqc GC dist. plot
-    for all samples
-    hdr = array of header/column elms
-    NOTE: we use the thumb nail image for the GC content plots
-    """
-    #READ in fastqc_stats
-    f_stats = {}
-    f = open(fastqc_stats)
-    hdr = f.readline().strip().split(",")  #largely ignored
-    for l in f:
-        tmp = l.strip().split(",")
-        #store GC content, 3 col, using sample names as keys
-        f_stats[tmp[0]] = tmp[2]
-    f.close()
-    
-    #READ in contam_panel
-    contam = {}
-    f = open(contam_table)
-    hdr = f.readline().strip().split(',') #We'll use this!
-    species = hdr[1:]
-    for l in f:
-        tmp = l.strip().split(",")
-        #build dict, use sample name as key
-        contam[tmp[0]] = zip(species, tmp[1:]) #dict of tupes, (species, %)
-    f.close()
-
-    #PUT GC plots into a dictionary--keys are sample names
-    plots = {}
-    for p in fastqc_gc_plots:
-        #NOTE the path structure is analysis/fastqc/{sample}/png_filename
-        #we take second to last
-        tmp = p.split("/")[-2]
-        plots[tmp] = str(p)
-    
-    #build output
-    ret=[]
-    samples = sorted(list(f_stats.keys()))
-    hdr = ["Sample", "GC median", "GC distribution"]
-    hdr.extend(species)
-    rest=[]
-
-    for sample in samples:
-        #HANDLE null values
-        if plots[sample] and (plots[sample] != 'NA'):
-            gc_plot = ".. image:: %s" % data_uri_from_file(plots[sample])[0]
-        else:
-            gc_plot = "NA"
-        #get rest of values and compose row
-        contam_values = [v for (s, v) in contam[sample]]
-        row = [sample, f_stats[sample], gc_plot]
-        row.extend(contam_values)
-
-        rest.append(row)
-    ret = tabulate(rest, hdr, tablefmt="rst")
-    return ret
-
-def getReportInputs(wildcards):
-    """Input function created just so we can switch-off motif analysis"""
-    ret = {'cfce_logo':"cidc_chips/static/CFCE_Logo_Final.jpg",
-           'run_info':output_path + "/peaks/run_info.txt",
-           'map_stat':output_path + "/report/mapping.png",
-           'pbc_stat':output_path + "/report/pbc.png",
-           'peakFoldChange_png':output_path + "/report/peakFoldChange.png",
-           'conservPlots': sorted(_getRepInput(output_path + "/conserv/$runRep/$runRep_conserv_thumb.png")),
-           'samples_summary':output_path + "/report/sequencingStatsSummary.csv",
-           'runs_summary':output_path + "/report/peaksSummary.csv",
-           'contam_panel':output_path + "/contam/contamination.csv",
-           #MOTIF handled after
-           'fastqc_stats':output_path + "/fastqc/fastqc.csv",
-           'fastqc_gc_plots': expand(output_path + "/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"])
-           }
-    if 'motif' in config:
-        ret['motif'] = output_path + "/motif/motifSummary.csv"
-    return ret
 
 
 rule report_all:
@@ -180,104 +289,102 @@ rule report_all:
 
 rule report:
     input:
-        unpack(getReportInputs)
-    params:
-        #OBSOLETE, but keeping around
-        samples = config['samples']
-   # conda: "../envs/report/report.yaml"
-    output: html=output_path + "/report/report.html"
+        getReportInputs
+    output:
+        output_path + '/report/report.html'
+    message: "REPORT: Generate report for whole runs"
     run:
-        (macsVersion, fdr) = processRunInfo(input.run_info)
-        samplesSummaryTable = csvToSimpleTable(input.samples_summary)
-        runsSummaryTable = csvToSimpleTable(input.runs_summary)
-        #HACK b/c unpack is ruining the input.fastqc_gc_plots element--the list
-        #becomes a singleton
-        conservPlots = sorted(_getRepInput(output_path + "/conserv/$runRep/$runRep_conserv_thumb.png"))
-        if 'motif' in config:
-            peakSummitsTable = genPeakSummitsTable(conservPlots, input.motif)
-        else:
-            peakSummitsTable = genPeakSummitsTable(conservPlots, None)
-        #HACK b/c unpack is ruining the input.fastqc_gc_plots element--the list
-        #becomes a singleton
-        fastqc_gc_plots = [output_path + "/fastqc/%s/%s_perSeqGC_thumb.png" % (s,s) for s in config['samples']]
-        sampleGCandContam = sampleGCandContam_table(input.fastqc_stats, fastqc_gc_plots, input.contam_panel)
-        git_commit_string = "XXXXXX"
-        git_link = 'https://bitbucket.org/plumbers/cidc_chips/commits/'
-        #Check for .git directory
-        if os.path.exists("cidc_chips/.git"):
-            git_commit_string = subprocess.check_output('git --git-dir="cidc_chips/.git" rev-parse --short HEAD',shell=True).decode('utf-8').strip()
-            git_link = git_link + git_commit_string
-        tmp = _ReportTemplate.substitute(cfce_logo=data_uri_from_file(input.cfce_logo)[0],map_stat=data_uri_from_file(input.map_stat)[0],
-                                         pbc_stat=data_uri_from_file(input.pbc_stat)[0],peakSummitsTable=peakSummitsTable,
-                                         peakFoldChange_png=data_uri_from_file(input.peakFoldChange_png)[0],
-                                         git_commit_string=git_commit_string,git_link=git_link)
-        report(tmp, output.html, stylesheet='./cidc_chips/static/chips_report.css', metadata="Len Taing", **input)
+        report_dict=result_dict(wildcards)
+        template = "cidc_chips/static/chipsTemplate.html"
+        report = open(template)
+        with open(str(output),"w") as o:
+            o.write(report.read().replace("{ RESULT_DICT }",json.dumps(report_dict)))
+        report.close()
 
-rule samples_summary_table:
+rule reportCopyMotif:
     input:
-        fastqc = output_path + "/fastqc/fastqc.csv",
-        mapping = output_path + "/align/mapping.csv",
-        pbc = output_path + "/frips/pbc.csv",
+        motif_targets
     output:
-        output_path + "/report/sequencingStatsSummary.csv"
-    log: _logfile
-    #conda: "../envs/report/report.yaml"
+        directory(output_path + '/report/motif')
+    message: "REPORT: Copy motif results to report"
+    params:
+        motif_path = output_path + "/motif/"
     shell:
-        "cidc_chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} > {output} 2>>{log}"
+        "cp -r {params.motif_path} {output}"
 
-rule runs_summary_table:
+rule reportCopyTargets:
     input:
-        peaks = output_path + "/peaks/peakStats.csv",
-        frips = output_path + "/frips/frips.csv",
-        dhs = output_path + "/ceas/dhs.csv",
-        meta = output_path + "/ceas/meta.csv",
+        output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
     output:
-        output_path + "/report/peaksSummary.csv"
-    log: _logfile
-    #conda: "../envs/report/report.yaml"
+        score=output_path + "/report/files/{run}.{rep}_gene_score.txt",
+    message: "REPORT: Copy targets results to report"
     shell:
-        "cidc_chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -m {input.meta} -o {output} 2>>{log}"
+        "cp {input} {output}"
 
-######## PLOTS ######
-rule plot_map_stat:
+rule reportCopyPeaks:
+    input:
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+    output:
+        output_path + "/report/files/{run}.{rep}_sorted_peaks.bed",
+    message: "REPORT: Copy peaks results to report"
+    shell:
+        "cp {input} {output}"
+
+rule reportPlotMapStat:
     input:
         output_path + "/align/mapping.csv"
     output:
-        output_path + "/report/mapping.png"
+        output_path + "/report/image/mapping.png"
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/map_stats.R {input} {output}"
 
-rule plot_pbc_stat:
+rule reportPlotPBCStat:
     input:
         #output_path + "/align/pbc.csv"
         output_path + "/frips/pbc.csv"
     output:
-        output_path + "/report/pbc.png"
+        output_path + "/report/image/pbc.png"
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/plot_pbc.R {input} {output}"
 
-rule plot_peakFoldChange:
+rule reportPlotPeakFoldChange:
     input: 
         output_path + "/peaks/peakStats.csv"
     output:
-        output_path + "/report/peakFoldChange.png"
+        output_path + "/report/image/peakFoldChange.png"
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/plot_foldChange.R {input} {output}"
 
-#DEPRECATED!! this plot is no longer used!
-rule plot_nonChrM_stats:
+rule reportZipReport:
     input:
-        output_path + "/frips/nonChrM_stats.csv"
+        report=output_path + '/report/report.html',
+        files=getZipReportInput,
     output:
-        output_path + "/report/attic/nonChrM_stats.png"
-    log: _logfile
-    conda: "../envs/report/report.yaml"
+        output_path + '/report/report.zip'
+    message: "REPORT: Compress report"
+    params: 
+        motif = output_path + '/report/motif' if ("motif" in config and config["motif"]) else "" ,
+        files = output_path + '/report/files'
     shell:
-        "Rscript cidc_chips/modules/scripts/plot_nonChrM.R {input} {output}"
+        "zip -q -r {output} {input.report} {params.files} {params.motif}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

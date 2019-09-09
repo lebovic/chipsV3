@@ -128,6 +128,7 @@ def peaks_targets(wildcards):
                 ls.append(output_path + "/peaks/%s/%s_sorted_peaks.narrowPeak" % (runRep,runRep))
                 ls.append(output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
                 ls.append(output_path + "/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
+            ls.append(output_path + "/peaks/%s/%s_peaks.png" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_treat_pileup.bw" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_control_lambda.bw" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_treat_pileup.sorted.bdg.gz" % (runRep,runRep))
@@ -270,6 +271,16 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
 
+    rule broadPeaksPlot:
+        input:
+            peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak",
+            ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
+        message: "PEAKS: Plot peaks region"
+        shell:
+            "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
+
 else:
     rule macs2_callpeaks:
         input:
@@ -405,6 +416,15 @@ else:
         shell:
             "sort -r -n -k 5 {input} > {output} "#2>>{log}"
 
+    rule broadPeaksPlot:
+        input:
+            peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
+            ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
+        message: "PEAKS: Plot peaks region"
+        shell:
+            "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
 
 rule macs2_get_fragment:
@@ -417,11 +437,12 @@ rule macs2_get_fragment:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         treatment = lambda wildcards, input: [" -i %s" % i for i in input.treat] if input.treat else "",
+        genome = config['genome_size']
     message: "PEAKS: Get fragment size with macs2"
     log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g 'hs' "#2>>{log}"
+       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
 
 rule sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""

@@ -10,6 +10,7 @@ dependencies:
 - python>=3.5.2
 - r>=3.4.1
 - numpy
+- pandas
 
 #align_*.snakefile
 - bwa>=0.7.15
@@ -55,6 +56,7 @@ dependencies:
 
 #report.snakefile
 - tabulate
+- seaborn
 
 #BUGS: minor missing
 - r-r.utils

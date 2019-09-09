@@ -8,3 +8,5 @@ dependencies:
 - sambamba=0.6.6
 - picard>=2.18.4
 - bedtools>=2.25.0
+- pandas
+- seaborn
