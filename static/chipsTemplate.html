@@ -221,7 +221,7 @@
                                         </div>
                                         <div>The raw reads for each sample were mapped to the reference genome using alignment software (see <span data-toggle="collapse" data-target="#overallInformation" style="color: #007bff; cursor: pointer;">Overall Information</span>).</div>
                                         <div> The <b>mapped reads</b> represent the number of reads which successfully map to the genome, while the <b>uniquely mapped reads</b> represent the subset of <b>mapped reads</b> that map to only one location in the genome.</div>
-                                        <div> In most cases, more than <b>60% of the total reads</b> should be <b>uniquely mapped</b>. Contamination, low quality sequencing data, or poor library construction are just some of the reasons that a sample's uniquely mapped reads might not reach this threshold.</div>
+                                        <div> In most cases, anything above <b>60% uniquely mapped</b> reads is considered as good quality data. Contamination, low quality sequencing data, or poor library construction could be the reasons for low quality data.</div>
                                         <br />
                                         <div id="groupMappedInformation">
                                             <img src="{groupMappedFigure}" width="500" height="500" class="float-left">
@@ -232,10 +232,8 @@
                                             <h3>PCR Bottleneck Coefficient (PBC) Summary</h3>
                                         </div>
                                         <div><b>PBC</b> is a common measure used for determining sample complexity.</div>
-                                        <div>After alignment the samples are then normalized (by <b>downsampling</b>) to <b>4 million reads</b>.</div>
-                                        <div>The uniquely mapped reads of that downsample are then piled-up.</div>
-                                        <div><b>Nd</b> is defined as the number of <b>unique region locations</b>. <b>N1</b> is defined as then number of <b>unique region locations with only one read</b>. </div>
-                                        <div>The PBC is then simply calculated as <b>N1/Nd</b>. Good ChIP-seq samples typically have a <b>PBC score >= 0.90</b> (ref).</div>
+                                        <div><b>4 million reads</b> are downsampled from the alignment result.</div>
+                                        <div>These downsampled results are used to calculate the PBC score. PBC score is calculated by the formula: <b>N1/Nd</b>, where <b>N1</b> = number of unique region locations with only one read and <b>Nd</b> = number of unique region locations. Typically, good quality samples have a <b>PBC score >= 0.90</b>.</div>
                                         <br />
                                         <div id="groupPBCInformation">
                                             <img src="{groupPBCFigure}" width="500" height="500" class="float-left">
@@ -328,8 +326,7 @@
                                         </div>
                                         <div>The raw reads for each sample were mapped to the reference genome using alignment software (see <span data-toggle="collapse" data-target="#overallInformation" style="color: #007bff; cursor: pointer;">Overall Information</span>).</div>
                                         <div> The <b>mapped reads</b> represent the number of reads which successfully map to the genome, while the <b>uniquely mapped reads</b> represent the subset of <b>mapped reads</b> that map to only one location in the genome.</div>
-                                        <div> In most cases, more than <b>60% of the total reads</b> should be <b>uniquely mapped</b>. Contamination, low quality sequencing data, or poor library construction are just some of the reasons that a sample's uniquely mapped reads might not reach this threshold.</div>
-                                        <br />
+                                        <div> In most cases, anything above <b>60% uniquely mapped</b> reads is considered as good quality data. Contamination, low quality sequencing data, or poor library construction could be the reasons for low quality data.</div>
                                         <div class="container-fluid m-0 p-0" id="MappedInformation">
                                             <div class="container-fluid mb-3">
                                                 <h4>{SampleName}</h4>
@@ -423,8 +420,8 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>Contamination</h3>
                                         </div>
-                                        <div>A sub-sample of 100,000 reads from the raw file is take and then aligned against each species defined in the contamination panel (see <span data-toggle="collapse" data-target="#overallInformation" style="color: #007bff; cursor: pointer;">Overall Information</span>). </div>
-                                        <div>The reported values for each species represents the percent of 100,000 reads that map to that species' reference genome.</div>
+                                        <div>A sub-sample of 100,000 reads from the raw file is taken and aligned against each species defined in the contamination panel (see <span data-toggle="collapse" data-target="#overallInformation" style="color: #007bff; cursor: pointer;">Overall Information</span>). </div>
+                                        <div>The reported values for each species represent the percent of 100,000 reads that map to that species' reference genome.</div>
                                         <br />
                                         <div class="container-fluid m-0 p-0" id="ContamInformation">
                                             <div class="container-fluid mb-3">
@@ -462,11 +459,9 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>PCR Bottleneck Coefficient (PBC)</h3>
                                         </div>
-                                        <div><b>PBC</b> is a common measure used for determining sample complexity (ref).</div>
-                                        <div>After alignment the samples are then normalized (by <b>downsampling</b>) to <b>4 million reads</b>.</div>
-                                        <div>The uniquely mapped reads of that downsample are then piled-up.</div>
-                                        <div><b>Nd</b> is defined as the number of <b>unique region locations</b>. <b>N1</b> is defined as then number of <b>unique region locations with only one read</b>. </div>
-                                        <div>The PBC is then simply calculated as <b>N1/Nd</b>. Good ChIP-seq samples typically have a <b>PBC score >= 0.90</b> (ref).</div>
+                                        <div><b>PBC</b> is a common measure used for determining sample complexity.</div>
+                                        <div><b>4 million reads</b> are downsampled from the alignment result.</div>
+                                        <div>These downsampled results are used to calculate the PBC score. PBC score is calculated by the formula: <b>N1/Nd</b>, where <b>N1</b> = number of unique region locations with only one read and <b>Nd</b> = number of unique region locations. Typically, good quality samples have a <b>PBC score >= 0.90</b>.</div>
                                         <br />
                                         <div class="container-fluid m-0 p-0" id="PBCInformation">
                                             <div class="container-fluid mb-3">
@@ -499,9 +494,9 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>Fraction of Reads in Peaks (FRiP)</h3>
                                         </div>
-                                        <div><b>FRiP</b> score is calculated by first downsampling to 4 million reads, and aligning those reads to the genome. </div>
-                                        <div>MACS is then used to call peaks on the resulting alignment (4M downsampled peaks). </div>
-                                        <div>The FRiP is simply the fraction of th 4 million reads that fall within a peak-region.</div>
+                                        <div>4 million reads are downsampled from the raw files and aligned to the genome. </div>
+                                        <div>MACS tool is used to call peaks on the alignment results. </div>
+                                        <div><b>FRiP score</b> is calculated by taking the fraction of 4 million reads that fall within a defined peak-region.</div>
                                         <br />
                                         <div class="container-fluid m-0 p-0" id="FRiPInformation">
                                             <div class="container-fluid mb-3">
