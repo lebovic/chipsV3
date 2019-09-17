@@ -64,10 +64,10 @@ def getFilteredTreats(wildcards):
             if not tmp:
                 #NOTE: I can't figure out a proper kill command so I'll do this
                 tmp=["ERROR! Missing treatment file for run: %s, rep: %s" % (wildcards.run, rep_s)]
-        else:
-            #SE
-            if treat < len(r):
-                tmp = [output_path + "/align/%s/%s_unique.sorted.bam" % (r[treat],r[treat])]
+        # else:
+        #     #SE
+        #     if treat < len(r):
+        #         tmp = [output_path + "/align/%s/%s_unique.sorted.bam" % (r[treat],r[treat])]
             #print("TREAT: %s" % tmp)
             if not tmp:
                 #NOTE: I can't figure out a proper kill command so I'll do this
@@ -91,11 +91,11 @@ def getFilteredConts(wildcards):
             #PE
             if cont < len(r):
                 tmp = [output_path + "/align/%s/%s_unique.sorted.dedup.sub%s.bam" % (r[cont],r[cont],config['cutoff'])]
-        else:
-            #SE
-            if cont < len(r):
-                tmp = [output_path + "/align/%s/%s_unique.sorted.bam" % (r[cont],r[cont])]
-        #print("CONT: %s" % tmp)
+        # else:
+        #     #SE
+        #     if cont < len(r):
+        #         tmp = [output_path + "/align/%s/%s_unique.sorted.bam" % (r[cont],r[cont])]
+        # #print("CONT: %s" % tmp)
     return tmp
 
 def checkBAMPE(wildcards):
@@ -136,7 +136,7 @@ def peaks_targets(wildcards):
             ls.append(output_path + "/peaks/%s/%s_treatment.igv.xml" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_peaks.bed" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_model.R" % (runRep,runRep))
-            if ('cutoff' in config) and config['cutoff']:
+            if ('cutoff' in config) and config['cutoff'] and len(config['samples'][config['runs'][run][0]]) == 2:
                 if ("macs2_broadpeaks" not in config) or (config["macs2_broadpeaks"] == False):
                     ls.append(output_path + "/peaks/%s/%s.sub%s_summits.bed" % (runRep,runRep,config["cutoff"]))
                 ls.append(output_path + "/peaks/%s/%s.sub%s_peaks.bed" % (runRep,runRep,config["cutoff"]))
