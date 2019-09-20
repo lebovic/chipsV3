@@ -30,6 +30,14 @@ cutoff: 150
 # Uncomment below line and set value as true
 #macs2_broadpeaks: false
 
+# Calculating the overlap of DHS regions is not necessary for ATAC-seq.
+# Set dhs as False to skip overlap. {True, False}
+dhs: True
+
+# For EN-TEx tissues, FRiP scores will not be enforced as QC metric.
+# Set frip as False to skip calculating frip score. {True, False}
+frip: True
+
 #MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'
 #OTHERWISE leave it as 'homer' (default)
 #

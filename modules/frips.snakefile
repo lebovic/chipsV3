@@ -19,14 +19,15 @@ def frips_targets(wildcards):
     for sample in config["samples"]:
         ls.append(output_path + "/frag/%s/%s_fragDist.png" % (sample,sample))
         ls.append(output_path + "/frips/%s/%s_pbc.txt" % (sample,sample))
-    for run in config["runs"].keys():
-        for rep in _reps[run]:
-            runRep = "%s.%s" % (run, rep)
-            ls.append(output_path + "/frips/%s/%s_frip.txt" % (runRep,runRep))
-            ls.append(output_path + "/frips/%s/%s_frip.png" % (runRep,runRep))
+    if 'frip' in config and config['frip']:
+        for run in config["runs"].keys():
+            for rep in _reps[run]:
+                runRep = "%s.%s" % (run, rep)
+                ls.append(output_path + "/frips/%s/%s_frip.txt" % (runRep,runRep))
+                ls.append(output_path + "/frips/%s/%s_frip.png" % (runRep,runRep))
+        ls.append(output_path + "/frips/frips.csv")
     ls.append(output_path + "/frips/pbc.csv")
     ls.append(output_path + "/frips/nonChrM_stats.csv")
-    ls.append(output_path + "/frips/frips.csv")
     return ls
 
 #NOTE: this takes the Treatment of the FIRST replicate!!!--ignores the rest!

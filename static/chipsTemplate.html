@@ -293,13 +293,13 @@
                                 <li class="nav-item" id="FragmentsTab">
                                     <a class="nav-link p-1" data-toggle="pill" href="#Fragments" onclick="update_Fragments_information()">Fragments Length</a>
                                 </li>
-                                <li class="nav-item">
+                                <li class="nav-item" id="ContamTab">
                                     <a class="nav-link p-1" data-toggle="pill" href="#Contam" onclick="update_Contam_information()">Contamination</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link p-1" data-toggle="pill" href="#PBC" onclick="update_PBC_information()">PBC</a>
                                 </li>
-                                <li class="nav-item">
+                                <li class="nav-item" id="FRiPTab">
                                     <a class="nav-link p-1" data-toggle="pill" href="#FRiP" onclick="update_FRiP_information()">FRiP</a>
                                 </li>
                                 <li>
@@ -708,6 +708,16 @@ if (JSON.stringify(Chips_result["Motifs"]) == '{}') {
 } else {
     $("#MotifsTab").css('display', 'block')
 };
+if (JSON.stringify(Chips_result["FRiP"]) == '{}') {
+    $("#FRiPTab").css('display', 'none')
+} else {
+    $("#FRiPTab").css('display', 'block')
+};
+if (JSON.stringify(Chips_result["Contam"]) == '{}') {
+    $("#ContamTab").css('display', 'none')
+} else {
+    $("#ContamTab").css('display', 'block')
+};
 
 
 function update_current_run() {
@@ -824,7 +834,12 @@ function update_Conserv_information() {
 
 function update_Peaks_information() {
     $.each(Object.keys(Chips_result["Peaks"][get_current_run()]), function(i, item) {
-        var html_content = '<div class="container-fluid mb-3"><div class="row align-items-center mb-3"><h4 class="col-6 mb-0 p-0">' + item + '</h4><a class="col-6 m-auto p-auto text-left" href="' + Chips_result["Peaks"][get_current_run()][item]['PeaksFile'] + '">Download file</a></div><div class="row"><div class="col-md-6"><table class="table table-bordered table-striped" style="font-size: 15px"><tbody><tr><th scope="row">Total Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['TotalPeaks'] + '</td></tr><tr><th scope="row">>10 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['10FoldChangePeaks'] + '</td></tr><tr><th scope="row">>20 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['20FoldChangePeaks'] + '</td></tr><tr><th scope="row">DHS Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['DHSPeaks'] + '</td></tr><tr><th scope="row">Peaks In Promoter</th><td>' + Chips_result["Peaks"][get_current_run()][item]['PromoterPeaks'] + '</td></tr><tr><th scope="row">Peaks In Exon</th><td>' + Chips_result["Peaks"][get_current_run()][item]['ExonPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intron</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntronPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intergenic</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntergenicPeaks'] + '</td></tr></tbody></table></div><div class="col-md-6"><a href=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + '><img src=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + ' width="400" height="377" class="float-left"></a></div></div></div>';
+        if (Chips_result["Peaks"][get_current_run()][item]['DHSPeaks'] != '') {
+            var dhs_html = '<tr><th scope="row">DHS Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['DHSPeaks'] + '</td></tr>'
+        } else {
+            var dhs_html = ''
+        };
+        var html_content = '<div class="container-fluid mb-3"><div class="row align-items-center mb-3"><h4 class="col-6 mb-0 p-0">' + item + '</h4><a class="col-6 m-auto p-auto text-left" href="' + Chips_result["Peaks"][get_current_run()][item]['PeaksFile'] + '">Download file</a></div><div class="row"><div class="col-md-6"><table class="table table-bordered table-striped" style="font-size: 15px"><tbody><tr><th scope="row">Total Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['TotalPeaks'] + '</td></tr><tr><th scope="row">>10 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['10FoldChangePeaks'] + '</td></tr><tr><th scope="row">>20 Fold Change Peaks</th><td>' + Chips_result["Peaks"][get_current_run()][item]['20FoldChangePeaks'] + '</td></tr>' + dhs_html + '<tr><th scope="row">Peaks In Promoter</th><td>' + Chips_result["Peaks"][get_current_run()][item]['PromoterPeaks'] + '</td></tr><tr><th scope="row">Peaks In Exon</th><td>' + Chips_result["Peaks"][get_current_run()][item]['ExonPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intron</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntronPeaks'] + '</td></tr><tr><th scope="row">Peaks In Intergenic</th><td>' + Chips_result["Peaks"][get_current_run()][item]['IntergenicPeaks'] + '</td></tr></tbody></table></div><div class="col-md-6"><a href=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + '><img src=' + Chips_result["Peaks"][get_current_run()][item]['PeaksFigure'] + ' width="400" height="377" class="float-left"></a></div></div></div>';
         if (i == 0) {
             $("#PeaksInformation").html(html_content);
         } else {

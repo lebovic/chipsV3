@@ -10,24 +10,26 @@ def ceas_targets(wildcards):
             #GENERATE Run name: concat the run and rep name
             runRep = "%s.%s" % (run, rep)
             ls.append(output_path + "/ceas/%s/%s_summary.txt" % (runRep,runRep))
-            ls.append(output_path + "/ceas/%s/%s_DHS_peaks.bed" % (runRep,runRep))
-            ls.append(output_path + "/ceas/%s/%s_DHS_stats.txt" % (runRep,runRep))
+            if 'dhs' in config and config['dhs']:
+                ls.append(output_path + "/ceas/%s/%s_DHS_peaks.bed" % (runRep,runRep))
+                ls.append(output_path + "/ceas/%s/%s_DHS_stats.txt" % (runRep,runRep))
+                ls.append(output_path + "/ceas/%s/%s_DHS_summary.dhs" % (runRep,runRep))
             if config["velcro_regions"]:
                 ls.append(output_path + "/ceas/%s/%s_velcro_peaks.bed" % (runRep,runRep))
                 ls.append(output_path + "/ceas/%s/%s_velcro_stats.txt" % (runRep,runRep))
-            ls.append(output_path + "/ceas/%s/%s_DHS_summary.dhs" % (runRep,runRep))
     #ADD bam_regionStats
     for sample in config["samples"]:
         if config['exons']:
             ls.append(output_path + "/ceas/samples/%s/%s.exons" % (sample,sample))
         if config['promoters']:
             ls.append(output_path + "/ceas/samples/%s/%s.promoters" % (sample,sample))
-        if config['DHS']:
+        if 'dhs' in config and config['dhs'] and config['DHS']:
             ls.append(output_path + "/ceas/samples/%s/%s.DHS" % (sample,sample))
         if config['exons'] and config['promoters'] and config['DHS']:
             ls.append(output_path + "/ceas/samples/%s/%s_meta.json" % (sample,sample))
     ls.append(output_path + "/ceas/samples/bamRegionStats.csv")
-    ls.append(output_path + "/ceas/dhs.csv")
+    if 'dhs' in config and config['dhs']:
+        ls.append(output_path + "/ceas/dhs.csv")
     ls.append(output_path + "/ceas/meta.csv")
     return ls
 

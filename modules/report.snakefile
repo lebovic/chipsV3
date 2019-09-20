@@ -82,9 +82,12 @@ def parse_peaks(runRep):
         exon = ceas['Exon']
         intr = ceas['Intron']
         inte = ceas['Intergenic']
-    with open(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep),"r") as dhs_meta:
-        dhs_list = dhs_meta.readline().strip().split(",")
-        dhs="%.2f%%" % (int(dhs_list[1])*100/int(dhs_list[0]))
+    if 'dhs' in config and config['dhs']:
+        with open(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep),"r") as dhs_meta:
+            dhs_list = dhs_meta.readline().strip().split(",")
+            dhs="%.2f%%" % (int(dhs_list[1])*100/int(dhs_list[0]))
+    else:
+        dhs = ''
     return tot,fc_10,fc_20,dhs,prom,exon,intr,inte
 
 def parse_targets(runRep):
@@ -163,10 +166,9 @@ def result_dict(wildcards):
     report_dict["Config"]["MotifFinder"]=MotifFinder
     # contamination
     ContaminationPanel = "None"
+    report_dict["Contam"]={}
     if "contamination_panel" in config and len(config["contamination_panel"]) > 0:
         ContaminationPanel = "; ".join([c.split("/")[-1] for c in config["contamination_panel"]])
-        report_dict["Contam"]={}
-        ## write something
         for run in config["runs"].keys():
             report_dict["Contam"][run] = {}
             for sample in config["runs"][run]:
@@ -191,6 +193,13 @@ def result_dict(wildcards):
     report_dict["GC"]={}
     report_dict["PBC"]={}
     report_dict["FRiP"]={}
+    if 'frip' in config and config['frip']:
+        report_dict["FRiP"][run]={}
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ReadsInPeaks,Total=parse_FRiP(runRep)
+            report_dict["FRiP"][run][runRep]={"ReadsInPeaks":ReadsInPeaks, "FRiP":"%.2f%%" % (ReadsInPeaks*100/Total), 
+                                              "FRiPFigure": data_uri_from_file(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))[0]}
     report_dict["Fragments"]={}
     report_dict["Conserv"]={}
     report_dict["Peaks"]={}
@@ -201,14 +210,10 @@ def result_dict(wildcards):
         report_dict["PBC"][run]={}
         report_dict["Fragments"][run]={}
         report_dict["Conserv"][run]={}
-        report_dict["FRiP"][run]={}
         report_dict["Peaks"][run]={}
         report_dict["Targets"][run]={}
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
-            ReadsInPeaks,Total=parse_FRiP(runRep)
-            report_dict["FRiP"][run][runRep]={"ReadsInPeaks":ReadsInPeaks, "FRiP":"%.2f%%" % (ReadsInPeaks*100/Total), 
-                                              "FRiPFigure": data_uri_from_file(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))[0]}
             report_dict["Conserv"][run][runRep]={"ConservationFigure": data_uri_from_file(output_path+"/conserv/%s/%s_conserv.png"%(runRep,runRep))[0]}
             tot,fc_10,fc_20,dhs,prom,exon,intr,inte=parse_peaks(runRep)
             report_dict["Peaks"][run][runRep]={"TotalPeaks":tot, "10FoldChangePeaks":fc_10, "20FoldChangePeaks":fc_20, "DHSPeaks":dhs, 
@@ -250,13 +255,14 @@ def getReportInputs(wildcards):
                     ret.append(output_path + "/motif/%s/results/table.html"% runRep)
                 if config["motif"] == "homer":
                     ret.append(output_path + "/motif/%s/results/homerResults.html"% runRep)
-            ret.append(output_path + "/frips/%s/%s_frip.txt"%(runRep,runRep))
-            ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
+            if 'frip' in config and config['frip']:
+                ret.append(output_path + "/frips/%s/%s_frip.txt"%(runRep,runRep))
+                ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
             ret.append(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
             ret.append(output_path+"/ceas/%s/%s_summary.txt"%(runRep,runRep))
-            ret.append(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep))
+            if 'dhs' in config and config['dhs']:
+                ret.append(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep))
             ret.append(output_path +"/targets/%s/%s_gene_score.txt"%(runRep,runRep))
-            ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
             ret.append(output_path+"/conserv/%s/%s_conserv.png"%(runRep,runRep))
             ret.append(output_path + "/targets/%s/%s_gene_score.txt" % (runRep,runRep))
             ret.append(output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
