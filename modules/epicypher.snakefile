@@ -31,7 +31,7 @@ rule epicypher_all:
     input:
         epicypher_targets
 
-rule align_to_epicypher:
+rule epicypher_alignToEpicypher:
     """Align unmapped reads to epicypher assembly"""
     input:
         output_path + "/align/{sample}/{sample}.unmapped.fq.gz"
@@ -48,7 +48,7 @@ rule align_to_epicypher:
     shell:
         "bwa mem -t {threads} {params.epicypher_index} {input} {params.mate2} | samtools view -Sb - > {output}"
 
-rule sort_epicypher:
+rule epicypher_sortEpicypher:
     input:
         output_path + "/epicypher.{ttype}/{sample}/{sample}.epicypher.bam"
     output:
@@ -60,7 +60,7 @@ rule sort_epicypher:
     shell:
         "sambamba sort {input} -o {output} -t {threads}"# 2>>{log}"
 
-rule uniquely_mapped:
+rule epicypher_uniquelyMapped:
     """Get uniquely mapped reads from epicypher.bam"""
     input:
         output_path + "/epicypher.{ttype}/{sample}/{sample}.epicypher.sorted.bam"
@@ -73,7 +73,7 @@ rule uniquely_mapped:
     shell:
         "samtools view -bq 1 -@ {threads} {input} > {output}"
 
-rule index_epicypher:
+rule epicypher_indexEpicypher:
     input:
         output_path + "/epicypher.{ttype}/{sample}/{sample}.epicypher.sorted.unique.bam"
     output:

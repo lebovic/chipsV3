@@ -20,10 +20,7 @@ def getRuns(config):
     #SKIP the hdr
     for l in f[1:]:
         tmp = l.strip().split(",")
-        #print(tmp)
         ret[tmp[0]] = tmp[1:]
-
-    #print(ret)
     config['runs'] = ret
     return config
 
@@ -195,6 +192,6 @@ include: "./modules/targets.snakefile"       # targets module
 include: "./modules/report.snakefile"        # report module
 include: "./modules/json.snakefile"          # json module
 include: "./modules/cistrome.snakefile"      # cistrome adapter module
-include: "./modules/empty_checking.snakefile"# checking empty file module
+include: "./modules/emptychecking.snakefile" # checking empty file module
 
 

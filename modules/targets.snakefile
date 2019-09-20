@@ -21,7 +21,7 @@ rule targets_all:
     input:
         targets_targets
 
-rule get_5Fold_Peaks:
+rule targets_get5FoldPeaks:
     input:
         # output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.xls"
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
@@ -33,7 +33,7 @@ rule get_5Fold_Peaks:
         # """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
         "awk '($5 >= 5)' {input} > {output}"
 
-rule get_5Fold_Peaks_RP_Score:
+rule targets_get5FoldPeaksRPScore:
     input:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_5foldpeaks.bed"
     output:
@@ -47,7 +47,7 @@ rule get_5Fold_Peaks_RP_Score:
     shell:
         "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
 
-rule get_top_peaks:
+rule targets_getTopPeaks:
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     output:
@@ -59,7 +59,7 @@ rule get_top_peaks:
     shell:
         "head -n {params.peaks} {input} > {output}"
 
-rule get_top_Peaks_RP_Score:
+rule targets_getTopPeaksRPScore:
     input:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_peaks_top_reg.bed"
     output:
@@ -74,7 +74,7 @@ rule get_top_Peaks_RP_Score:
         "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
 
 
-rule get_all_Peaks_RP_Score:
+rule targets_getAllPeaksRPScore:
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     output:

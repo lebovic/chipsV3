@@ -152,7 +152,7 @@ rule peaks_all:
         peaks_targets
 
 if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
-    rule macs2_callpeaks_broad:
+    rule peaks_macs2CallpeaksBroad:
         input:
             treat=getTreats,
             cont=getConts
@@ -181,7 +181,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
            "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
            "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
 
-    rule macs2_filtered_callpeaks_broad:
+    rule peaks_macs2FilteredCallpeaksBroad:
         input:
             treat=getFilteredTreats,
             cont=getFilteredConts
@@ -210,7 +210,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
            "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
            "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
 
-    rule unsortBoardPeaksToBed:
+    rule peaks_unsortBoardPeaksToBed:
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak"
         output:
@@ -221,7 +221,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
-    rule sortBroadPeaks:
+    rule peaks_sortBroadPeaks:
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak"
         output:
@@ -232,7 +232,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "sort -r -n -k 9 {input} > {output} "#2>>{log}"
 
-    rule boardPeakToBed:
+    rule peaks_boardPeakToBed:
         """Convert MACS's narrowPeak format, which is BED12 to BED5"""
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak"
@@ -244,7 +244,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
-    rule filteredBoardPeakToBed:
+    rule peaks_filteredBoardPeakToBed:
         """Convert MACS's narrowPeak format, which is BED12 to BED5"""
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.broadPeak" % str(config['cutoff'])
@@ -256,7 +256,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
-    rule getBroadStats:
+    rule peaks_getBroadStats:
         """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
         input:
             #Generalized INPUT fn defined in chips.snakefile
@@ -271,7 +271,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
 
-    rule broadPeaksPlot:
+    rule peaks_broadPeaksPlot:
         input:
             peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak",
             ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
@@ -282,7 +282,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
 else:
-    rule macs2_callpeaks:
+    rule peaks_macs2Callpeaks:
         input:
             treat=getTreats,
             cont=getConts
@@ -315,7 +315,7 @@ else:
         #    control = "-c %s" % input.cont if input.cont else "",        
         #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
-    rule macs2_filtered_callpeaks:
+    rule peaks_macs2FilteredCallpeaks:
         input:
             treat=getFilteredTreats,
             cont=getFilteredConts
@@ -344,7 +344,7 @@ else:
            "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
            "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
 
-    rule unsortPeaksToBed:
+    rule peaks_unsortPeaksToBed:
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
         output:
@@ -355,7 +355,7 @@ else:
         shell:
             "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
-    rule peakToBed:
+    rule peaks_peakToBed:
         """Convert MACS's narrowPeak format, which is BED12 to BED5"""
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
@@ -367,7 +367,7 @@ else:
         shell:
             "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
-    rule filteredPeakToBed:
+    rule peaks_filteredPeakToBed:
         """Convert MACS's narrowPeak format, which is BED12 to BED5"""
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])
@@ -379,7 +379,7 @@ else:
         shell:
             "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
-    rule sortNarrowPeaks:
+    rule peaks_sortNarrowPeaks:
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
         output:
@@ -390,7 +390,7 @@ else:
         shell:
             "sort -r -n -k 9 {input} > {output} "#2>>{log}"
 
-    rule getPeaksStats:
+    rule peaks_getPeaksStats:
         """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
         input:
             #Generalized INPUT fn defined in chips.snakefile
@@ -405,7 +405,7 @@ else:
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
 
-    rule sortSummits:
+    rule peaks_sortSummits:
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
         output:
@@ -416,7 +416,7 @@ else:
         shell:
             "sort -r -n -k 5 {input} > {output} "#2>>{log}"
 
-    rule broadPeaksPlot:
+    rule peaks_broadPeaksPlot:
         input:
             peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
             ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
@@ -427,7 +427,7 @@ else:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
 
-rule macs2_get_fragment:
+rule peaks_macs2GetFragment:
     input:
         treat=getTreats,
         cont=getConts
@@ -444,7 +444,7 @@ rule macs2_get_fragment:
     shell:
        "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
 
-rule sortBedgraphs:
+rule peaks_sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_{suffix}.bdg"
@@ -459,7 +459,7 @@ rule sortBedgraphs:
     shell:
         "bedSort {input} {output}"# 2>>{log}"
 
-rule bdgToBw:
+rule peaks_bdgToBw:
     """Convert bedGraphs to BigWig"""
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg"
@@ -475,7 +475,7 @@ rule bdgToBw:
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} "#2>>{log}"
 
-rule sortFilteredBedgraphs:
+rule peaks_sortFilteredBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_{suffix}.bdg" % str(config['cutoff'])
@@ -490,7 +490,7 @@ rule sortFilteredBedgraphs:
     shell:
         "bedSort {input} {output}"# 2>>{log}"
 
-rule filteredBdgToBw:
+rule peaks_filteredBdgToBw:
     """Convert bedGraphs to BigWig"""
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_{suffix}.sorted.bdg" % str(config['cutoff'])
@@ -506,7 +506,7 @@ rule filteredBdgToBw:
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output}"# 2>>{log}"
 
-rule gzip_bdg:
+rule peaks_gzipBdg:
     """Space saving rule to compress the bdg output"""
     input:
         bdg=output_path + "/peaks/{run}.{rep}/{run}.{rep}_{suffix}.sorted.bdg",
@@ -524,7 +524,7 @@ rule gzip_bdg:
         "gzip {input.bdg} " #2>> {log}"
 
 
-rule macsRunInfo:
+rule peaks_macsRunInfo:
     """Dump the current version of macs and the fdr used into a text file 
     for the report"""
     params:
@@ -538,7 +538,7 @@ rule macsRunInfo:
     shell:
         "{params.pypath} {config[macs2_path]} --version 2> {output} && echo fdr {params.fdr} >> {output}"
     
-rule generate_IGV_session:
+rule peaks_generateIGVsession:
     """Generates analysis/peaks/all_treatments.igv.xml, a igv session of all
     of the treatment.bw files"""
     input:
@@ -554,7 +554,7 @@ rule generate_IGV_session:
     shell:
         "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output}"# 2>>{log}"
         
-rule generate_IGV_perTrack:
+rule peaks_generateIGVperTrack:
     """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
     the treatment.bw file
     **VERY similar to generate_IGV_session, but this is for each individual

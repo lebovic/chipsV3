@@ -278,8 +278,11 @@ def getZipReportInput(wildcards):
             runRep = "%s.%s" % (run, rep)
             ret.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
             ret.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
-    if "motif" in config and config["motif"]:
-        ret.append(output_path + "/motif")
+            if "motif" in config and config["motif"]:
+                if config["motif"] == "mdseqpos":
+                    ret.append(output_path + "/motif/%s/results/table.html"% runRep)
+                if config["motif"] == "homer":
+                    ret.append(output_path + "/motif/%s/results/homerResults.html"% runRep)
     return ret
 
 
@@ -305,7 +308,7 @@ rule report_all:
     input:
         report_targets
 
-rule report:
+rule report_generate:
     input:
         getReportInputs
     output:
@@ -319,7 +322,7 @@ rule report:
             o.write(report.read().replace("{ RESULT_DICT }",json.dumps(report_dict)))
         report.close()
 
-rule reportCopyMotif:
+rule report_copyMotif:
     input:
         motif_targets
     output:
@@ -330,7 +333,7 @@ rule reportCopyMotif:
     shell:
         "cp -r {params.motif_path} {output}"
 
-rule reportCopyTargets:
+rule report_copyTargets:
     input:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
     output:
@@ -339,7 +342,7 @@ rule reportCopyTargets:
     shell:
         "cp {input} {output}"
 
-rule reportCopyPeaks:
+rule report_copyPeaks:
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
     output:
@@ -348,7 +351,7 @@ rule reportCopyPeaks:
     shell:
         "cp {input} {output}"
 
-rule reportPlotMapStat:
+rule report_plotMapStat:
     input:
         output_path + "/align/mapping.csv"
     output:
@@ -358,7 +361,7 @@ rule reportPlotMapStat:
     shell:
         "Rscript cidc_chips/modules/scripts/map_stats.R {input} {output}"
 
-rule reportPlotPBCStat:
+rule report_plotPBCStat:
     input:
         #output_path + "/align/pbc.csv"
         output_path + "/frips/pbc.csv"
@@ -369,7 +372,7 @@ rule reportPlotPBCStat:
     shell:
         "Rscript cidc_chips/modules/scripts/plot_pbc.R {input} {output}"
 
-rule reportPlotPeakFoldChange:
+rule report_plotPeakFoldChange:
     input: 
         output_path + "/peaks/peakStats.csv"
     output:
@@ -379,7 +382,7 @@ rule reportPlotPeakFoldChange:
     shell:
         "Rscript cidc_chips/modules/scripts/plot_foldChange.R {input} {output}"
 
-rule reportZipReport:
+rule report_zipReport:
     input:
         report=output_path + '/report/report.html',
         files=getZipReportInput,
