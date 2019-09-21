@@ -81,7 +81,7 @@ rule fastqc_sampleBam:
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
-        "cidc_chips/modules/scripts/sampleBam.sh -i {input} -n {params.n} -o {output}"
+        "cidc_chips/modules/scripts/fastqc_sampleBam.sh -i {input} -n {params.n} -o {output}"
 
 rule fastqc_convertBamToFastq:
     """USED only when the sample-input is a bam file."""
@@ -128,7 +128,7 @@ rule fastqc_getPerSequenceQual:
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
-        "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
+        "cidc_chips/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
 
 rule fastqc_getPerSequenceGC:
     """extract per sequence GC contentfrom fastqc_data.txt"""
@@ -143,7 +143,7 @@ rule fastqc_getPerSequenceGC:
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
-        "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
+        "cidc_chips/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
 
 rule fastqc_extractFastQCStats:
     """extract per sequence GC content, and seq qual stats from fastqc run"""

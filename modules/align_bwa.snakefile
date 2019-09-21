@@ -33,7 +33,7 @@ checkpoint align_readsLength:
         length=temp(output_path + "/fastqc/{sample}/{sample}_read_length.txt")
     shell:
         # "mkdiroutput_path +  /fastqc/{wildcards.sample}/;"
-        "python cidc_chips/modules/scripts/align_get_read_length.py -f {input} -o {output.length}"
+        "python cidc_chips/modules/scripts/align_getReadLength.py -f {input} -o {output.length}"
 
 
 rule align_bwaMem:

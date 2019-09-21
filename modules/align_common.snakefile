@@ -95,7 +95,7 @@ rule align_mapFigure:
         output_path + "/align/{sample}/{sample}_mapping.png"
     message: "ALIGN: plot mapping rate"
     shell:
-        "cidc_chips/modules/scripts/align_mapped_figure.py -f {input} -o {output}"
+        "cidc_chips/modules/scripts/align_mappedFigure.py -f {input} -o {output}"
 
 rule align_collectMapStats:
     """Collect and parse out the mapping stats for the ALL of the samples"""

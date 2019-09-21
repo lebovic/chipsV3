@@ -75,7 +75,7 @@ rule ceas_annotatePeaksRegions:
     shell:
         #TWO ways to run bedAnnotate: w/ basename param (-n) or w/o
         #For now we keep the -n explictly defined
-        "cidc_chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} -n {params.name} > {output.summary} 2>>{log}"
+        "cidc_chips/modules/scripts/ceas_bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} -n {params.name} > {output.summary} 2>>{log}"
         #"cidc_chips/modules/scripts/bedAnnotate.v2.py -g {params.db} -b {input} -o {params.path} > {output.summary} 2>>{log}"
 
 
@@ -197,7 +197,7 @@ rule ceas_bamRegionStat:
         #make temp
         output_path + '/ceas/samples/{sample}/{sample}.{region}'
     shell:
-        "cidc_chips/modules/scripts/meta_bamRegionCount.sh -i {input} -b {params.bed} -o {output}" # 2>> {log}"
+        "cidc_chips/modules/scripts/ceas_meta_bamRegionCount.sh -i {input} -b {params.bed} -o {output}" # 2>> {log}"
 
 rule ceas_collectBamRegionStatsToJson:
     """collect the BAM region stats into a single file"""
@@ -248,7 +248,7 @@ rule ceas_collectDHSstats:
     output:
         output_path + '/ceas/dhs.csv'
     shell:
-        "cidc_chips/modules/scripts/peaks_getDHSstats.py {params.files} -o {output} " # 2>>{log}"
+        "cidc_chips/modules/scripts/ceas_peaks_getDHSstats.py {params.files} -o {output} " # 2>>{log}"
 
 rule ceas_collectCEASstats:
     """collect the CEAS stats into a single file"""

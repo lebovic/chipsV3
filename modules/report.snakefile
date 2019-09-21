@@ -365,7 +365,7 @@ rule report_plotMapStat:
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
-        "Rscript cidc_chips/modules/scripts/map_stats.R {input} {output}"
+        "Rscript cidc_chips/modules/scripts/report_mapStats.R {input} {output}"
 
 rule report_plotPBCStat:
     input:
@@ -376,7 +376,7 @@ rule report_plotPBCStat:
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
-        "Rscript cidc_chips/modules/scripts/plot_pbc.R {input} {output}"
+        "Rscript cidc_chips/modules/scripts/report_plotPBC.R {input} {output}"
 
 rule report_plotPeakFoldChange:
     input: 
@@ -386,7 +386,7 @@ rule report_plotPeakFoldChange:
     log: _logfile
     conda: "../envs/report/report.yaml"
     shell:
-        "Rscript cidc_chips/modules/scripts/plot_foldChange.R {input} {output}"
+        "Rscript cidc_chips/modules/scripts/report_plotFoldChange.R {input} {output}"
 
 rule report_zipReport:
     input:
