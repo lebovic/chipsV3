@@ -65,7 +65,7 @@ rule motif_homer:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html)
 
-rule getMotifSummary:
+rule motif_getMotifSummary:
     """Summarize the top hits for each run into a file"""
     input:
         #Generalized INPUT fn defined in chips.snakefile
@@ -83,7 +83,7 @@ rule getMotifSummary:
     shell:
         "cidc_chips/modules/scripts/motif_homerSummary.py {params.files} -o {output} " # 2>> {log}"
 
-rule homer_annotatePeaks:
+rule motif_homerAnnotatePeaks:
     """Annotate peak files.
     NOTE: only for motif_homer modules
     """
@@ -99,7 +99,7 @@ rule homer_annotatePeaks:
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
 
-rule homer_processAnnPeaks:
+rule motif_homerProcessAnnPeaks:
     """Process peaks/{run}/{run}_annotatePeaks.txt files"""
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.txt"

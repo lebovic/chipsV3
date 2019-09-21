@@ -52,7 +52,7 @@ rule qdnaseq_linkFiles:
     shell:
         "ln -s ../{input} {output} 2>>{log}"
 
-rule qdnaseq:
+rule qdnaseq_perform:
     """performs qdnaseq analysis on ALL of the samples (made by linkFiles)"""
     input:
         getControls

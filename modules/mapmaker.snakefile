@@ -27,7 +27,7 @@ rule mapmaker_all:
     input:
         mapmaker_targets
 
-rule mapmaker:
+rule mapmaker_clone:
     """Clones the mapmaker project"""
     message: "MAPMAKER: cloning the mapmaker project from github"
     log: _logfile

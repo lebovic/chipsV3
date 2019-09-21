@@ -46,15 +46,16 @@ def _createEmptyMotif(motif_html, motif_json):
     f.write("{}\n")
     f.close()
 
-rule motif:
+rule motif_seqpos:
     """call MDSeqpos on top 5k summits"""
     input:
         #KEY: Since motif analysis is costly, we're only running it on rep1
         bed = output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_5k_summits.bed"
     output:
-        # path=directory(output_path + "/motif/{run}.{rep}/"),
+        # path=directory(output_path + "/motif"),
         # results=output_path + "/motif/{run}.{rep}/results",
         html=output_path + "/motif/{run}.{rep}/results/mdseqpos_index.html",
+        table=output_path + "/motif/{run}.{rep}/results/table.html",
         json=output_path + "/motif/{run}.{rep}/results/motif_list.json",
     params:
         genome=config['motif_path'],
@@ -76,7 +77,7 @@ rule motif:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html, output.json)
 
-rule getMotifSummary:
+rule motif_getMotifSummary:
     """Summarize the top hits for each run into a file"""
     input:
         _getRepInput(output_path + "/motif/$runRep/results/motif_list.json")

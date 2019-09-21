@@ -40,7 +40,7 @@ rule conservation_all:
     input:
         conservation_targets
 
-rule top5k_broad_peaks:
+rule conservation_top5kBroadPeaks:
     """take the top 5000 peaks, sorted by score"""
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
@@ -55,7 +55,7 @@ rule top5k_broad_peaks:
     shell:
         "head -n {params.lines} {input} > {output}"
 
-rule top5k_peaks:
+rule conservation_top5kPeaks:
     """take the top 5000 peaks, sorted by score"""
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
@@ -69,7 +69,7 @@ rule top5k_peaks:
     shell:
         "head -n {params.lines} {input} > {output}"
 
-rule conservation:
+rule conservation_plotConservation:
     """generate conservation plots"""
     input:
         # output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"

@@ -52,7 +52,7 @@ rule fastqc_all:
     input:
         fastqc_targets
 
-rule sample_fastq:
+rule fastqc_downsampleFastq:
     """Subsample fastq"""
     input:
         getFastq3
@@ -68,7 +68,7 @@ rule sample_fastq:
     shell:
         "seqtk sample -s {params.seed} {input} {params.size} > {output} 2>>{log}"
 
-rule sample_bam:
+rule fastqc_sampleBam:
     """USED only when the sample-input is a bam file.  
     Subsample bam to 100k reads"""
     input:
@@ -81,9 +81,9 @@ rule sample_bam:
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
-        "cidc_chips/modules/scripts/sampleBam.sh -i {input} -n {params.n} -o {output}"
+        "cidc_chips/modules/scripts/fastqc_sampleBam.sh -i {input} -n {params.n} -o {output}"
 
-rule convertBamToFastq:
+rule fastqc_convertBamToFastq:
     """USED only when the sample-input is a bam file."""
     input:
         output_path + "/align/{sample}/{sample}_100k.bam"
@@ -95,7 +95,7 @@ rule convertBamToFastq:
     shell:
         "bamToFastq -i {input} -fq {output} 2>> {log}"
     
-rule call_fastqc:
+rule fastqc_callFastqc:
     """CALL FASTQC on each sub-sample"""
     input:
         getFastqcInput
@@ -115,7 +115,7 @@ rule call_fastqc:
     shell:
         "fastqc {input} --extract -o {params.main_output_path}/fastqc/{params.sample} 2>>{log}"
 
-rule get_PerSequenceQual:
+rule fastqc_getPerSequenceQual:
     """extract per sequence quality from fastqc_data.txt"""
     input:
         output_path + "/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
@@ -128,9 +128,9 @@ rule get_PerSequenceQual:
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
-        "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
+        "cidc_chips/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
 
-rule get_PerSequenceGC:
+rule fastqc_getPerSequenceGC:
     """extract per sequence GC contentfrom fastqc_data.txt"""
     input:
         output_path + "/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
@@ -143,9 +143,9 @@ rule get_PerSequenceGC:
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
-        "cidc_chips/modules/scripts/fastqc_data_extract.py -f {input} -s {params.section} > {output} 2>>{log}"
+        "cidc_chips/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
 
-rule extract_FastQCStats:
+rule fastqc_extractFastQCStats:
     """extract per sequence GC content, and seq qual stats from fastqc run"""
     input:
         gc = output_path + "/fastqc/{sample}/{sample}_perSeqGC.txt",
@@ -158,7 +158,7 @@ rule extract_FastQCStats:
     shell:
         "cidc_chips/modules/scripts/fastqc_stats.py -a {input.qual} -b {input.gc} > {output} 2>>{log}"
 
-rule collect_fastQCStats:
+rule fastqc_collectFastQCStats:
     """Collect and parse out the fastqc stats for the ALL of the samples"""
     input:
         expand(output_path + "/fastqc/{sample}/{sample}_stats.csv", sample=sorted(config["samples"]))
@@ -171,7 +171,7 @@ rule collect_fastQCStats:
         files = " -f ".join(input)
         shell("cidc_chips/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output}")
 
-rule plot_fastQC_GC:
+rule fastqc_plotFastQCGC:
     """Plots the GC distribution of the sample according to data in
     perSeqGC.txt.  
     Generates a full-size image and *thumbnail image* (embedded into report)

@@ -19,14 +19,15 @@ def frips_targets(wildcards):
     for sample in config["samples"]:
         ls.append(output_path + "/frag/%s/%s_fragDist.png" % (sample,sample))
         ls.append(output_path + "/frips/%s/%s_pbc.txt" % (sample,sample))
-    for run in config["runs"].keys():
-        for rep in _reps[run]:
-            runRep = "%s.%s" % (run, rep)
-            ls.append(output_path + "/frips/%s/%s_frip.txt" % (runRep,runRep))
-            ls.append(output_path + "/frips/%s/%s_frip.png" % (runRep,runRep))
+    if 'frip' in config and config['frip']:
+        for run in config["runs"].keys():
+            for rep in _reps[run]:
+                runRep = "%s.%s" % (run, rep)
+                ls.append(output_path + "/frips/%s/%s_frip.txt" % (runRep,runRep))
+                ls.append(output_path + "/frips/%s/%s_frip.png" % (runRep,runRep))
+        ls.append(output_path + "/frips/frips.csv")
     ls.append(output_path + "/frips/pbc.csv")
     ls.append(output_path + "/frips/nonChrM_stats.csv")
-    ls.append(output_path + "/frips/frips.csv")
     return ls
 
 #NOTE: this takes the Treatment of the FIRST replicate!!!--ignores the rest!
@@ -45,7 +46,7 @@ rule frips_all:
 
 #SECTION: generate 4M sub-sampled bams
 #It's a bit redundant, but I tried my best to reduce the redundancy
-rule create_nonChrM:
+rule frips_createNonChrM:
     """RULE that will generate the base file for both 
     4M_nonChrM.bam AND 4M_unique_nonChrM.bam so we save some redundancy here"""
     input:
@@ -64,7 +65,7 @@ rule create_nonChrM:
     shell:
         "samtools view -@ {threads} -h {input} | sed -e {params.regex} > {output} 2>>{log}"
 
-rule sample_4M_from_nonChrM:
+rule frips_sample4MFromNonChrM:
     """Sample 4M reads from nonChrM SAM file (from create nonChrM)
     ref: https://sourceforge.net/p/samtools/mailman/message/29011091/ 
     see '-s 21.5'
@@ -83,7 +84,7 @@ rule sample_4M_from_nonChrM:
         cidc_chips/modules/scripts/frips_sample.sh -n {params.n} -i {input} -o {output} 2>>{log}
         """
 
-rule create_unique_nonChrM:
+rule frips_createUniqueNonChrM:
     """Generate _unique_nonChrM.bam by
     Filter out non-uniquely mapped reads from _nonChrM.sam
     """
@@ -101,7 +102,7 @@ rule create_unique_nonChrM:
     shell:
         "samtools view -@ {threads} -b -h -F 4 {input} > {output} 2>>{log}"
 
-rule sample_4M_from_uniqueNonChrM:
+rule frips_sample4MFromUniqueNonChrM:
     """Sample 4M reads from uniqueNonChrM reads
     ref: https://sourceforge.net/p/samtools/mailman/message/29011091/ 
     see '-s 21.5'
@@ -123,7 +124,7 @@ rule sample_4M_from_uniqueNonChrM:
         """
 
 if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
-    rule frip_broad_calculate:
+    rule frips_broadCalculate:
         """Calculate the frip score"""
         #TODO: if there are more than 1 treatment, merge them??!
         input:
@@ -139,7 +140,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         shell:
             "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
 else:
-    rule frip_calculate:
+    rule frips_calculate:
         """Calculate the frip score"""
         #TODO: if there are more than 1 treatment, merge them??!
         input:
@@ -155,7 +156,7 @@ else:
         shell:
             "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
 
-rule frip_plot:
+rule frips_plot:
     input:
         output_path + "/frips/{run}.{rep}/{run}.{rep}_frip.txt"
     output:
@@ -165,7 +166,7 @@ rule frip_plot:
     shell:
         "cidc_chips/modules/scripts/frips_figure.py -f {input} -o {output}"
 
-rule frip_pbc:
+rule frips_pbc:
     """Generate the PBC histogram for each normalized sample, which will be 
     used to calculate N1, Nd, and PBC (for the report)
     """
@@ -182,7 +183,7 @@ rule frip_pbc:
     shell:
         "cidc_chips/modules/scripts/frips_pbc.sh -i {input} -o {output} " #2>> {log}"
 
-rule collect_pbc:
+rule frips_collectPbc:
     """Collect and parse out the PBC for the ALL of the samples"""
     input:
         expand(output_path + "/frips/{sample}/{sample}_pbc.txt", sample=sorted(config["samples"]))
@@ -199,7 +200,7 @@ rule collect_pbc:
     shell:
         "cidc_chips/modules/scripts/frips_collectPBC.py {params.files} > {output} " #2>>{log}"
 
-rule nonChrM_stats:
+rule frips_nonChrMStats:
     """Get the nonChrM mapping stats for each aligment run"""
     input:
         #NOTE: uniq_bam is generated in align_common module-
@@ -222,7 +223,7 @@ rule nonChrM_stats:
         "samtools view -@ {params.sam_th} -c {input.uniq_bam} > {output} " #2>>{log}"
         " && samtools view -@ {params.sam_th} -c {input.nonChrM_bam} >> {output} " #2>> {log}"
 
-rule collect_nonChrM_stats:
+rule frips_collectNonChrMStats:
     """Aggregate all nonChrM stats for ALL of the samples"""
     input:
         expand(output_path + "/align/{sample}/{sample}_nonChrM_stat.txt", sample=sorted(config["samples"]))
@@ -239,7 +240,7 @@ rule collect_nonChrM_stats:
     shell:
         "cidc_chips/modules/scripts/frips_collectNonChrM.py {params.files} > {output} " #2>>{log}"
 
-rule get_SampleFragLength:
+rule frips_getSampleFragLength:
     """Dump all of the sample's fragment lengths into 
     frag/{sample}/{sample}_frags.txt, so we can generate the distribution plot in make_FragPlot
     """
@@ -257,7 +258,7 @@ rule get_SampleFragLength:
         #GRAB out the 9th column, ensuring it's in 1-1000
         "samtools view -@ {threads} {input} | cut -f 9 | {params.awk_cmd} > {output} " #2>>{log}"
  
-rule make_FragPlot:
+rule frips_makeFragPlot:
     """plot the fragment distribution:
     generate the R plot by running frag_plotFragDist.R on _frags.txt
     """
@@ -274,7 +275,7 @@ rule make_FragPlot:
         #RUN the R script to get the plot
         "cidc_chips/modules/scripts/frag_plotFragDist.R {input} {output} {params.name} " #2>>{log}"
     
-rule getFripStats:
+rule frips_getFripStats:
     """Collect the frips statistics fromoutput_path +  /frips/{run}/{run}_frip.txt"""
     input:
         #Generalized INPUT fn defined in chips.snakefile

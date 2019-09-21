@@ -11,7 +11,7 @@ GDC_hg38:
   bwt2_index: ./ref_files/GDC_hg38/bowtie/indices/GRCh38.d1.vd1.fa
 
   geneTable: ./ref_files/GDC_hg38/GDC_hg38.refGene
-  conservation: ./ref_files/GDC_hg38/conservation/
+  conservation: ./ref_files/GDC_hg38/conservation/hg38.phastCons100way.bw
 
   DHS: ./ref_files/GDC_hg38/regions/hg38_cCREs.bed
   exons: ./ref_files/GDC_hg38/regions/exon.bed

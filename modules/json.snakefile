@@ -138,7 +138,7 @@ rule json_dhs:
 #     shell:
 #         "cidc_chips/modules/scripts/json/json_velcro.py  "
 
-rule json_enrich_meta:
+rule json_enrichMeta:
     input:
         meta = lambda wildcards: output_path + "/ceas/samples/%s/%s_meta.json" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0]),
         mapped = lambda wildcards: output_path + "/align/%s/%s_mapping.txt" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0]),
@@ -210,7 +210,7 @@ rule json_macs2:
         "cidc_chips/modules/scripts/json/json_macs2.py -i {input} -o {output} -I {wildcards.run}"
 
 
-rule json_macs2_rep:
+rule json_macs2Rep:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_peaks.xls" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
     output:

@@ -49,7 +49,7 @@ rule contamination_all:
     input:
         contamination_targets
 
-rule contamination:
+rule contamination_alignContamination:
     """For each sample, run an alignment for each entry in the 
     contaminationPanel and get the mapping rate"""
     input:
@@ -70,7 +70,7 @@ rule contamination:
     shell:
         "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} "#2>> {log}"
 
-rule contaminationStats:
+rule contamination_Stats:
     """Extract the mapping stats for each species"""
     input:
         output_path + "/contam/{sample}/{sample}.{panel}.bam"
@@ -88,7 +88,7 @@ rule contaminationStats:
     shell:
         "samtools flagstat {input} | awk {params.awk_cmd} > {output} "#2>>{log}"
 
-rule contaminationCollectStats:
+rule contamination_collectStats:
     """Collect the mapping stats across the entire panel"""
     input:
         expand(output_path + "/contam/{{sample}}/{{sample}}.{panel}.txt", panel=_contaminationNames)
@@ -99,7 +99,7 @@ rule contaminationCollectStats:
         for (n, f) in zip(_contaminationNames, input):
             shell("per=$(cat {f}) && echo {n} $per >> {output}")
 
-rule collect_allContamination:
+rule contamination_collectAllContamination:
     """Aggregate all of the contamination stats into one large table/panel"""
     input:
         expand(output_path + "/contam/{sample}/{sample}_contamination.txt", sample=config['samples'])

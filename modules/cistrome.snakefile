@@ -93,7 +93,7 @@ rule cistrome_all:
     input:
         cistrome_targets
 
-rule getPeaksXls:
+rule cistrome_getPeaksXls:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_peaks.xls" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -103,7 +103,7 @@ rule getPeaksXls:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getNarrowPeakBed:
+rule cistrome_getNarrowPeakBed:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -113,7 +113,7 @@ rule getNarrowPeakBed:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getBroadPeakBed:
+rule cistrome_getBroadPeakBed:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -123,7 +123,7 @@ rule getBroadPeakBed:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getSortedSummitsBed:
+rule cistrome_getSortedSummitsBed:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_sorted_summits.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -133,7 +133,7 @@ rule getSortedSummitsBed:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getPeaksBed:
+rule cistrome_getPeaksBed:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -143,7 +143,7 @@ rule getPeaksBed:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getTreatBw:
+rule cistrome_getTreatBw:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_treat_pileup.bw" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -153,7 +153,7 @@ rule getTreatBw:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getConservPng:
+rule cistrome_getConservPng:
     input:
         lambda wildcards: output_path + "/conserv/%s/%s_conserv.png" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -163,7 +163,7 @@ rule getConservPng:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getConservTxt:
+rule cistrome_getConservTxt:
     input:
         lambda wildcards: output_path + "/conserv/%s/%s_conserv.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -173,7 +173,7 @@ rule getConservTxt:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getReg5foldTxt:
+rule cistrome_getReg5foldTxt:
     input:
         lambda wildcards: output_path + "/targets/%s/%s_gene_score_5fold.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -183,7 +183,7 @@ rule getReg5foldTxt:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getRegTxt:
+rule cistrome_getRegTxt:
     input:
         lambda wildcards: output_path + "/targets/%s/%s_gene_score.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
@@ -193,7 +193,7 @@ rule getRegTxt:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule getBam:
+rule cistrome_getBam:
     input:
         output_path + "/align/{sample}/{sample}_unique.sorted.bam"
     output:
@@ -204,7 +204,7 @@ rule getBam:
         "ln -s {params.abspath} {output}"
 
 
-rule getMotif:
+rule cistrome_getMotif:
    input:
        lambda wildcards: output_path + "/motif/%s/results/mdseqpos_index.html" % cistrome_getRunAndRep(wildcards)
    output:
@@ -214,7 +214,7 @@ rule getMotif:
    shell:
        "ln -s {params.abspath}/* {output}"
 
-rule getFastqc:
+rule cistrome_getFastqc:
     input:
         output_path + "/fastqc/{sample}/{sample}_100k_fastqc/"
     output:
@@ -224,7 +224,7 @@ rule getFastqc:
     shell:
         "ln -s {params.abspath}/* {output}"
 
-rule getJson:
+rule cistrome_getJson:
    input:
        getJsonInput
    output:

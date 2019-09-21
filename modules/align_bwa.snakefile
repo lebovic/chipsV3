@@ -25,7 +25,7 @@ def getRunType(wildcards):
     return "sampe" if len(config["samples"][s]) > 1 else "samse"
 
 
-checkpoint read_length:
+checkpoint align_readsLength:
     input:
         output_path + "/fastqc/{sample}/{sample}_100k_fastqc/fastqc_data.txt"
     output:
@@ -33,10 +33,10 @@ checkpoint read_length:
         length=temp(output_path + "/fastqc/{sample}/{sample}_read_length.txt")
     shell:
         # "mkdiroutput_path +  /fastqc/{wildcards.sample}/;"
-        "python cidc_chips/modules/scripts/align_get_read_length.py -f {input} -o {output.length}"
+        "python cidc_chips/modules/scripts/align_getReadLength.py -f {input} -o {output.length}"
 
 
-rule bwa_mem:
+rule align_bwaMem:
     input:
         getFastq
     output:
@@ -53,7 +53,7 @@ rule bwa_mem:
         """{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"""
 
 
-rule bwa_aln:
+rule align_bwaAln:
     input:
         getAlnFastq
     output:
@@ -70,7 +70,7 @@ rule bwa_aln:
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}"
 
-rule bwa_convert:
+rule align_bwaConvert:
     input:
         sai=getMates,
         fastq=getFastq
@@ -92,14 +92,14 @@ rule bwa_convert:
 
 def aggregate_align_input(wildcards):
     # decision based on content of output file
-    with open(checkpoints.read_length.get(sample=wildcards.sample).output[0]) as f:
+    with open(checkpoints.align_readsLength.get(sample=wildcards.sample).output[0]) as f:
         if int(f.read().strip()) >= 40:
             return output_path + "/align/{sample}/{sample}_mem.bam"
         else:
             return output_path + "/align/{sample}/{sample}_aln.bam"
 
 
-checkpoint aggregate_align:
+checkpoint align_aggregate:
     input:
         aggregate_align_input
     output:

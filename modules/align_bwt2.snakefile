@@ -21,7 +21,7 @@ def bwt2_aln_inputs(inputs):
         return "-U %s" % inputs
                 
 
-rule bwt2_aln:
+rule align_bwt2Aln:
     input:
         getFastq
     output:
@@ -37,7 +37,7 @@ rule bwt2_aln:
     shell:
         "bowtie2 -p {threads} {params.read_group} -x {params.index} {params._inputs} -S {output} 2>>{log}"
 
-rule bwt2_convert:
+rule align_bwt2Convert:
     input:
         sam=output_path + "/align/{sample}/{sample}.sam"
     output:
