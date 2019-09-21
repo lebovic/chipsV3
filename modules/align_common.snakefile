@@ -116,44 +116,45 @@ rule align_collectMapStats:
     shell:
         "cidc_chips/modules/scripts/align_getMapStats.py {params.files} > {output}"
 
-rule align_sortBams:
-    """General sort rule--take a bam {filename}.bam and 
-    output {filename}.sorted.bam"""
-    input:
-        #output_path + "/align/{sample}/{filename}.bam"
-        getBam
-    output:
-        output_path + "/align/{sample}/{sample}.sorted.bam",
-        #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
-    message: "ALIGN: sort bam file"
-    log: output_path + "/logs/align/{sample}.log"
-    conda: "../envs/align/align_common.yaml"
-    params:
-        memory = lambda wildcards: getSortMemory(wildcards)
-    threads: _align_threads
-    shell:
-        "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
-
-rule align_sortUniqueBams:
-    """General sort rule--take a bam {filename}.bam and 
-    output {filename}.sorted.bam"""
-    input:
-        output_path + "/align/{sample}/{sample}_unique.bam"
-    output:
-        #CANNOT temp this b/c it's used by qdnaseq!
-        output_path + "/align/{sample}/{sample}_unique.sorted.bam",
-        #output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai"
-    message: "ALIGN: sort bam file"
-    log: output_path + "/logs/align/{sample}.log"
-    conda: "../envs/align/align_common.yaml"
-    params:
-        memory = lambda wildcards: getUniqueSortMemory(wildcards)
-    threads: _align_threads
-    shell:
-        "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
 
 if "sentieon" in config and config["sentieon"]:
-    rule align_scoreSample:
+    rule align_sortBamsBySentieon:
+        """General sort rule--take a bam {filename}.bam and 
+        output {filename}.sorted.bam"""
+        input:
+            #output_path + "/align/{sample}/{filename}.bam"
+            getBam
+        output:
+            output_path + "/align/{sample}/{sample}.sorted.bam",
+            #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
+        message: "ALIGN: sort bam file"
+        log: output_path + "/logs/align/{sample}.log"
+        conda: "../envs/align/align_common.yaml"
+        params:
+            sentieon=config['sentieon'],
+        threads: _align_threads
+        shell:
+            "{params.sentieon} util sort -o {output} -i {input} 2>>{log}"
+
+    rule align_sortUniqueBamsBySentieon:
+        """General sort rule--take a bam {filename}.bam and 
+        output {filename}.sorted.bam"""
+        input:
+            output_path + "/align/{sample}/{sample}_unique.bam"
+        output:
+            #CANNOT temp this b/c it's used by qdnaseq!
+            output_path + "/align/{sample}/{sample}_unique.sorted.bam",
+            #output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai"
+        message: "ALIGN: sort unique bam file"
+        log: output_path + "/logs/align/{sample}.log"
+        conda: "../envs/align/align_common.yaml"
+        params:
+            sentieon=config['sentieon'],
+        threads: _align_threads
+        shell:
+            "{params.sentieon} util sort -o {output} -i {input} 2>>{log}"
+
+    rule align_scoreSampleBySentieon:
         "Calls sentieon driver  --fun score_info on the sample"
         input:
             bam=output_path + "/align/{sample}/{sample}_unique.sorted.bam",
@@ -172,7 +173,7 @@ if "sentieon" in config and config["sentieon"]:
         shell:
             """{params.sentieon} driver -t {threads} -i {input.bam} --algo LocusCollector --fun score_info {output.score} """
 
-    rule align_dedupSortedUniqueBamSentieon:
+    rule align_dedupSortedUniqueBamBySentieon:
         """Dedup sorted unique bams using sentieon
          output {sample}_unique.sorted.dedup.bam"""
         input:
@@ -210,6 +211,42 @@ else:
         shell:
             "picard MarkDuplicates I={input} O={output} REMOVE_DUPLICATES=true ASSUME_SORTED=true VALIDATION_STRINGENCY=LENIENT METRICS_FILE={log} 2>> {log}"
             # "sambamba markdup -t {threads} -r --overflow-list-size 600000 --hash-table-size 800000 --sort-buffer-size 4096 {input} {output.bam}"
+
+    rule align_sortBams:
+        """General sort rule--take a bam {filename}.bam and 
+        output {filename}.sorted.bam"""
+        input:
+            #output_path + "/align/{sample}/{filename}.bam"
+            getBam
+        output:
+            output_path + "/align/{sample}/{sample}.sorted.bam",
+            #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
+        message: "ALIGN: sort bam file"
+        log: output_path + "/logs/align/{sample}.log"
+        conda: "../envs/align/align_common.yaml"
+        params:
+            memory = lambda wildcards: getSortMemory(wildcards)
+        threads: _align_threads
+        shell:
+            "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
+
+    rule align_sortUniqueBams:
+        """General sort rule--take a bam {filename}.bam and 
+        output {filename}.sorted.bam"""
+        input:
+            output_path + "/align/{sample}/{sample}_unique.bam"
+        output:
+            #CANNOT temp this b/c it's used by qdnaseq!
+            output_path + "/align/{sample}/{sample}_unique.sorted.bam",
+            #output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai"
+        message: "ALIGN: sort bam file"
+        log: output_path + "/logs/align/{sample}.log"
+        conda: "../envs/align/align_common.yaml"
+        params:
+            memory = lambda wildcards: getUniqueSortMemory(wildcards)
+        threads: _align_threads
+        shell:
+            "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
 
 rule align_filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""
