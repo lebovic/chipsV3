@@ -8,3 +8,4 @@ dependencies:
 - ucsc-bedgraphtobigwig>=332
 - seaborn
 - pandas
+- macs2
