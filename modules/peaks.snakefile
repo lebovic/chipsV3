@@ -171,14 +171,14 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             name="{run}.{rep}",
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
            "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
 
     rule peaks_macs2FilteredCallpeaksBroad:
@@ -200,14 +200,14 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling broad peaks with macs2"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
            "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
 
     rule peaks_unsortBoardPeaksToBed:
@@ -301,14 +301,14 @@ else:
             name="{run}.{rep}",
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
            "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} " #2>>{log}"
         #run:
         #    treatment = "-t %s" % input.treat if input.treat else "",
@@ -334,14 +334,14 @@ else:
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling filtered reads peaks with macs2"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
            "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
 
     rule peaks_unsortPeaksToBed:
@@ -435,14 +435,14 @@ rule peaks_macs2GetFragment:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_model.R",
     params:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         treatment = lambda wildcards, input: [" -i %s" % i for i in input.treat] if input.treat else "",
         genome = config['genome_size']
     message: "PEAKS: Get fragment size with macs2"
     log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-       "{params.pypath} {config[macs2_path]} predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
+       "macs2 predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
 
 rule peaks_sortBedgraphs:
     """Sort bed graphs--typically useful for converting bdg to bw"""
@@ -529,14 +529,14 @@ rule peaks_macsRunInfo:
     for the report"""
     params:
         fdr = _macs_fdr,
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     output:
         #MAKE temp
         output_path + "/peaks/run_info.txt"
     message: "PEAKS/REPORT - collection macs version and fdr info"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "{params.pypath} {config[macs2_path]} --version 2> {output} && echo fdr {params.fdr} >> {output}"
+        "macs2 --version 2> {output} && echo fdr {params.fdr} >> {output}"
     
 rule peaks_generateIGVsession:
     """Generates analysis/peaks/all_treatments.igv.xml, a igv session of all
