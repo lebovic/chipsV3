@@ -171,7 +171,6 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             name="{run}.{rep}",
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2"
@@ -200,7 +199,6 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling broad peaks with macs2"
@@ -301,7 +299,6 @@ else:
             name="{run}.{rep}",
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2"
@@ -334,7 +331,6 @@ else:
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
-            # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling filtered reads peaks with macs2"
@@ -435,7 +431,6 @@ rule peaks_macs2GetFragment:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_model.R",
     params:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
-        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         treatment = lambda wildcards, input: [" -i %s" % i for i in input.treat] if input.treat else "",
         genome = config['genome_size']
     message: "PEAKS: Get fragment size with macs2"
@@ -529,7 +524,6 @@ rule peaks_macsRunInfo:
     for the report"""
     params:
         fdr = _macs_fdr,
-        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
     output:
         #MAKE temp
         output_path + "/peaks/run_info.txt"

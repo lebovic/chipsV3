@@ -15,8 +15,9 @@ import re
 import logging
 import subprocess
 import math
+import numpy as np
 from optparse import OptionParser
-
+import pyBigWig
 try:
     from bx.bbi.bigwig_file import BigWigFile
 except:
@@ -67,7 +68,7 @@ class PeakIO:
         r = PeakIO(comment=self.comment)
         peaks = self.peaks
         new_peaks = {}
-        chrs = peaks.keys()
+        chrs = list(peaks.keys())
         chrs.sort()
         for chrom in chrs:
             new_peaks[chrom]=[]
@@ -96,7 +97,7 @@ class PeakIO:
         8. fold_enrichment: fold enrichment for the region
         9. fdr: False Discovery Rate for the region
         """
-        if not self.peaks.has_key(chromosome):
+        if chromosome not in self.peaks:
             self.peaks[chromosome]=[]
         self.peaks[chromosome].append((start,end,end-start,summit,
                                        score,total_p,
@@ -109,7 +110,7 @@ class PeakIO:
         """
         peaks = self.peaks
         new_peaks = {}
-        chrs = peaks.keys()
+        chrs = list(peaks.keys())
         chrs.sort()
         if pvalue_cut_up:
             for chrom in chrs:
@@ -127,7 +128,7 @@ class PeakIO:
         """
         peaks = self.peaks
         new_peaks = {}
-        chrs = peaks.keys()
+        chrs = list(peaks.keys())
         chrs.sort()
         if score_up:
             for chrom in chrs:
@@ -145,7 +146,7 @@ class PeakIO:
         """
         peaks = self.peaks
         new_peaks = {}
-        chrs = peaks.keys()
+        chrs = list(peaks.keys())
         chrs.sort()
         if fold_up:
             for chrom in chrs:
@@ -163,7 +164,7 @@ class PeakIO:
         """
         peaks = self.peaks
         new_peaks = {}
-        chrs = peaks.keys()
+        chrs = list(peaks.keys())
         chrs.sort()
         if fdr_low:
             for chrom in chrs:
@@ -177,7 +178,7 @@ class PeakIO:
 
     def sort (self):
         peaks = self.peaks
-        chrs = peaks.keys()
+        chrs = list(peaks.keys())
         chrs.sort()
         for chrom in chrs:
             peaks[chrom].sort(lambda x,y: cmp(x[0],y[0]))
@@ -216,6 +217,99 @@ def parse_BED (fhd):
         peaks.add(thisfields[0],startpos,int(thisfields[2]),1,1,1,1,1,1)
     return peaks
 
+def extract_phastcons ( bedfile, phasdb, width, pf_res ):
+    """Extract phastcons scores from a bed file.
+    Return the average scores
+    """
+    info("read bed file...")
+    bfhd = open(bedfile)
+    bed = parse_BED(bfhd)
+    bfhd.close()
+    # calculate the middle point of bed regions then extend left and right by 1/2 width
+    bchrs = list(bed.peaks.keys())
+    bchrs.sort()
+
+    sumscores = []
+    bw = pyBigWig.open(phasdb)
+#     info(bw.stats("chr1",632029,636030,type="mean",nBins=100))
+    for chrom in bchrs:
+        info("processing chromosome: %s" % chrom)
+        pchrom = bed.peaks[chrom]
+        for i in range(len(pchrom)):
+            mid = int((pchrom[i][0]+pchrom[i][1])/2)
+            left = int(mid - width/2)
+            right = int(mid + width/2)
+
+            if left < 0:
+                left = 0
+                right = int(width)
+#             info(type(chrom))
+            info("%s:%s-%s" % (chrom, left, right))
+            try:
+                summarize = bw.stats(chrom, left, right, type="mean", nBins=int(width/pf_res))
+            except RuntimeError:
+                continue
+#             dat = summarize.sum_data / summarize.valid_count
+            sumscores.append(summarize)
+
+    ## a list with each element is a list of conservation score at the same coordinate
+    sumscores = list(map(list, list(zip(*sumscores))))
+
+    ## exclude na
+    sumscores = [[t2 for t2 in t if t2] for t in sumscores]
+    try:
+        conscores = [sum(t)/len(t) for t in sumscores]
+    except ZeroDivisionError:
+        conscores = [0] * (width/pf_res)
+    info(conscores)
+    return conscores
+
+def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
+
+    #creating R file in which to write the rscript which defines the correlation plot
+    #create and save the file in the current working directory
+
+    ## outimg should be id/prefix, that is, conf.prefix
+    fileName = os.path.join(wd, os.path.basename(outimg))
+    rFile = open(fileName+'.R','w')
+    bmpname = fileName+'.png'
+    rscript = 'sink(file=file("/dev/null", "w"), type="message")\n'
+    rscript += 'sink(file=file("/dev/null", "w"), type="output")\n'
+    # rscript += 'pdf("%s",height=%d,width=%d)\n' %(bmpname,h,w)
+    xInfo = list(range(int(-width/2),int(width/2), int(pf_res)))
+    rscript += 'x<-c('+','.join(map(str,xInfo[:-1]))+')\n' # throw the last point which may be buggy
+    for i in range(len(avgValues)):
+        avgscores = avgValues[i]
+        tmpname = 'y'+str(i)
+        rscript += tmpname+'<-c('+','.join(map(str,avgscores[:-1]))+')\n' # throw the last point which may be buggy
+
+    tmplist = []
+    for i in range(len(avgValues)):
+        tmplist.append( "y%d" % i )
+
+    rscript += "ymax <- max("+ ",".join(tmplist) +")\n"
+    rscript += "ymin <- min("+ ",".join(tmplist) +")\n"
+    rscript += "yquart <- (ymax-ymin)/4\n"
+    rscript += "png(\"%s\",height=%d,width=%d, unit='in', res=300, bg=FALSE)\n" %(bmpname,h,w)
+    rscript += 'plot(x,y0,type="l",col=rainbow(%d)[1],main=\"%s\",xlab="Distance from the Center (bp)",ylab="Average Phastcons",ylim=c(ymin-yquart,ymax+yquart))\n' % (len(avgValues),title)
+    for i in range(1,len(avgValues)):
+        rscript += 'lines(x,y'+str(i)+',col=rainbow(%d)[%d])\n' % (len(avgValues),i+1)
+    rscript += 'abline(v=0)\n'
+    # legend_list = map(lambda x:"'"+x+"'", bedlabel)
+    # rscript += 'legend("topright",c(%s),col=rainbow(%d),lty=c(%s))\n' % (','.join(legend_list),len(avgValues),','.join(['1']*len(avgValues)))
+    rscript += 'dev.off()\n'
+
+    _wh = 85
+    thumbname = "%s_thumb.png" % fileName
+    rscript += "png(\"%s\",height=%d,width=%d, unit='px')\n" %(thumbname,_wh,_wh)
+    rscript += "par(mar=c(0,0,0,0))\n"
+    rscript += "plot(x,y0,type='l',col=rainbow(1)[1],bty='n', lwd=5, xaxs='i', yaxs='i', ann=FALSE, xaxt='n', yaxt='n', bty='n')\n"
+    rscript += 'dev.off()\n'
+
+    rFile.write(rscript)
+    rFile.close()
+    #executing the R file and forming the pdf file
+    data = subprocess.call(['Rscript',fileName+'.R'])
 
 # ------------------------------------
 # Main function
@@ -239,8 +333,8 @@ def main():
     options.pf_res = options.w / 100 # get 100 points to plot
     options.w = options.pf_res * 100 # trim
 
-    bedfiles = map(os.path.abspath,bedfiles)
-    bedfilenames = map(os.path.basename,bedfiles)
+    bedfiles = list(map(os.path.abspath,bedfiles))
+    bedfilenames = list(map(os.path.basename,bedfiles))
 
     bedfilenum = len(bedfiles)
 
@@ -251,7 +345,7 @@ def main():
     if options.bedlabel and len(options.bedlabel) == bedfilenum:
         bedlabel = options.bedlabel
     else:                               # or use the filename
-        bedlabel = map(lambda x:os.path.basename(x),bedfiles)
+        bedlabel = [os.path.basename(x) for x in bedfiles]
 
     if options.height < 10:
         error("Height can not be lower than 10!")
@@ -289,101 +383,11 @@ def main():
         avgValues.append(scores)
     if options.w == 4000:
         ## 100 points for 4000, 40bp resolution
-        print("\t".join([str(avgValues[0][i]) for i in [12,25,38,50,62,75,88]]))
+        print(("\t".join([str(avgValues[0][i]) for i in [12,25,38,50,62,75,88]])))
     elif options.w == 400:
-        print("\t".join([str(avgValues[0][i]) for i in [45,48,50,52,55]]))
+        print(("\t".join([str(avgValues[0][i]) for i in [45,48,50,52,55]])))
     olddir = os.path.dirname(options.outimg)
     makeBmpFile(avgValues,olddir, options.outimg ,options.height,options.width,options.w,options.pf_res,options.title,bedlabel)
-
-def extract_phastcons ( bedfile, phasdb, width, pf_res ):
-    """Extract phastcons scores from a bed file.
-    Return the average scores
-    """
-    info("read bed file...")
-    bfhd = open(bedfile)
-    bed = parse_BED(bfhd)
-
-    # calculate the middle point of bed regions then extend left and right by 1/2 width
-    bchrs = bed.peaks.keys()
-    bchrs.sort()
-
-    sumscores = []
-    bw = BigWigFile(open(phasdb, 'rb'))
-    for chrom in bchrs:
-        info("processing chromosome: %s" %chrom)
-        pchrom = bed.peaks[chrom]
-        for i in range(len(pchrom)):
-            mid = int((pchrom[i][0]+pchrom[i][1])/2)
-            left = int(mid - width/2)
-            right = int(mid + width/2)
-
-            if left < 0:
-                left = 0
-                right = width
-            summarize = bw.summarize(chrom, left, right, width/pf_res)
-            if not summarize:
-                continue
-            dat = summarize.sum_data / summarize.valid_count
-            sumscores.append(dat)
-
-    ## a list with each element is a list of conservation score at the same coordinate
-    sumscores = map(list, zip(*sumscores))
-
-    ## exclude na
-    sumscores = [[t2 for t2 in t if not math.isnan(t2)] for t in sumscores]
-    try:
-        conscores = [sum(t)/len(t) for t in sumscores]
-    except ZeroDivisionError:
-        conscores = [0] * (width/pf_res)
-
-    return conscores
-
-def makeBmpFile(avgValues, wd, outimg, h,w, width, pf_res, title, bedlabel):
-
-    #creating R file in which to write the rscript which defines the correlation plot
-    #create and save the file in the current working directory
-
-    ## outimg should be id/prefix, that is, conf.prefix
-    fileName = os.path.join(wd, os.path.basename(outimg))
-    rFile = open(fileName+'.R','w')
-    bmpname = fileName+'.png'
-    rscript = 'sink(file=file("/dev/null", "w"), type="message")\n'
-    rscript += 'sink(file=file("/dev/null", "w"), type="output")\n'
-    # rscript += 'pdf("%s",height=%d,width=%d)\n' %(bmpname,h,w)
-    xInfo = range(int(-width/2),int(width/2), pf_res)
-    rscript += 'x<-c('+','.join(map(str,xInfo[:-1]))+')\n' # throw the last point which may be buggy
-    for i in range(len(avgValues)):
-        avgscores = avgValues[i]
-        tmpname = 'y'+str(i)
-        rscript += tmpname+'<-c('+','.join(map(str,avgscores[:-1]))+')\n' # throw the last point which may be buggy
-
-    tmplist = []
-    for i in range(len(avgValues)):
-        tmplist.append( "y%d" % i )
-
-    rscript += "ymax <- max("+ ",".join(tmplist) +")\n"
-    rscript += "ymin <- min("+ ",".join(tmplist) +")\n"
-    rscript += "yquart <- (ymax-ymin)/4\n"
-    rscript += "png(\"%s\",height=%d,width=%d, unit='in', res=300, bg=FALSE)\n" %(bmpname,h,w)
-    rscript += 'plot(x,y0,type="l",col=rainbow(%d)[1],main=\"%s\",xlab="Distance from the Center (bp)",ylab="Average Phastcons",ylim=c(ymin-yquart,ymax+yquart))\n' % (len(avgValues),title)
-    for i in range(1,len(avgValues)):
-        rscript += 'lines(x,y'+str(i)+',col=rainbow(%d)[%d])\n' % (len(avgValues),i+1)
-    rscript += 'abline(v=0)\n'
-    # legend_list = map(lambda x:"'"+x+"'", bedlabel)
-    # rscript += 'legend("topright",c(%s),col=rainbow(%d),lty=c(%s))\n' % (','.join(legend_list),len(avgValues),','.join(['1']*len(avgValues)))
-    rscript += 'dev.off()\n'
-
-    _wh = 85
-    thumbname = "%s_thumb.png" % fileName
-    rscript += "png(\"%s\",height=%d,width=%d, unit='px')\n" %(thumbname,_wh,_wh)
-    rscript += "par(mar=c(0,0,0,0))\n"
-    rscript += "plot(x,y0,type='l',col=rainbow(1)[1],bty='n', lwd=5, xaxs='i', yaxs='i', ann=FALSE, xaxt='n', yaxt='n', bty='n')\n"
-    rscript += 'dev.off()\n'
-
-    rFile.write(rscript)
-    rFile.close()
-    #executing the R file and forming the pdf file
-    data = subprocess.call(['Rscript',fileName+'.R'])
 
 if __name__ == '__main__':
     try:
