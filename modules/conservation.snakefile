@@ -86,7 +86,6 @@ rule conservation_plotConservation:
         width=4000,
         #run = lambda wildcards: wildcards.run,
         run="{run}.{rep}" ,
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         main_output_path=output_path
     message: "CONSERVATION: calling conservation script"
     log: output_path + "/logs/conservation/{run}.{rep}.log"

@@ -25,6 +25,7 @@ dependencies:
 #meta aka ceas.snakefile
 
 #conservation.snakefile
+- pybigwig
 
 #contamination.snakefile
 
