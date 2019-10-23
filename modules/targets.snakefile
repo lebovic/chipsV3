@@ -39,13 +39,14 @@ rule targets_get5FoldPeaksRPScore:
     output:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score_5fold.txt"
     params:
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTable'],
-        decay=target_decay_rate
+        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        genome=config['geneTableTxt'],
+        decay=target_decay_rate,
+        scripts="targets_getRP.py"
     message: "REGULATORY: get RP score of 5 fold peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
     shell:
-        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
+        "python cidc_chips/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
 
 rule targets_getTopPeaks:
     input:
@@ -65,13 +66,13 @@ rule targets_getTopPeaksRPScore:
     output:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_top10k_gene_score.txt"
     params:
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTable'],
+        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        genome=config['geneTableTxt'],
         decay=target_decay_rate
     message: "REGULATORY: get RP score of top peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
     shell:
-        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
+        "python cidc_chips/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
 
 
 rule targets_getAllPeaksRPScore:
@@ -81,9 +82,9 @@ rule targets_getAllPeaksRPScore:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
     params:
         pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTable'],
+        genome=config['geneTableTxt'],
         decay=target_decay_rate
     message: "REGULATORY: get RP score of all peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
     shell:
-        "{params.pypath} cidc_chips/modules/scripts/targets_getRP.py -t {input} -g {params.genome} -n {output} -d {params.decay}"
+        "python cidc_chips/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
