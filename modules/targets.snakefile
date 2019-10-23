@@ -39,8 +39,7 @@ rule targets_get5FoldPeaksRPScore:
     output:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score_5fold.txt"
     params:
-        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTableTxt'],
+        genome=config['geneTableBed'],
         decay=target_decay_rate,
         scripts="targets_getRP.py"
     message: "REGULATORY: get RP score of 5 fold peaks"
@@ -66,8 +65,7 @@ rule targets_getTopPeaksRPScore:
     output:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_top10k_gene_score.txt"
     params:
-        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTableTxt'],
+        genome=config['geneTableBed'],
         decay=target_decay_rate
     message: "REGULATORY: get RP score of top peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
@@ -81,8 +79,7 @@ rule targets_getAllPeaksRPScore:
     output:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
     params:
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
-        genome=config['geneTableTxt'],
+        genome=config['geneTableBed'],
         decay=target_decay_rate
     message: "REGULATORY: get RP score of all peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"

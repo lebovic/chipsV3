@@ -32,7 +32,7 @@ hg38:
   bwt2_index: ./ref_files/hg38/bowtie/indexes/hg38
 
   geneTable: ./ref_files/hg38/hg38.refGene
-  geneTableTxt: ./ref_files/hg38/hg38_refGene.txt
+  geneTableBed: ./ref_files/hg38/hg38_refGene.txt
   conservation: ./ref_files/hg38/conservation/hg38.phastCons100way.bw
 
   DHS: ./ref_files/hg38/regions/hg38_cCREs.bed
@@ -73,7 +73,7 @@ mm10:
   bwt2_index: ./ref_files/mm10/bowtie/mm10
 
   geneTable: ./ref_files/mm10/mm10.refGene
-  geneTableTxt: ./ref_files/mm10/mm10_refGene.txt
+  geneTableBed: ./ref_files/mm10/mm10_refGene.txt
   conservation: ./ref_files/mm10/conservation/mm10.60way.phastCons.bw
 
   DHS: ./ref_files/mm10/regions/mm10.DHS.bed
