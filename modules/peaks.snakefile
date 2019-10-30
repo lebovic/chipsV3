@@ -59,7 +59,7 @@ def getFilteredTreats(wildcards):
         if len(treatSample) > 1 and ('cutoff' in config) and config['cutoff']:
             #PE
             if treat < len(r):
-                tmp = [output_path + "/align/%s/%s_unique.sorted.dedup.sub%s.bam" % (r[treat],r[treat],config['cutoff'])]
+                tmp = [output_path + "/align/%s/%s_unique.sorted.sub%s.bam" % (r[treat],r[treat],config['cutoff'])]
             #print("TREAT: %s" % tmp)
             if not tmp:
                 #NOTE: I can't figure out a proper kill command so I'll do this
@@ -69,9 +69,9 @@ def getFilteredTreats(wildcards):
         #     if treat < len(r):
         #         tmp = [output_path + "/align/%s/%s_unique.sorted.bam" % (r[treat],r[treat])]
             #print("TREAT: %s" % tmp)
-            if not tmp:
-                #NOTE: I can't figure out a proper kill command so I'll do this
-                tmp=["ERROR! Missing treatment file for run: %s, rep: %s" % (wildcards.run, rep_s)]
+            # if not tmp:
+            #     #NOTE: I can't figure out a proper kill command so I'll do this
+            #     tmp=["ERROR! Missing treatment file for run: %s, rep: %s" % (wildcards.run, rep_s)]
     return tmp
 
 def getFilteredConts(wildcards):
@@ -90,7 +90,7 @@ def getFilteredConts(wildcards):
         if len(contSample) > 1 and ('cutoff' in config) and config['cutoff']:
             #PE
             if cont < len(r):
-                tmp = [output_path + "/align/%s/%s_unique.sorted.dedup.sub%s.bam" % (r[cont],r[cont],config['cutoff'])]
+                tmp = [output_path + "/align/%s/%s_unique.sorted.sub%s.bam" % (r[cont],r[cont],config['cutoff'])]
         # else:
         #     #SE
         #     if cont < len(r):

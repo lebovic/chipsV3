@@ -59,7 +59,7 @@ rule motif_seqpos:
         json=output_path + "/motif/{run}.{rep}/results/motif_list.json",
     params:
         genome=config['motif_path'],
-        pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
+        # pypath="PYTHONPATH=%s" % config["python2_pythonpath"],
         runName="{run}.{rep}",
         main_output_path = output_path
     message: "MOTIF: calling MDSeqPos on top 5k summits"
@@ -72,7 +72,7 @@ rule motif_seqpos:
         wc = int(wc[2:-1].split()[0])
         if wc >= _minPeaks:
             #PASS- run motif scan
-            shell("{params.pypath} {config[mdseqpos_path]} {input} {params.genome} -m cistrome.xml -d -O {params.main_output_path}/motif/{params.runName}/results") #1>>{log}")
+            shell("MDSeqPos.py {input} {params.genome} -m cistrome.xml -d -O {params.main_output_path}/motif/{params.runName}/results") #1>>{log}")
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html, output.json)

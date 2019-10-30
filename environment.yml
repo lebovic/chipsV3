@@ -44,6 +44,9 @@ dependencies:
 #motif_*.snakefile
 - perl>=5.18.2
 - homer>=4.7
+- cython
+- jinja2
+
 #Tied to 2.8.2=3 b/c other updated versions produce missing seqlogo bin (homer)
 - weblogo=2.8.2
 - bioconductor-seqLogo

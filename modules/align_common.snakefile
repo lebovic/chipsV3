@@ -251,9 +251,9 @@ else:
 rule align_filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""
     input:
-        output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam"
+        output_path + "/align/{sample}/{sample}_unique.sorted.bam"
     output:
-        output_path + "/align/{sample}/{sample}_unique.sorted.dedup.sub%s.bam" % str(config['cutoff'])
+        output_path + "/align/{sample}/{sample}_unique.sorted.sub%s.bam" % str(config['cutoff'])
     message: "ALIGN: filter bam files"
     log: output_path + "/logs/align/{sample}.log"
     params:
