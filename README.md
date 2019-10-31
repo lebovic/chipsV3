@@ -41,10 +41,10 @@ Chips is dependent on two conda environments, *chips* and *chips_py2*.
 3. **Post installation steps: running setupChips.py**
     If you are in the 'chips' directory, setupChips is found in a sub-directory, 'static/scripts'.  To run it:
     1. load the chips conda environment:
-    `source activate chips`
+    `conda activate chips`
     2. `python setupChips.py`
 4. **Post installation steps: configuring homer**:
-    NOTE: Chips uses the [homer](http://homer.ucsd.edu/homer/motif/index.html) software for motif analysis.  It also has the capability of using the [MDSeqPos](https://bitbucket.org/cistrome/cistrome-applications-harvard/src/c477732c5c88/mdseqpos/) motif finder for a similar analysis.  If you are interested in using MDSeqPos for motif analysis, please see **Appendix D**.
+    NOTE: Chips uses the [homer](http://homer.ucsd.edu/homer/motif/index.html) software for motif analysis.  It also has the capability of using the [MDSeqPos](https://github.com/XinDong9511/mdseqpos) motif finder for a similar analysis.  If you are interested in using MDSeqPos for motif analysis, please see **Appendix D**.
     - To activate/initialize homer:
     1. run the configure script:
     `configureHomer.pl -install`
@@ -127,7 +127,7 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     - copying ref.yaml
 
 ### Running Chips
-1. source activate chips
+1. conda activate chips
 2. dry run
 3. full run  
 
@@ -139,7 +139,7 @@ More information for using snakemake can be found [here](https://snakemake.readt
 ###### for system administrator, those who wish to share their Chips installation
 ### Appendix D: Installing the MDSeqPos motif finder for chips
 ```bash
-source activate chips_py2
+conda activate chips
 cd mdseqpos/lib
 cp settings.py.example settings.py
 ```
