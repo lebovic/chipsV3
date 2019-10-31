@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """Script to collect and calcuate the frips statistics from across all runs. 
-#Total Peaks, #10FC peaks, #20FC peaks
 Outputs: 
 Run,Total,ReadsInPeaks,FRiP
 """
@@ -10,9 +9,9 @@ import sys
 from optparse import OptionParser
 
 def main():
-    usage = "USAGE: %prog -f [FILE_1] -f [FILE_2] ...-f [FILE_N] -o [output]"
+    usage = "USAGE: %prog -f [FILE_1] -o [output]"
     optparser = OptionParser(usage=usage)
-    optparser.add_option("-f", "--files", action="append", help="list of _sorted_peaks.narrowPeak files")
+    optparser.add_option("-f", "--files", action="append", help="Frip.txt")
     optparser.add_option("-o", "--output", help="output file")
 
     (options, args) = optparser.parse_args(sys.argv)
@@ -32,10 +31,10 @@ def main():
 
         f = open(f)
         readsInPeaks = int(f.readline().strip().split("\t")[1])
-        totalPeaks = int(f.readline().strip().split("\t")[1])
-        frip = "%.1f" % (float(readsInPeaks)/totalPeaks *100.0)
+        totalReads = int(f.readline().strip().split("\t")[1])
+        frip = "%.1f" % (float(readsInPeaks)/totalReads *100.0)
 
-        out.write("%s\n" % ",".join([runID,str(totalPeaks),str(readsInPeaks),str(frip)]))
+        out.write("%s\n" % ",".join([runID,str(totalReads),str(readsInPeaks),str(frip)]))
         f.close()
     out.close()
 

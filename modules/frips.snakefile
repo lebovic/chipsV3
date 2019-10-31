@@ -36,7 +36,7 @@ def frip_getTreatBam(wildcards):
     #GET first treatement sample
     first = r[0]
     #print(first)
-    ret = output_path + "/align/%s/%s_4M_nonChrM.bam" % (first, first)
+    ret = output_path + "/align/%s/%s_4M_unique_nonChrM.bam" % (first, first)
     return ret
 
 rule frips_all:
