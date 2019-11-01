@@ -113,9 +113,9 @@ def parse_version(software):
     if software == "bwa":
         out = subprocess.Popen("bwa", shell=True, stderr=subprocess.PIPE).stderr.read().decode('utf-8')
         version = out.strip().split("\n")[1].split()[1]
-    elif software == "bowtie2":
-        out = subprocess.check_output("bowtie2 --version", shell=True).decode('utf-8')
-        version = out.strip().split("\n")[0].split("version")[1].strip()
+    # elif software == "bowtie2":
+    #     out = subprocess.check_output("bowtie2 --version", shell=True).decode('utf-8')
+    #     version = out.strip().split("\n")[0].split("version")[1].strip()
     elif software == "macs2":
         with open(output_path+"/peaks/run_info.txt") as out:
             version = out.readlines()[0].strip().split()[1]
@@ -142,7 +142,7 @@ def result_dict(wildcards):
         UsingSentieon = "Yes"
     report_dict["Config"]["UsingSentieon"]=UsingSentieon
     # aligner
-    report_dict["Config"]["Aligner"]=config["aligner"] + " " + parse_version(config["aligner"])
+    report_dict["Config"]["Aligner"]="bwa " + parse_version("bwa")
     # Peaks caller
     report_dict["Config"]["PeaksCaller"]="MACS2" + " " + parse_version("macs2")
     # cutoff of filtering 

@@ -14,11 +14,6 @@ assembly: GDC_hg38
 #This software could speed up your alignment
 #sentieon: "/path/to/sentieon"
 
-#ALIGNER: if you want to use bowtie2, set your aligner as 'bwt2'
-#OTHERWISE leave it as 'bwa' (default)
-aligner: 'bwa'
-#aligner: 'bwt2'
-
 #CUTOFF: Some results show that long reads do not make sense in peaks calling
 #Change the number to set the cutoff
 #

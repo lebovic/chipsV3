@@ -29,13 +29,10 @@ def getRuns(config):
 #     conda_root = subprocess.check_output('conda info --root',shell=True).decode('utf-8').strip()
 #     conda_path = os.path.join(conda_root, 'pkgs')
 #     config["python2_pythonpath"] = os.path.join(conda_root, 'envs', 'chips_py2', 'lib', 'python2.7', 'site-packages')
-    
 #     if not "python2" in config or not config["python2"]:
 #         config["python2"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'python2.7')
-
     # if not "mdseqpos_path" in config or not config["mdseqpos_path"]:
     #     config["mdseqpos_path"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'MDSeqPos.py')
-
     # if not "macs2_path" in config or not config["macs2_path"]:
     #     config["macs2_path"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'macs2')
 
@@ -165,10 +162,10 @@ rule target:
         all_targets,
 
     message: "Compiling all output"
-if config['aligner'] == 'bwt2':
-    include: "./modules/align_bwt2.snakefile"     # rules specific to Bowtie2
-else:
-    include: "./modules/align_bwa.snakefile"      # rules specific to BWA
+# if config['aligner'] == 'bwt2':
+#     include: "./modules/align_bwt2.snakefile"     # rules specific to Bowtie2
+# else:
+include: "./modules/align_bwa.snakefile"      # rules specific to BWA
 
 include: "./modules/align_common.snakefile"  # common align rules
 include: "./modules/peaks.snakefile"         # peak calling rules

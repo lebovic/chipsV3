@@ -8,7 +8,6 @@
 
 GDC_hg38:
   bwa_index: ./ref_files/GDC_hg38/bwa_indices/GRCh38.d1.vd1.fa
-  bwt2_index: ./ref_files/GDC_hg38/bowtie/indices/GRCh38.d1.vd1.fa
 
   geneTable: ./ref_files/GDC_hg38/GDC_hg38.refGene
   geneBed: ./ref_files/hg38/GDC_hg38.bed
@@ -29,7 +28,6 @@ GDC_hg38:
 
 hg38:
   bwa_index: ./ref_files/hg38/bwa_indices/hg38/hg38.fa
-  bwt2_index: ./ref_files/hg38/bowtie/indexes/hg38
 
   geneTable: ./ref_files/hg38/hg38.refGene
   geneBed: ./ref_files/hg38/hg38_refGene.bed
@@ -50,11 +48,10 @@ hg38:
 
 hg19:
   bwa_index: ./ref_files/hg19/bwa_indices/hg19/hg19.fa
-  bwt2_index: ./ref_files/hg19/bowtie/indexes/hg19
 
   geneTable: ./ref_files/hg19/hg19.refGene
   geneBed: ./ref_files/hg19/hg19_refGene.bed
-  conservation: ./ref_files/hg19/conservation/hg19/vertebrate
+  conservation: ./ref_files/hg19/conservation/hg19.100way.phastCons.bw
 
   DHS: ./ref_files/hg19/regions/DHS_hg19.bed
   exons: ./ref_files/hg19/regions/exon.bed
@@ -71,7 +68,6 @@ hg19:
 
 mm10:
   bwa_index: ./ref_files/mm10/bwa_indices/mm10.fa
-  bwt2_index: ./ref_files/mm10/bowtie/mm10
 
   geneTable: ./ref_files/mm10/mm10.refGene
   geneBed: ./ref_files/mm10/mm10_refGene.bed
@@ -92,7 +88,6 @@ mm10:
 
 mm9:
   bwa_index: ./ref_files/mm9/bwa_indices/mm9/mm9.fa
-  bwt2_index: ./ref_files/mm9/bowtie/indexes/mm9
 
   geneTable: ./ref_files/mm9/mm9.refGene
   geneBed: ./ref_files/mm9/mm9_refGene.bed
@@ -113,7 +108,6 @@ mm9:
 
 rn5:
   bwa_index: ./ref_files/rn5/bwa_indices/rn5/rn5.fa
-  bwt2_index: ./ref_files/rn5/bowtie/indexes/rn5
 
   geneTable: ./ref_files/rn5/rn5.refGene
   conservation: ./ref_files/rn5/conservation/rn5/vertebrate
@@ -136,7 +130,6 @@ rn5:
 
 rn6:
   bwa_index: ./ref_files/rn6/bwa_indices/rn6/rn6.fa
-  bwt2_index: ./ref_files/rn6/bowtie/indexes/rn6
 
   geneTable: ./ref_files/rn6/rn6.refGene
   conservation: ./ref_files/rn6/conservation/rn6/vertebrate
