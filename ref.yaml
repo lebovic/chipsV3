@@ -91,7 +91,7 @@ mm9:
 
   geneTable: ./ref_files/mm9/mm9.refGene
   geneBed: ./ref_files/mm9/mm9_refGene.bed
-  conservation: ./ref_files/mm9/conservation/mm9/vertebrate
+  conservation: ./ref_files/mm9/conservation/mm9.phaston.30way.bw
 
   DHS: ./ref_files/mm9/regions/DHS_mm9.bed
   exons: ./ref_files/mm9/regions/mm9_exon.bed
