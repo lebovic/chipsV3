@@ -2,7 +2,8 @@
 
 ## Tools
 
-### environment: chips
+### environment: chips(stable)
+
 | Software         | Version | Source                | Notes |
 |:-----------------|:--------|:----------------------|:------|
 | snakemake        | 5.4.5   | bioconda              |       |
@@ -38,23 +39,25 @@
 
 ## Reference
 
+All reference file could be downloaded from [here](http://cistrome.org/~xindong/chips_reference_files/).
+
 ### CIDC
 
 ##### GDC_hg38
 
-| Reference Key               | Location                                             | Version        | Source                                                                                  | Notes                                                                                              |
-|:----------------------------|:-----------------------------------------------------|:---------------|:----------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------|
-| bwa_index                   | ./ref_files/GDC_hg38/bwa_indices/GRCh38.d1.vd1.fa    | GRCh38         | https://gdc.cancer.gov/about-data/data-harmonization-and-generation/gdc-reference-files | GDC.h38.d1.vd1 BWA Index Files                                                                     |
-| geneTable                   | ./ref_files/GDC_hg38/GDC_hg38.refGene                | GENCODE v22    | https://gdc.cancer.gov/about-data/data-harmonization-and-generation/gdc-reference-files | used for calculating RP, download GDC.h38 GENCODE v22 GTF and change format to UCSC refGene format |
-| geneBed                     | ./ref_files/hg38/GDC_hg38.bed                        | GENCODE v22    | reformat gtf by cidc_chips/static/scripts/GtfToBed.py                                   |                                                                                                    |
-| conservation                | ./ref_files/GDC_hg38/conservation/                   | GRCh38, 100way | https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/                        |                                                                                                    |
-| DHS                         | ./ref_files/GDC_hg38/regions/hg38_cCREs.bed          |                | cCRE regions from ENCODE Project                                                        |                                                                                                    |
-| exons                       | ./ref_files/GDC_hg38/regions/exon.bed                | GENCODE v22    | extract from geneTable                                                                  |                                                                                                    |
-| promoters                   | ./ref_files/GDC_hg38/regions/promoter.bed            | GENCODE v22    | extract from geneTable                                                                  |                                                                                                    |
-| velcro_regions              | MISSING                                              |                |                                                                                         | Blacklist Region                                                                                   |
-| chrom_lens                  | ./ref_files/GDC_hg38/regions/chromInfo_hg38.txt      |                | extract from rawgenome by `samtools faidx`                                              |                                                                                                    |
-| rawgenome (not in ref.yaml) | ./ref_files/GDC_hg38/rawgenome                       |                | split rawgenome into each chromosome                                                    | required by MDSeqPos                                                                               |
-| masked (not in ref.yaml)    | ./ref_files/GDC_hg38/masked                          |                |                                                                                         | required by MDSeqPos                                                                               |
+| Reference Key               | Location                                          | Version        | Source                                                                                  | Notes                           |
+|:----------------------------|:--------------------------------------------------|:---------------|:----------------------------------------------------------------------------------------|:--------------------------------|
+| bwa_index                   | ./ref_files/GDC_hg38/bwa_indices/GRCh38.d1.vd1.fa | GRCh38         | https://gdc.cancer.gov/about-data/data-harmonization-and-generation/gdc-reference-files | GDC.h38.d1.vd1 BWA Index Files  |
+| geneTable                   | ./ref_files/GDC_hg38/GDC_hg38.refGene             | GENCODE v22    | Download from UCSC genome table browser                                                 | used for calculate ceas and CNV |
+| geneBed                     | ./ref_files/hg38/GDC_hg38.bed                     | GENCODE v22    | reformat gtf by cidc_chips/static/scripts/GtfToBed.py                                   | used for calculating RP         |
+| conservation                | ./ref_files/GDC_hg38/conservation/                | GRCh38, 100way | https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/                        |                                 |
+| DHS                         | ./ref_files/GDC_hg38/regions/hg38_cCREs.bed       |                | cCRE regions from ENCODE Project                                                        |                                 |
+| exons                       | ./ref_files/GDC_hg38/regions/exon.bed             | GENCODE v22    | extract from geneTable                                                                  |                                 |
+| promoters                   | ./ref_files/GDC_hg38/regions/promoter.bed         | GENCODE v22    | extract from geneTable                                                                  |                                 |
+| velcro_regions              | MISSING                                           | -              | -                                                                                       | Blacklist Region                |
+| chrom_lens                  | ./ref_files/GDC_hg38/regions/chromInfo_hg38.txt   |                | extract from rawgenome by `samtools faidx`                                              |                                 |
+| rawgenome (not in ref.yaml) | ./ref_files/GDC_hg38/rawgenome                    |                | split rawgenome into each chromosome                                                    | required by MDSeqPos            |
+| masked (not in ref.yaml)    | ./ref_files/GDC_hg38/masked                       |                |                                                                                         | required by MDSeqPos            |
 
 ### Cistrome
 
@@ -66,10 +69,10 @@
 | geneTable      | ./ref_files/hg38/hg38.refGene                         | refseq hg38  | refseq from UCSC table browser                                                   |     | Calculate RP                       |
 | geneBed        | ./ref_files/hg38/hg38_refGene.bed                     | refseq hg38  | reformat feature table by cidc_chips/static/scripts/FeatureTableToBed.py         |     |                                    |
 | conservation   | ./ref_files/hg38/conservation/hg38.phastCons100way.bw | hg38, 100way | https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/                 |     | Previous using 7way in Cistrome DB |
-| DHS            | ./ref_files/hg38/regions/DHS_hg38.bed                 |              | cCRE regions from ENCODE Project                                                 |     |                                    |
+| DHS            | ./ref_files/hg38/regions/DHS_hg38.bed                 |              | Union DHS regions from Cistrome DB                                               |     |                                    |
 | exons          | ./ref_files/hg38/regions/exon.bed                     |              | extract from geneTable                                                           |     |                                    |
 | promoters      | ./ref_files/hg38/regions/promoter.bed                 |              | extract from geneTable                                                           |     |                                    |
-| velcro_regions | MISSING                                               |              |                                                                                  |     | Blacklist Region                   |
+| velcro_regions | MISSING                                               | -            | -                                                                                |     | Blacklist Region                   |
 | chrom_lens     | ./ref_files/hg38/regions/chromInfo_hg38.txt           |              | UCSC table browser                                                               |     |                                    |
 | rawgenome      | ./ref_files/hg38/rawgenome/                           |              | http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.chromFa.tar.gz       |     | required by MDSeqPos               |
 | masked         | ./ref_files/hg38/masked/                              |              | http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.chromFaMasked.tar.gz |     | required by MDSeqPos               |
@@ -86,7 +89,7 @@
 | DHS            | ./ref_files/mm10/regions/mm10.DHS.bed                 |             | Union DHS regions from Cistrome DB                                          |     | merging all the peaks of DNase-seq data from ENCODE |
 | exons          | ./ref_files/mm10/regions/mm10.exon.bed                |             | extract from geneTable                                                      |     |                                                     |
 | promoters      | ./ref_files/mm10/regions/mm10.promoter.bed            |             | extract from geneTable                                                      |     |                                                     |
-| velcro_regions | MISSING                                               |             |                                                                             |     | Blacklist Region                                    |
+| velcro_regions | MISSING                                               | -           | -                                                                           |     | Blacklist Region                                    |
 | chrom_lens     | ./ref_files/mm10/regions/mm10.len                     |             | UCSC table browser                                                          |     |                                                     |
 | rawgenome      | ./ref_files/hg38/rawgenome/                           |             | http://hgdownload.cse.ucsc.edu/goldenpath/mm10/bigZips/chromFa.tar.gz       |     | required by MDSeqPos                                |
 | masked         | ./ref_files/hg38/masked/                              |             | http://hgdownload.cse.ucsc.edu/goldenpath/mm10/bigZips/chromFaMasked.tar.gz |     | required by MDSeqPos                                |

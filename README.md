@@ -26,7 +26,7 @@ Conda environments are briefly explained [here](https://conda.io/docs/using/envs
 
 If you are **not familiar** with these concepts, then a conda environment is simply a **self-contained package space that is composed of various packages.**  So for example, a **bioinformatics** conda space may include packages such as **R**, **samtools**, **bedtools**, etc.
 
-Chips is dependent on two conda environments, *chips* and *chips_py2*.
+Chips is dependent on conda environments, *chips*.
 0. **clone the chips source code**:
     `git clone git@bitbucket.org:cfce/chips`
     ** NOTE: this command will create a directory called 'chips'.  After the next five steps, this directory can be safely deleted as we will explain how to *Setup a Chips Project* below. **
@@ -35,15 +35,12 @@ Chips is dependent on two conda environments, *chips* and *chips_py2*.
     After cloning the git repository, create the chips environment by doing this:
     - `cd cidc_chips`
     - `conda env create -f environment.yml -n chips`
-2. **installing chips_py2**:
-    Similarly, create the chips_py2 environment by doing this:
-    - `conda env create -f environment_chipsPy2.yml`
-3. **Post installation steps: running setupChips.py**
+2. **Post installation steps: running setupChips.py**
     If you are in the 'chips' directory, setupChips is found in a sub-directory, 'static/scripts'.  To run it:
     1. load the chips conda environment:
     `conda activate chips`
     2. `python setupChips.py`
-4. **Post installation steps: configuring homer**:
+3. **Post installation steps: configuring homer**:
     NOTE: Chips uses the [homer](http://homer.ucsd.edu/homer/motif/index.html) software for motif analysis.  It also has the capability of using the [MDSeqPos](https://github.com/XinDong9511/mdseqpos) motif finder for a similar analysis.  If you are interested in using MDSeqPos for motif analysis, please see **Appendix D**.
     - To activate/initialize homer:
     1. run the configure script:
@@ -100,12 +97,11 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
         
     1. **Set the assembly**: typically hg19/hg38 or mm9/mm10 (default: hg19)
             
-    2. **Choose the aligner**: either bwa or bowtie2 (default: bwa)
-    3. **Choose the motif software**: either homer or MDSeqPos (default: homer)
-    4. **Contamination Panel**:
-        The contamination panel is a panel that Chips will check for "cross-species" contamination.  Out of the box, the config.yaml has hg19 and mm9 as assemblies to check.  **IF you would like to add other species/assemblies, simply add as many BWA indices as you would like** (bowtie assemblies will not work, even if your aligner is set to bowtie)
-    5. **cnv_analysis**: Set to 'true' to enable copy number variation analysis
-    6. **samples**:
+    2. **Choose the motif software**: either homer or MDSeqPos (default: homer)
+    3. **Contamination Panel**:
+        The contamination panel is a panel that Chips will check for "cross-species" contamination.  Out of the box, the config.yaml has hg19 and mm9 as assemblies to check.  **IF you would like to add other species/assemblies, simply add as many BWA indices as you would like**
+    4. **cnv_analysis**: Set to 'true' to enable copy number variation analysis
+    5. **samples**:
         __The most important part of the config file is to define the samples for Chips analysis.__  
         Each sample is given an arbitrary name, e.g. MCF7_ER, MCF7_input, etc.  **Sample names, however, can not start with a number, and cannot contain '.', '-' (dash--use underscores instead)** (POSSIBLY others).  For each sample, define the path to the raw data file (.fastq, .fastq.gz, .bam).  For paired-end samples, simply add another line to define the path to the second pair.
     
@@ -121,7 +117,7 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     **Treat2**- (optional) if you have replicates, define the treatment of the replicate here.  
     **Cont2**- (optional) the input-control, if available, for Treat2  
     
-3. setting up refs
+4. setting up refs
     - change config.yaml ref: "cidc_chips/ref.yaml"
     - linking to static refs
     - copying ref.yaml
