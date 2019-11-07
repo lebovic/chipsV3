@@ -105,7 +105,7 @@ rule cistrome_getPeaksXls:
 
 rule cistrome_getNarrowPeakBed:
     input:
-        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.narrowPeak" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_sorted_peaks.narrowPeak.bed" % cistromepath
     params:
@@ -115,7 +115,7 @@ rule cistrome_getNarrowPeakBed:
 
 rule cistrome_getBroadPeakBed:
     input:
-        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.broadPeak" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
         "%s/dataset{run}/{run}_sorted_peaks.broadPeak.bed" % cistromepath
     params:
