@@ -18,11 +18,11 @@ import math
 import numpy as np
 from optparse import OptionParser
 import pyBigWig
-try:
-    from bx.bbi.bigwig_file import BigWigFile
-except:
-    sys.stderr.write("Need bx-python!")
-    sys.exit()
+# try:
+#     from bx.bbi.bigwig_file import BigWigFile
+# except:
+#     sys.stderr.write("Need bx-python!")
+#     sys.exit()
 
 # ------------------------------------
 # constants

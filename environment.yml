@@ -54,7 +54,7 @@ dependencies:
 #peaks.snakefile
 - ucsc-bedgraphtobigwig>=332
 - ucsc-bedsort>=332
-- macs2
+- macs2>=2.2.5
 
 #qdnaseq.snakefile
 - bioconductor-qdnaseq

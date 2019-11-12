@@ -296,8 +296,9 @@ def report_targets(wildcards):
             runRep = "%s.%s" % (run, rep)
             ls.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
             ls.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
-    if "motif" in config and config["motif"]:
-        ls.append(output_path + '/report/motif')
+    if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
+        if 'motif' in config and config['motif']:
+            ls.append(output_path + '/report/motif')
     ls.append(output_path + '/report/report.zip')
     return ls
 
@@ -320,16 +321,18 @@ rule report_generate:
             o.write(report.read().replace("{ RESULT_DICT }",json.dumps(report_dict)))
         report.close()
 
-rule report_copyMotif:
-    input:
-        motif_targets
-    output:
-        directory(output_path + '/report/motif')
-    message: "REPORT: Copy motif results to report"
-    params:
-        motif_path = output_path + "/motif/"
-    shell:
-        "cp -r {params.motif_path} {output}"
+if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
+    if 'motif' in config and config['motif']:
+        rule report_copyMotif:
+            input:
+                motif_targets
+            output:
+                directory(output_path + '/report/motif')
+            message: "REPORT: Copy motif results to report"
+            params:
+                motif_path = output_path + "/motif/"
+            shell:
+                "cp -r {params.motif_path} {output}"
 
 rule report_copyTargets:
     input:
