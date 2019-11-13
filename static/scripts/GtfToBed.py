@@ -10,15 +10,15 @@ def gtfToBed(gtf,output):
     df = gr.df
     geneAndTrans = df[(df["Feature"] == "gene" )|(df["Feature"] == "transcript")]
     AnnoBed = geneAndTrans.loc[:,["Chromosome","Start","End","gene_name","Strand","gene_id"]]
-    AnnoBed["coordinate"] = AnnoBed.loc[:,'coordinate'] = [x[0]+':'+str(x[1])+'-'+str(x[2]) for x in AnnoBed.values.tolist()]
     AnnoBed = AnnoBed.drop_duplicates()
     AnnoBed = AnnoBed.rename(columns={'Chromosome': 'chromosome', 'Start': 'start', 'End':'end' , 'gene_name':'symbol', 
-                                      'Strand':'strand', 'gene_id':'product_accession', 'coordinate':'coordinate'})
+                                      'Strand':'strand', 'gene_id':'product_accession'})
     AnnoBed.loc[:,"start"] = AnnoBed.loc[:,"start"] - 1
     AnnoBed.loc[:,"end"] = AnnoBed.loc[:,"end"] - 1
     AnnoBed.loc[AnnoBed.strand == '+', 'TSS'] = AnnoBed.start
     AnnoBed.loc[AnnoBed.strand == '-', 'TSS'] = AnnoBed.end
     AnnoBed.TSS = AnnoBed.TSS.astype(int)
+    AnnoBed["coordinate"] = [x[0]+':'+str(x[1])+'-'+str(x[2]) for x in AnnoBed.values.tolist()]
     AnnoBed = AnnoBed[['chromosome','start','end','coordinate','product_accession','strand','symbol','TSS']]
     AnnoBed.to_csv(output, index = None, sep = '\t')
 

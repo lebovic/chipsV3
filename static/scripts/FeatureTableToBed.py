@@ -15,6 +15,9 @@ def add_tss(bed_table):
 def change_format(feature):
     feature_bed = feature.loc[:,['chromosome','start','end','product_accession','strand','symbol']]
     feature_bed.loc[:,'chromosome'] = ['chr'+str(x) for x in feature_bed.loc[:,'chromosome'].tolist()]
+    # gtf is 1-based system, but bed is 0-based
+    feature_bed["start"] = feature_bed.loc[:,"start"] - 1
+    feature_bed["end"] = feature_bed.loc[:,"end"] - 1
     feature_bed = add_tss(feature_bed)
     feature_bed['coordinate'] = [x[0]+':'+str(x[1])+'-'+str(x[2]) for x in feature_bed.values.tolist()]
     feature_bed = feature_bed.loc[:,['chromosome','start','end','coordinate','product_accession','strand','symbol','TSS']]
@@ -40,10 +43,7 @@ def getnew(refGene_path,feature_path,full_table_path):
         full_table = pd.concat([new_feature_bed, gene_ann],axis=0,sort=True)
     else:
         full_table = new_feature_bed
-    # gtf is 1-based system, but bed is 0-based
-    full_table["start"] = full_table.loc[:,"start"] - 1
-    full_table["end"] = full_table.loc[:,"end"] - 1
-    full_table=add_tss(full_table)
+    # full_table=add_tss(full_table)
     full_table = full_table.loc[:,['chromosome','start','end','coordinate','product_accession','strand','symbol','TSS']]
     full_table.to_csv(full_table_path, index = None, sep = '\t')
     
