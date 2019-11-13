@@ -15,6 +15,8 @@ def targets_targets(wildcards):
             runRep = "%s.%s" % (run, rep)
             ls.append(output_path + "/targets/%s/%s_gene_score_5fold.txt" % (runRep,runRep))
             ls.append(output_path + "/targets/%s/%s_gene_score.txt" % (runRep,runRep))
+            ls.append(output_path + "/targets/%s/%s_gene_score_1k.txt" % (runRep,runRep))
+            ls.append(output_path + "/targets/%s/%s_gene_score_100k.txt" % (runRep,runRep))
     return ls
 
 rule targets_all:
@@ -81,7 +83,36 @@ rule targets_getAllPeaksRPScore:
     params:
         genome=config['geneBed'],
         decay=target_decay_rate
-    message: "REGULATORY: get RP score of all peaks"
+    message: "REGULATORY: get RP score of all peaks with 10k decay rate"
     log:output_path + "/logs/targets/{run}.{rep}.log"
     shell:
         "python cidc_chips/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
+
+rule targets_getAllPeaksRPScore1k:
+    input:
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+    output:
+        output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score_1k.txt"
+    params:
+        genome=config['geneBed'],
+        decay=1000
+    message: "REGULATORY: get RP score of all peaks with 1k decay rate"
+    log:output_path + "/logs/targets/{run}.{rep}.log"
+    shell:
+        "python cidc_chips/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
+
+rule targets_getAllPeaksRPScore100k:
+    input:
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+    output:
+        output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score_100k.txt"
+    params:
+        genome=config['geneBed'],
+        decay=100000
+    message: "REGULATORY: get RP score of all peaks with 100k decay rate"
+    log:output_path + "/logs/targets/{run}.{rep}.log"
+    shell:
+        "python cidc_chips/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
+
+
+

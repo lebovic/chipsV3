@@ -14,15 +14,21 @@ def cistrome_targets(wildcards):
         ls.append("%s/dataset%s/%s_peaks.xls" % (cistromepath, run, run))
         if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             ls.append("%s/dataset%s/%s_sorted_peaks.broadPeak.bed" % (cistromepath, run, run))
+            if ('cutoff' in config) and config['cutoff'] and len(config['samples'][config['runs'][run][0]]) == 2:
+                ls.append("%s/dataset%s/%s_sub%s.broadPeak.bed" % (cistromepath, run, run, str(config["cutoff"])))
         else:
             ls.append("%s/dataset%s/%s_sorted_peaks.narrowPeak.bed" % (cistromepath, run, run))
             ls.append("%s/dataset%s/%s_sorted_summits.bed" % (cistromepath, run, run))
+            if ('cutoff' in config) and config['cutoff'] and len(config['samples'][config['runs'][run][0]]) == 2:
+                ls.append("%s/dataset%s/%s_sub%s.narrowPeak.bed" % (cistromepath, run, run, str(config["cutoff"])))
         ls.append("%s/dataset%s/%s_peaks.bed" % (cistromepath, run, run))
         ls.append("%s/dataset%s/%s_treat.bw" % (cistromepath, run, run))
         ls.append("%s/dataset%s/attic/%s_conserv_img.png" % (cistromepath, run, run))
         ls.append("%s/dataset%s/attic/%s_conserv.txt" % (cistromepath, run, run))
         ls.append("%s/dataset%s/attic/%s_gene_score_5fold.txt" % (cistromepath, run, run))
         ls.append("%s/dataset%s/attic/%s_gene_score.txt" % (cistromepath, run, run))
+        ls.append("%s/dataset%s/attic/%s_gene_score_1k.txt" % (cistromepath, run, run))
+        ls.append("%s/dataset%s/attic/%s_gene_score_100k.txt" % (cistromepath, run, run))
         if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
             if ("motif" in config) and config["motif"] == "mdseqpos":
                 ls.append("%s/dataset%s/attic/%s_seqpos/" % (cistromepath, run, run))
@@ -32,7 +38,7 @@ def cistrome_targets(wildcards):
         for sample in run_samples:
             if sample:
                 ls.append("%s/dataset%s/attic/%s_100k_fastqc/" % (cistromepath, run, sample))
-                ls.append("%s/dataset%s/attic/%s_unique.sorted.bam" % (cistromepath, run, sample))
+                ls.append("%s/dataset%s/attic/%s_treat_rep1.bam" % (cistromepath, run, sample))
     return ls
 
 def getJsonInput(wildcards):
@@ -123,6 +129,26 @@ rule cistrome_getBroadPeakBed:
     shell:
         "ln -s {params.abspath} {output}"
 
+rule cistrome_getFilteredNarrowPeakBed:
+    input:
+        lambda wildcards: output_path + "/peaks/%s/%s.sub%s_peaks.narrowPeak" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards),str(config['cutoff']))
+    output:
+        "%s/dataset{run}/{run}_sub%s.narrowPeak.bed" % (cistromepath,str(config['cutoff']))
+    params:
+        abspath = lambda wildcards, input: os.path.abspath(str(input))
+    shell:
+        "ln -s {params.abspath} {output}"
+
+rule cistrome_getFilteredBroadPeakBed:
+    input:
+        lambda wildcards: output_path + "/peaks/%s/%s.sub%s_peaks.broadPeak" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards),str(config['cutoff']))
+    output:
+        "%s/dataset{run}/{run}_sub%s.broadPeak.bed" % (cistromepath,str(config['cutoff']))
+    params:
+        abspath = lambda wildcards, input: os.path.abspath(str(input))
+    shell:
+        "ln -s {params.abspath} {output}"
+
 rule cistrome_getSortedSummitsBed:
     input:
         lambda wildcards: output_path + "/peaks/%s/%s_sorted_summits.bed" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
@@ -193,11 +219,31 @@ rule cistrome_getRegTxt:
     shell:
         "ln -s {params.abspath} {output}"
 
+rule cistrome_get1kRegTxt:
+    input:
+        lambda wildcards: output_path + "/targets/%s/%s_gene_score_1k.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+    output:
+        "%s/dataset{run}/attic/{run}_gene_score_1k.txt" % cistromepath
+    params:
+        abspath = lambda wildcards, input: os.path.abspath(str(input))
+    shell:
+        "ln -s {params.abspath} {output}"
+
+rule cistrome_get100kRegTxt:
+    input:
+        lambda wildcards: output_path + "/targets/%s/%s_gene_score_100k.txt" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+    output:
+        "%s/dataset{run}/attic/{run}_gene_score_100k.txt" % cistromepath
+    params:
+        abspath = lambda wildcards, input: os.path.abspath(str(input))
+    shell:
+        "ln -s {params.abspath} {output}"
+
 rule cistrome_getBam:
     input:
         output_path + "/align/{sample}/{sample}_unique.sorted.bam"
     output:
-        "%s/dataset{run}/attic/{sample}_unique.sorted.bam" % cistromepath
+        "%s/dataset{run}/attic/{sample}_treat_rep1.bam" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
