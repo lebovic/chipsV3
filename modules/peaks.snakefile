@@ -186,8 +186,8 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             cont=getFilteredConts
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.broadPeak" % str(config['cutoff']),
-            temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.gappedPeak" % str(config['cutoff'])),
-            temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff'])),
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.gappedPeak" % str(config['cutoff']),
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff']),
             temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_treat_pileup.bdg" % str(config['cutoff'])),
             temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_control_lambda.bdg" % str(config['cutoff'])),
         params:
@@ -317,9 +317,9 @@ else:
             treat=getFilteredTreats,
             cont=getFilteredConts
         output:
-            temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])),
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff']),
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_summits.bed" % str(config['cutoff']),
-            temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff'])),
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.xls" % str(config['cutoff']),
             temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_treat_pileup.bdg" % str(config['cutoff'])),
             temp(output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_control_lambda.bdg" % str(config['cutoff'])),
         params:
