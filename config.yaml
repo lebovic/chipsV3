@@ -39,8 +39,8 @@ cutoff: 150
 contamination_panel:
   #- /some/path/to/BWA_index/
   #- /some/path/to/BWA_index/
-  - ./ref_files/contam_panel/hg19/hg19.fa
-  - ./ref_files/contam_panel/mm9/mm9.fa
+  #- ./ref_files/contam_panel/hg19/hg19.fa
+  #- ./ref_files/contam_panel/mm9/mm9.fa
   - ./ref_files/contam_panel/dm3/dm3.fa
   - ./ref_files/contam_panel/S_cerevisiae/S_cerevisiae.fa
   - ./ref_files/contam_panel/e_coli/e_coli.fasta
@@ -86,4 +86,5 @@ samples:
   SAMPLE1_input:
     - data/sample1.input.fastq.gz
   SAMPLE2:
-    - data/sample2.fastq.gz
+    - data/sample2_pair1.fastq.gz
+    - data/sample2_pair2.fastq.gz
