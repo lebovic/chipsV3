@@ -172,7 +172,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
-            control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
+            control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "--nolambda",
         message: "PEAKS: calling peaks with macs2"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
