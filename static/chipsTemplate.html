@@ -606,9 +606,9 @@
                                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2">
                                             <h3>Targets</h3>
                                         </div>
-                                        <div><b>Binding and Expression Target Analysis (BETA)</b> is a software package that integrates ChIP-seq of transcription factors or chromatin regulators with differential gene expression data to infer direct target genes. </div>
-                                        <div>Chips used all of peaks to get putative targets result by BETA regulatory potential score formula. </div>
-                                        <div>Here only shows the <b>top 2000 genes</b>(ordered by scores) after BETA running in the following table. The full results could be downloaded below as well.</div>
+                                        <div><b>Regulatory potential (RP) score</b> has been demonstrated as an efficient method to find putative targets based on ChIP-seq peaks and reflect the regulation likelihood. </div>
+                                        <div>Chips used all of peaks to get putative targets result by Cistrome-GO regulatory potential score formula. </div>
+                                        <div>Here only shows the <b>top 2000 genes</b>(ordered by scores) after RP calculation in the following table. The full results could be downloaded below as well.</div>
                                         <br />
                                         <div class="container-fluid m-0 p-0" id="TargetsInformation">
                                             <div class="container-fluid mb-3">
@@ -618,7 +618,7 @@
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-md-12">
-                                                        <table class="table table-bordered table-striped" id="myTable" style="font-size: 15px">
+                                                        <table class="table table-bordered table-striped rpTable" style="font-size: 15px">
                                                             <thead class="thead">
                                                                 <th scope="col" style="vertical-align: middle">Gene</th>
                                                                 <th scope="col" style="vertical-align: middle">Score</th>
@@ -642,6 +642,8 @@
                                             <h3>Motifs</h3>
                                         </div>
                                         <div>The top 5000 most significant peak summits (ranked by MACS pvalue score) are used. </div>
+                                        <div>Motifs were weighted by appearing more frequently at the stronger ChIP-seq peaks and at the center of peaks. Large absolute z-scores of the motifs found from ChIP-seq peaks indicate good motif enrichment and high ChIP-seq data quality.</div>
+                                        <div>With such motif enrichment results, you can better understand the binding pattern of the factor.</div>
                                         <br />
                                         <div class="container-fluid m-0 p-0" id="MotifInformation">
                                             <div class="container-fluid mb-3">
@@ -663,8 +665,12 @@
         </div>
     </main>
     <nav class="navbar d-flex flex-row flex-md-nowrap fixed-bottom navbar-dark" style="background-color:#1E284A">
-        <div class="bd-highlight"> <a href="http://liulab.dfci.harvard.edu/" class="navbar-brand pt-0 pb-0 mr-0" style="background-color: rgba(0, 0, 0, 0);height: 46px; width: 58px"> <img src="http://liulab.dfci.harvard.edu/WEBSITE/images/Global/logofinal.png" height="46" width="58"> </a> </div>
-        <span class="navbar-text" style="font-size: 13px">Copyright @2019 Liu lab</span>
+        <div class="bd-highlight">
+            <a href="https://cimac-network.org/" class="navbar-brand pt-0 pb-0 mr-0" style="background-color: #f0f0f0; height: 45px; width: 120px">
+                <img src="https://i1.wp.com/cimac-network.org/wp-content/uploads/2018/06/version-3.png" height="45" width="120"> </a>
+            <a href="http://liulab.dfci.harvard.edu/" class="navbar-brand pt-0 pb-0 mt-1 ml-2" style="background-color: rgba(0, 0, 0, 0);height: 45px; width: 60px">
+                <img src="http://liulab.dfci.harvard.edu/WEBSITE/images/Global/logofinal.png" height="46" width="58"> </a></div>
+        <span class="navbar-text" style="font-size: 13px">Copyright @ 2019 <a href="http://liulab.dfci.harvard.edu/">Liu lab</a></span>
     </nav>
 </body>
 <!-- a function to update variables -->
@@ -851,14 +857,17 @@ function update_Peaks_information() {
 
 function update_Targets_information() {
     $.each(Object.keys(Chips_result["Targets"][get_current_run()]), function(i, item) {
-        var html_content = '<div class="container-fluid mb-3"><div class="row align-items-center mb-3"><h4 class="col-6 mb-0 p-0">' + item + '</h4><a class="col-6 m-auto p-auto text-right" href="' + Chips_result["Targets"][get_current_run()][item]['TargetsFile'] + '">Download file</a></div><div class="row"><div class="col-md-12"><table class="table table-bordered table-striped" id="myTable" style="font-size: 15px"><thead class="thead"><th scope="col" style="vertical-align: middle">Gene</th><th scope="col" style="vertical-align: middle">Score</th><th scope="col" style="vertical-align: middle">Coordinate</th></thead><tbody style="font-size: 0.9rem">' + Chips_result["Targets"][get_current_run()][item]['TargetsTable'] + '</tbody></table></div></div></div>';
+        var html_content = '<div class="container-fluid mb-3"><div class="row align-items-center mb-3"><h4 class="col-6 mb-0 p-0">' + item + '</h4><a class="col-6 m-auto p-auto text-right" href="' + Chips_result["Targets"][get_current_run()][item]['TargetsFile'] + '">Download file</a></div><div class="row"><div class="col-md-12"><table class="table table-bordered table-striped rpTable" style="font-size: 15px"><thead class="thead"><th scope="col" style="vertical-align: middle">Gene</th><th scope="col" style="vertical-align: middle">Score</th><th scope="col" style="vertical-align: middle">Coordinate</th></thead><tbody style="font-size: 0.9rem">' + Chips_result["Targets"][get_current_run()][item]['TargetsTable'] + '</tbody></table></div></div></div>';
         if (i == 0) {
             $("#TargetsInformation").html(html_content);
         } else {
             $("#TargetsInformation").append(html_content);
         };
     });
-    $('#myTable').DataTable({
+    $('.rpTable').DataTable({
+        "order": [
+            [1, "desc"]
+        ],
         initComplete: function() {
             var api = this.api();
             api.columns().indexes().flatten().each(function(i) {
@@ -896,7 +905,10 @@ function update_Motifs_information() {
 </script>
 <!-- a function to set searching box -->
 <script type="text/javascript">
-$('#myTable').DataTable({
+$('.rpTable').DataTable({
+    "order": [
+        [1, "desc"]
+    ],
     initComplete: function() {
         var api = this.api();
         api.columns().indexes().flatten().each(function(i) {
@@ -932,7 +944,7 @@ function clean_formatted_data(str) {
 
 function col_to_array(tbl_col, target) {
     // Returns column `n` (zero indexed) in table id `target` as an array 
-    var colArray = $('#' + target + ' td:nth-child(' + tbl_col + ')').map(function() {
+    var colArray = $('.' + target + ' td:nth-child(' + tbl_col + ')').map(function() {
         return clean_formatted_data($(this).text());
     }).get();
     return colArray;
@@ -956,13 +968,13 @@ function process_col_best_performing(tbl_col, target) {
     var opacity_array = generate_opacities(col_data, 50);
     var row_count = col_data.length;
     for (var i = 1; i <= row_count; i++) {
-        $('#' + target + ' tr:nth-child(' + (get_pos_of_max(col_data) + 1) + ') td:nth-child(' + tbl_col + ')').css('background', 'rgba(65,105,255,' + opacity_array[0] + ')');
+        $('.' + target + ' tr:nth-child(' + (get_pos_of_max(col_data) + 1) + ') td:nth-child(' + tbl_col + ')').css('background', 'rgba(65,105,255,' + opacity_array[0] + ')');
         col_data[get_pos_of_max(col_data)] = null;
         opacity_array.splice(0, 1);
     }
 }
 
-process_col_best_performing(5, 'myTable');
+process_col_best_performing(5, 'rpTable');
 </script>
 
 </html>

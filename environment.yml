@@ -8,16 +8,16 @@ dependencies:
 - snakemake=5.4.5
 - samtools>=1.8
 - python>=3.5.2
-- r>=3.4.1
+- r=3.4.1
 - numpy
 - pandas
 
 #align_*.snakefile
-- bwa>=0.7.15
-- bowtie2>=2.3.4.1
+- bwa=0.7.15
+- bowtie2=2.3.4.1
 - sambamba=0.6.6
-- picard>=2.18.4
-- bedtools>=2.25.0 #for bamToFastq
+- picard=2.18.4
+- bedtools=2.27.1 #for bamToFastq
 
 #bam_snapshot
 - bioconductor-gviz

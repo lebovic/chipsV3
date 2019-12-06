@@ -530,7 +530,7 @@ rule peaks_macsRunInfo:
     message: "PEAKS/REPORT - collection macs version and fdr info"
     conda: "../envs/peaks/peaks.yaml"
     shell:
-        "macs2 --version 2> {output} && echo fdr {params.fdr} >> {output}"
+        "macs2 --version > {output} && echo fdr {params.fdr} >> {output}"
     
 rule peaks_generateIGVsession:
     """Generates analysis/peaks/all_treatments.igv.xml, a igv session of all

@@ -62,7 +62,10 @@ def parse_FRiP(runRep):
     return ReadsInPeaks,Total
 
 def parse_peaks(runRep):
-    f = open(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
+    try:
+        f = open(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
+    except FileNotFoundError:
+        f = open(output_path+"/peaks/%s/%s_peaks.broadPeak"%(runRep,runRep))
     #start the counts
     tot = fc_10 = fc_20 = 0
     for l in f:
@@ -251,7 +254,10 @@ def getReportInputs(wildcards):
                     ret.append(output_path + "/motif/%s/results/homerResults.html"% runRep)
             ret.append(output_path + "/frips/%s/%s_frip.txt"%(runRep,runRep))
             ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
-            ret.append(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
+            if "macs2_broadpeaks" in config and config["macs2_broadpeaks"]:
+                ret.append(output_path+"/peaks/%s/%s_peaks.broadPeak"%(runRep,runRep))
+            else:
+                ret.append(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
             ret.append(output_path+"/ceas/%s/%s_summary.txt"%(runRep,runRep))
             ret.append(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep))
             ret.append(output_path +"/targets/%s/%s_gene_score.txt"%(runRep,runRep))
