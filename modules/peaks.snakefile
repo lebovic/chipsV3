@@ -128,6 +128,7 @@ def peaks_targets(wildcards):
                 ls.append(output_path + "/peaks/%s/%s_sorted_peaks.narrowPeak" % (runRep,runRep))
                 ls.append(output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
                 ls.append(output_path + "/peaks/%s/%s_sorted_summits.bed" % (runRep,runRep))
+            ls.append(output_path + "/peaks/%s/%s_5fold_peaks.bed" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_peaks.png" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_treat_pileup.bw" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_control_lambda.bw" % (runRep,runRep))
@@ -237,6 +238,30 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
         message: "PEAKS: Converting sorted peak file to bed file"
+        log:output_path + "/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
+
+    rule peaks_get5FoldBroadPeaks:
+        input:
+            # output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.xls"
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.broadPeak"
+        message: "PEAKS: get 5 fold peaks"
+        log:output_path + "/logs/targets/{run}.{rep}.log"
+        shell:
+            # """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
+            "awk '($7 >= 5)' {input} > {output}"
+
+    rule peaks_5FoldBroadPeakToBed:
+        """Convert MACS's narrowPeak format, which is BED12 to BED5"""
+        input:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.broadPeak"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.bed"
+        message: "PEAKS: Converting sorted 5 fold peak file to bed file"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -385,6 +410,30 @@ else:
         conda: "../envs/peaks/peaks.yaml"
         shell:
             "sort -r -n -k 9 {input} > {output} "#2>>{log}"
+
+    rule peaks_get5FoldNarrowPeaks:
+        input:
+            # output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.xls"
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.narrowPeak"
+        message: "PEAKS: get 5 fold peaks"
+        log:output_path + "/logs/targets/{run}.{rep}.log"
+        shell:
+            # """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
+            "awk '($7 >= 5)' {input} > {output}"
+
+    rule peaks_5FoldNarrowPeakToBed:
+        """Convert MACS's narrowPeak format, which is BED12 to BED5"""
+        input:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.narrowPeak"
+        output:
+            output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.bed"
+        message: "PEAKS: Converting sorted 5 fold peak file to bed file"
+        log:output_path + "/logs/peaks/{run}.{rep}.log"
+        conda: "../envs/peaks/peaks.yaml"
+        shell:
+            "cut -f1,2,3,4,9 {input} > {output} "#2>>{log}"
 
     rule peaks_getPeaksStats:
         """Counts  number of peaks, # of 10FC, # of 20FC peaks for each sample"""
