@@ -87,7 +87,10 @@ def parse_peaks(runRep):
         inte = ceas['Intergenic']
     with open(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep),"r") as dhs_meta:
         dhs_list = dhs_meta.readline().strip().split(",")
-        dhs="%.2f%%" % (int(dhs_list[1])*100/int(dhs_list[0]))
+        if dhs_list[0] and int(dhs_list[0]) > 0:
+            dhs="%.2f%%" % (int(dhs_list[1])*100/int(dhs_list[0]))
+        else:
+            dhs="%.2f%%" % 0.0
     return tot,fc_10,fc_20,dhs,prom,exon,intr,inte
 
 def parse_targets(runRep):
