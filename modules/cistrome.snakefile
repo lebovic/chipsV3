@@ -22,6 +22,7 @@ def cistrome_targets(wildcards):
             if ('cutoff' in config) and config['cutoff'] and len(config['samples'][config['runs'][run][0]]) == 2:
                 ls.append("%s/dataset%s/%s_sub%s.narrowPeak.bed" % (cistromepath, run, run, str(config["cutoff"])))
         ls.append("%s/dataset%s/%s_peaks.bed" % (cistromepath, run, run))
+        ls.append("%s/dataset%s/%s_5foldPeak.bed" % (cistromepath, run, run))
         ls.append("%s/dataset%s/%s_treat.bw" % (cistromepath, run, run))
         ls.append("%s/dataset%s/attic/%s_conserv_img.png" % (cistromepath, run, run))
         ls.append("%s/dataset%s/attic/%s_conserv.txt" % (cistromepath, run, run))
@@ -61,6 +62,12 @@ def getJsonInput(wildcards):
             if ("motif" in config) and config["motif"] == "mdseqpos":
                 ls.append(output_path + "/json/%s/%s_seqpos.json" % (run, run))
     return ls
+
+def getPeaksType(wildcards):
+    if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+        return "broadPeak"
+    else:
+        return "narrowPeak"
 
 def cistrome_getRunAndRep(wildcards):
     #This is a hack until we figure out a cleaner way to do this
@@ -109,21 +116,31 @@ rule cistrome_getPeaksXls:
     shell:
         "ln -s {params.abspath} {output}"
 
-rule cistrome_getNarrowPeakBed:
+rule cistrome_getPeakBed:
     input:
-        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.narrowPeak" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.{peaksType}" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
     output:
-        "%s/dataset{run}/{run}_sorted_peaks.narrowPeak.bed" % cistromepath
+        "%s/dataset{run}/{run}_sorted_peaks.{peaksType}.bed" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:
         "ln -s {params.abspath} {output}"
 
-rule cistrome_getBroadPeakBed:
+# rule cistrome_getBroadPeakBed:
+#     input:
+#         lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.broadPeak" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+#     output:
+#         "%s/dataset{run}/{run}_sorted_peaks.broadPeak.bed" % cistromepath
+#     params:
+#         abspath = lambda wildcards, input: os.path.abspath(str(input))
+#     shell:
+#         "ln -s {params.abspath} {output}"
+
+rule cistrome_get5FoldPeakBed:
     input:
-        lambda wildcards: output_path + "/peaks/%s/%s_sorted_peaks.broadPeak" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards))
+        lambda wildcards: output_path + "/peaks/%s/%s_5fold_peaks.%s" % (cistrome_getRunAndRep(wildcards), cistrome_getRunAndRep(wildcards), getPeaksType(wildcards))
     output:
-        "%s/dataset{run}/{run}_sorted_peaks.broadPeak.bed" % cistromepath
+        "%s/dataset{run}/{run}_5foldPeak.bed" % cistromepath
     params:
         abspath = lambda wildcards, input: os.path.abspath(str(input))
     shell:

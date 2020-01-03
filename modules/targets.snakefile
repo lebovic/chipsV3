@@ -23,21 +23,9 @@ rule targets_all:
     input:
         targets_targets
 
-rule targets_get5FoldPeaks:
-    input:
-        # output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.xls"
-        output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
-    output:
-        output_path + "/targets/{run}.{rep}/{run}.{rep}_5foldpeaks.bed"
-    message: "REGULATORY: get 5 fold peaks"
-    log:output_path + "/logs/targets/{run}.{rep}.log"
-    shell:
-        # """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
-        "awk '($5 >= 5)' {input} > {output}"
-
 rule targets_get5FoldPeaksRPScore:
     input:
-        output_path + "/targets/{run}.{rep}/{run}.{rep}_5foldpeaks.bed"
+        output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.bed"
     output:
         output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score_5fold.txt"
     params:
