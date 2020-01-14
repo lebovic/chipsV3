@@ -17,10 +17,25 @@ We assume that the following tools are already installed on your system and that
 ### Installing Miniconda
 Chips uses the [Conda](https://conda.io/docs/intro.html) packaging system to manage and install all of its required software packages.
 To install miniconda:
-1.  download the Miniconda installer: 
-    `wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh`
-2.  run the installer:
-    `bash Miniconda3-latest-Linux-x86_64.sh`
+
+1. download the Miniconda installer:
+
+    ```bash
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    ```
+
+2. run the installer:
+
+    ```bash
+    bash Miniconda3-latest-Linux-x86_64.sh
+    ```
+
+3. update channels of conda:
+
+    ```bash
+    conda config --add channels conda-forge
+    conda config --add channels bioconda
+    ```
 ### Installing the Chips conda environments
 Conda environments are briefly explained [here](https://conda.io/docs/using/envs.html).  Briefly, if you are familiar with [Python Virtual Environments](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/) or [Docker Containers](https://www.docker.com/what-container) then Conda environments should be a familiar concept.  
 

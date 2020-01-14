@@ -117,8 +117,10 @@ def parse_targets(runRep):
 
 def parse_version(software):
     if software == "bwa":
-        out = subprocess.Popen("bwa", shell=True, stderr=subprocess.PIPE).stderr.read().decode('utf-8')
-        version = out.strip().split("\n")[1].split()[1]
+        # out = subprocess.Popen("bwa", shell=True, stderr=subprocess.PIPE).stderr.read().decode('utf-8')
+        # version = out.strip().split("\n")[1].split()[1]
+        with open(output_path+"/align/run_info.txt") as out:
+            version = out.read().strip()
     # elif software == "bowtie2":
     #     out = subprocess.check_output("bowtie2 --version", shell=True).decode('utf-8')
     #     version = out.strip().split("\n")[0].split("version")[1].strip()

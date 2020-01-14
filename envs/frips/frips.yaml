@@ -10,3 +10,4 @@ dependencies:
 - r>=3.4.1
 - seaborn
 - pandas
+- samtools

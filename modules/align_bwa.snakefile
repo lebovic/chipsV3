@@ -1,10 +1,13 @@
 #MODULE: Align fastq files to genome - BWA specific calls
 #PARAMETERS:
 # _logfile=output_path + "/logs/align.log"
+import subprocess
+
 _bwa_threads=8
 _bwa_q="5"
 _bwa_l="32"
 _bwa_k="2"
+
 
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]
@@ -106,3 +109,14 @@ checkpoint align_aggregate:
         temp(output_path + "/align/{sample}/{sample}.bam")
     shell:
         "mv {input} {output}"
+
+
+rule align_macsRunInfo:
+    """Dump the current version of bwa into a text file for the report"""
+    output:
+        output_path + "/align/run_info.txt"
+    message: "ALIGN/REPORT - collection bwa version info"
+    conda: "../envs/align/align_bwa.yaml"
+    shell:
+        "cidc_chips/modules/scripts/align_parseBwaVersion.py -o {output}"
+

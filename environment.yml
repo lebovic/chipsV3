@@ -62,6 +62,7 @@ dependencies:
 #report.snakefile
 - tabulate
 - seaborn
+- zip
 
 #BUGS: minor missing
 - r-r.utils

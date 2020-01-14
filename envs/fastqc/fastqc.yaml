@@ -4,6 +4,7 @@ channels:
 - conda-forge
 - defaults
 dependencies:
+- python>=3.5
 - fastqc
 - seqtk
 - bedtools>=2.25.0

@@ -44,7 +44,7 @@ def main():
             elif exon[1]:
                 total = exon[1]
             else:
-                total = 1
+                total = '1'
 
             print(",".join([sampleID,DHS[0],prom[0],exon[0],total]))
 

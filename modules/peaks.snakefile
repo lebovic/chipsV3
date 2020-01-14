@@ -301,6 +301,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
         message: "PEAKS: Plot peaks region"
+        conda: "../envs/peaks/peaks.yaml"
         shell:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
@@ -468,6 +469,7 @@ else:
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
         message: "PEAKS: Plot peaks region"
+        conda: "../envs/peaks/peaks.yaml"
         shell:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 

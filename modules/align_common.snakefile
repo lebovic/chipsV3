@@ -18,6 +18,7 @@ def align_targets(wildcards):
         ls.append(output_path + "/align/%s/%s.unmapped.fq.gz" % (sample,sample))
         ls.append(output_path + "/align/%s/%s_readsPerChrom.txt" % (sample,sample))
     ls.append(output_path + "/align/mapping.csv")
+    ls.append(output_path + "/align/run_info.txt")
     return ls
 
 
@@ -94,6 +95,7 @@ rule align_mapFigure:
     output:
         output_path + "/align/{sample}/{sample}_mapping.png"
     message: "ALIGN: plot mapping rate"
+    conda: "../envs/align/align_common.yaml"
     shell:
         "cidc_chips/modules/scripts/align_mappedFigure.py -f {input} -o {output}"
 
