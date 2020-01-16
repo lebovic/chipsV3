@@ -324,7 +324,7 @@ rule align_gzipUnmappedFq:
     log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     shell:
-        "gzip {input} {params} 2>>{log}"
+        "gzip -f {input} {params} 2>>{log}"
 
 rule align_readsPerChromStat:
     """For each sample, generates a _readsPerChrom.txt file, which is:
