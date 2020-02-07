@@ -34,10 +34,10 @@ def json_meta(options):
     for k in content.keys():
         total += content[k]
     json_dict = {"input": input, "stat": {}, "output": output, "param": param}
-    json_dict["stat"]["exon"] = content['Exon']/float(total)
-    json_dict["stat"]["intron"] = content['Intron']/float(total)
-    json_dict["stat"]["promoter"] = content['Promoter']/float(total)
-    json_dict["stat"]["inter"] = content['Intergenic']/float(total)
+    json_dict["stat"]["exon"] = content['Exon']/float(total) if float(total) else 0.0
+    json_dict["stat"]["intron"] = content['Intron']/float(total) if float(total) else 0.0
+    json_dict["stat"]["promoter"] = content['Promoter']/float(total) if float(total) else 0.0
+    json_dict["stat"]["inter"] = content['Intergenic']/float(total) if float(total) else 0.0
     f.close()
     json_dump(json_dict)
 
