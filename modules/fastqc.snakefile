@@ -62,7 +62,7 @@ rule fastqc_downsampleFastq:
         seed=11,
         #how many to sample
         size=100000
-    message: "FASTQC: sample_fastq"
+    message: "FASTQC: downsample {input} to 100k reads"
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
@@ -77,7 +77,7 @@ rule fastqc_sampleBam:
         n=100000
     output:
         temp(output_path + "/align/{sample}/{sample}_100k.bam")
-    message: "FASTQC: sampling 100k reads from bam"
+    message: "FASTQC: sampling 100k reads from bam for {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
@@ -89,7 +89,7 @@ rule fastqc_convertBamToFastq:
         output_path + "/align/{sample}/{sample}_100k.bam"
     output:
         temp(output_path + "/align/{sample}/{sample}_100k.bam.fastq")
-    message: "FASTQC: converting 100k.bam to 100k.fastq"
+    message: "FASTQC: converting 100k.bam to 100k.fastq for {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
@@ -109,7 +109,7 @@ rule fastqc_callFastqc:
     params:
         sample = lambda wildcards: wildcards.sample,
         main_output_path = output_path
-    message: "FASTQC: call fastqc"
+    message: "FASTQC: call fastqc for {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
@@ -124,7 +124,7 @@ rule fastqc_getPerSequenceQual:
     params:
         #DON'T forget quotes
         section="'Per sequence quality'"
-    message: "FASTQC: get_PerSequenceQual"
+    message: "FASTQC: get_PerSequenceQual for {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
@@ -139,7 +139,7 @@ rule fastqc_getPerSequenceGC:
     params:
         #DON'T forget quotes
         section="'Per sequence GC content'"
-    message: "FASTQC: get_PerSequenceGC"
+    message: "FASTQC: get_PerSequenceGC for {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
@@ -152,7 +152,7 @@ rule fastqc_extractFastQCStats:
         qual = output_path + "/fastqc/{sample}/{sample}_perSeqQual.txt"
     output:
         output_path + "/fastqc/{sample}/{sample}_stats.csv"
-    message: "FASTQC: extract_FastQCStats"
+    message: "FASTQC: extract_FastQCStats from {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
@@ -164,7 +164,7 @@ rule fastqc_collectFastQCStats:
         expand(output_path + "/fastqc/{sample}/{sample}_stats.csv", sample=sorted(config["samples"]))
     output:
         output_path + "/fastqc/fastqc.csv"
-    message: "FASTQC: collect and parse ALL mapping stats"
+    message: "FASTQC: collect and parse ALL mapping stats for {input}"
     # log: output_path + "/logs/fastqc/{sample}.log"
     #conda: "../envs/fastqc/fastqc.yaml"
     run:
@@ -182,7 +182,7 @@ rule fastqc_plotFastQCGC:
         png=output_path + "/fastqc/{sample}/{sample}_perSeqGC.png",
         thumb=output_path + "/fastqc/{sample}/{sample}_perSeqGC_thumb.png",
     message:
-        "FASTQC: generating GC content distrib. plots"
+        "FASTQC: generating GC content distrib. plots for {input}"
     log: output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
