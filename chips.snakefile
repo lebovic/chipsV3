@@ -6,6 +6,7 @@ import subprocess
 import pandas as pd
 import yaml
 import re
+import errno
 
 from string import Template
 
@@ -49,6 +50,17 @@ def loadRef(config):
         if k not in config:
             config[k] = v
 
+def check_fastq_exist(config):
+    """check if the fastq files listed in the config[samples]
+    exist or not 
+    """
+    samples = config['samples']
+    for sample in samples.keys():
+        for fq in samples[sample]:
+            if not os.path.isfile(fq):
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), fq)
+
+
 #---------  CONFIG set up  ---------------
 configfile: "config.yaml"   # This makes snakemake load up yaml into config 
 config = getRuns(config)
@@ -56,6 +68,10 @@ config = getRuns(config)
 
 #NOW load ref.yaml - SIDE-EFFECT: loadRef CHANGES config
 loadRef(config)
+
+
+# preflight check for fastqs exist or not
+check_fastq_exist(config)
 #-----------------------------------------
 
 #------------------------------------------------------------------------------
