@@ -210,12 +210,14 @@ def all_targets(wildcards):
 
         if hasInput:
             ls.extend(qdnaseq_targets(wildcards))
+
+    if config.get('contamination_panel'):
+        ls.extend(contamination_targets(wildcards))
     # skip running modules that useless in cistrome db 
     if 'CistromeApi' in config and config['CistromeApi'] == True:
         ls.extend(json_targets(wildcards))
         ls.extend(cistrome_targets(wildcards))
     else:
-        ls.extend(contamination_targets(wildcards))
         # ls.extend(mapmaker_targets(wildcards))
         # ls.extend(bam_snapshots_targets(wildcards))
         ls.extend(report_targets(wildcards))
@@ -248,7 +250,8 @@ if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
     else:
         include: "./modules/motif_homer.snakefile"        # homer motif module
 
-include: "./modules/contamination.snakefile" # contamination panel module
+if config.get('contamination_panel'):
+    include: "./modules/contamination.snakefile" # contamination panel module
 include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
 include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
 include: "./modules/epicypher.snakefile"     # epicypher spike-in module
