@@ -80,7 +80,7 @@ def loadRef(config):
                 if not os.path.isfile(v):
                     print("{k} file {v} in the ref.ymal file does not exist!".format(k = k, v = v))
                     raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), v)
-            else if k == "bwa_index":
+            elif k == "bwa_index":
                 check_bwa_index_exist(v)
     else:
         print("assembly {} specified in config.yaml file does not exist in ref.yaml file".format(config['assembly']))
