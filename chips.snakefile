@@ -177,6 +177,8 @@ def _getRepInput(temp, suffix=""):
 def all_targets(wildcards):
     _qdnaseq = config["cnv_analysis"]
     ls = []
+    if config["trim_adapter"] and config["trim_adapter"] == "yes":
+        ls.extend(trim_targets(wildcards))
     #IMPORT all of the module targets
     ls.extend(align_targets(wildcards))
     ls.extend(peaks_targets(wildcards))
@@ -235,6 +237,9 @@ rule target:
 # if config['aligner'] == 'bwt2':
 #     include: "./modules/align_bwt2.snakefile"     # rules specific to Bowtie2
 # else:
+if config["trim_adapter"] and config["trim_adapter"] == "yes":
+    include: "./modules/trim_adapter.snakefile"
+
 include: "./modules/align_bwa.snakefile"      # rules specific to BWA
 
 include: "./modules/align_common.snakefile"  # common align rules
