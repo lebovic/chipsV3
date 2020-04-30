@@ -54,8 +54,8 @@ def check_bwa_index_exist(path):
     bwa_index_files = [ path + suffix for suffix in bwa_suffix ]
     for file in bwa_index_files:
         if not os.path.isfile(file):
-                        print("bwa index file {} does not exist!".format(file))
-                        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file)
+            print( "\n" + "bwa index file {} does not exist!".format(file) + "\n")
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file)
 
 def loadRef(config):
     """Adds the static reference paths found in config['ref']
@@ -78,7 +78,7 @@ def loadRef(config):
                 config[k] = v
             if k in ['geneTable', 'geneBed', 'conservation', 'DHS', 'exons', 'promoters', 'chrom_lens']:
                 if not os.path.isfile(v):
-                    print("{k} file {v} in the ref.ymal file does not exist!".format(k = k, v = v))
+                    print( "\n" + "{k} file {v} in the ref.ymal file does not exist!".format(k = k, v = v) + "\n")
                     raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), v)
             elif k == "bwa_index":
                 check_bwa_index_exist(v)
@@ -94,6 +94,7 @@ def check_fastq_exist(config):
     for sample in samples.keys():
         for fq in samples[sample]:
             if not os.path.isfile(fq):
+                print( "\n" + "fastq file {} does not exist! make sure you have the right path.".format(fq) + "\n")
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), fq)
 
 
@@ -122,7 +123,7 @@ loadRef(config)
 # preflight check for fastqs exist or not
 check_fastq_exist(config)
 # preflight check for contamination reference file exist or not
-heck_contamination_ref_exist(config)
+check_contamination_ref_exist(config)
 #-----------------------------------------
 
 #------------------------------------------------------------------------------
