@@ -37,18 +37,54 @@ def getRuns(config):
     # if not "macs2_path" in config or not config["macs2_path"]:
     #     config["macs2_path"] = os.path.join(conda_root, 'envs', 'chips_py2', 'bin', 'macs2')
 
+def check_bwa_index_exist(path):
+    """check if bwa index files exist or not
+    given a path to the fasta. 
+    e.g., given ./ref_files/hg38/bwa_indices/hg38/hg38.fa
+    check if
+    ./ref_files/hg38/bwa_indices/hg38/hg38.fa.amb
+    ./ref_files/hg38/bwa_indices/hg38/hg38.fa.ann
+    ./ref_files/hg38/bwa_indices/hg38/hg38.fa.bwt
+    ./ref_files/hg38/bwa_indices/hg38/hg38.fa.pac
+    ./ref_files/hg38/bwa_indices/hg38/hg38.fa.sa
+    exist or not
+
+    """
+    bwa_suffix = ['.amb', '.ann', '.bwt', '.pac', '.sa']
+    bwa_index_files = [ path + suffix for suffix in bwa_suffix ]
+    for file in bwa_index_files:
+        if not os.path.isfile(file):
+                        print("bwa index file {} does not exist!".format(file))
+                        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file)
+
 def loadRef(config):
     """Adds the static reference paths found in config['ref']
     NOTE: if the elm is already defined, then we DO NOT clobber the value
+
+    Also check if reference files exist 
+    e.g. The config['assembly'] is hg38
+    In the ref.yaml file under hg38:
+    bwa_index, geneTable, geneBed, conservation, DHS, exons, promoters, velcro_regions
+    and chrom_lens files should exist
     """
     f = open(config['ref'])
     ref_info = yaml.safe_load(f)
     f.close()
     #print(ref_info[config['assembly']])
-    for (k,v) in ref_info[config['assembly']].items():
+    if ref_info.get(config['assembly']):
+        for (k,v) in ref_info[config['assembly']].items():
         #NO CLOBBERING what is user-defined!
-        if k not in config:
-            config[k] = v
+            if k not in config:
+                config[k] = v
+            if k in ['geneTable', 'geneBed', 'conservation', 'DHS', 'exons', 'promoters', 'chrom_lens']:
+                if not os.path.isfile(v):
+                    print("{k} file {v} in the ref.ymal file does not exist!".format(k = k, v = v))
+                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), v)
+            else if k == "bwa_index":
+                check_bwa_index_exist(v)
+    else:
+        print("assembly {} specified in config.yaml file does not exist in ref.yaml file".format(config['assembly']))
+        sys.exit(1)
 
 def check_fastq_exist(config):
     """check if the fastq files listed in the config[samples]
@@ -59,6 +95,19 @@ def check_fastq_exist(config):
         for fq in samples[sample]:
             if not os.path.isfile(fq):
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), fq)
+
+
+
+def check_contamination_ref_exist(config):
+    """check if contamination reference files exist
+    e.g. config['contamination_panel']
+    The bwa index files should exist 
+    """
+    contamination_panel = config['contamination_panel']
+    for contamination in contamination_panel:
+        check_bwa_index_exist(contamination)
+
+
 
 
 #---------  CONFIG set up  ---------------
@@ -72,6 +121,8 @@ loadRef(config)
 
 # preflight check for fastqs exist or not
 check_fastq_exist(config)
+# preflight check for contamination reference file exist or not
+heck_contamination_ref_exist(config)
 #-----------------------------------------
 
 #------------------------------------------------------------------------------
