@@ -59,12 +59,24 @@ Chips is dependent on conda environments, *chips*.
     NOTE: Chips uses the [homer](http://homer.ucsd.edu/homer/motif/index.html) software for motif analysis.  It also has the capability of using the [MDSeqPos](https://github.com/XinDong9511/mdseqpos) motif finder for a similar analysis.  If you are interested in using MDSeqPos for motif analysis, please see **Appendix D**.
     - To activate/initialize homer:
     1. run the configure script:
-    `configureHomer.pl -install`
-    2. install the required assemblies:
-    For human samples: `configureHomer.pl -install hg19`
-    	      	       `configureHomer.pl -install hg38`
-    For mouse samples: `configureHomer.pl -install mm9`
 
+    ```bash
+    wget http://homer.ucsd.edu/homer/configureHomer.pl
+    chmod u+x configureHomer.pl
+    configureHomer.pl -install
+    ```
+    2. install the required assemblies:
+
+    For human samples: 
+    ```bash
+    perl /homes6/mtang/anaconda3/envs/chips/share/homer-4.10-0/configureHomer.pl -install hg38
+    perl /homes6/mtang/anaconda3/envs/chips/share/homer-4.10-0/configureHomer.pl -install hg19
+    ```
+
+    For mouse samples: 
+    ```bash
+    perl /homes6/mtang/anaconda3/envs/chips/share/homer-4.10-0/.//configureHomer.pl -install mm9
+    ```
 ### Downloading the Chips static reference files
 Chips comes pre-packaged with static reference files (e.g. bwa index, refSeq tables, etc.) for hg19 and mm9.  You can download those files **HERE--missing**.  One benefit of 
 Many of these files are commonly used static reference files, and if you would like to use the files that you already have, **OR** if you are interested in sup then please see **Appendix E**.
@@ -138,9 +150,23 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     - copying ref.yaml
 
 ### Running Chips
-1. conda activate chips
+
+1. Acitivate the environment
+
+```bash
+conda activate chips
+```
+
 2. dry run
+
+```bash
+snakemake -np  -s cidc_chips/chips.snakefile --rerun-incomplete 
+```
+
 3. full run  
+```bash
+snakemake -s cidc_chips/chips.snakefile --rerun-incomplete -j 4
+```
 
 More information for using snakemake can be found [here](https://snakemake.readthedocs.io/en/stable/index.html). 
 
