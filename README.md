@@ -61,21 +61,19 @@ Chips is dependent on conda environments, *chips*.
     1. run the configure script:
 
     ```bash
-    wget http://homer.ucsd.edu/homer/configureHomer.pl
-    chmod u+x configureHomer.pl
     configureHomer.pl -install
     ```
     2. install the required assemblies:
 
     For human samples: 
     ```bash
-    perl /homes6/mtang/anaconda3/envs/chips/share/homer-4.10-0/configureHomer.pl -install hg38
-    perl /homes6/mtang/anaconda3/envs/chips/share/homer-4.10-0/configureHomer.pl -install hg19
+    configureHomer.pl -install hg38
+    configureHomer.pl -install hg19
     ```
 
     For mouse samples: 
     ```bash
-    perl /homes6/mtang/anaconda3/envs/chips/share/homer-4.10-0/.//configureHomer.pl -install mm9
+    configureHomer.pl -install mm9
     ```
 ### Downloading the Chips static reference files
 Chips comes pre-packaged with static reference files (e.g. bwa index, refSeq tables, etc.) for hg19 and mm9.  You can download those files **HERE--missing**.  One benefit of 
