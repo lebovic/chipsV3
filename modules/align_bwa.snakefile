@@ -46,10 +46,10 @@ rule align_bwaMem:
         temp(output_path + "/align/{sample}/{sample}_mem.bam")
     params:
         index=config['bwa_index'],
-        sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else "",
+        sentieon=config.get("sentieon", ""),
         read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
-    message: "ALIGN: Running BWA mem for alignment"
+    message: "ALIGN: Running BWA mem for alignment for {input}"
     log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_bwa.yaml"
     shell:
@@ -68,7 +68,7 @@ rule align_bwaAln:
         bwa_k = _bwa_k,
         sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else ""
     threads: _bwa_threads
-    message: "ALIGN: Running BWA aln for alignment"
+    message: "ALIGN: Running BWA aln for alignment for {input}"
     # log: output_path + "/logs/align/{sample}.log"
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}"
