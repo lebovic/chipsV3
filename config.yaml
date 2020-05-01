@@ -2,6 +2,7 @@
 metasheet: 'metasheet.csv'
 ref: "cidc_chips/ref.yaml"
 
+trim_adapter: "yes"
 #Where you want to store your results
 #NOTE: you could comment this line, the default path is "analysis"
 output_path: "analysis"
