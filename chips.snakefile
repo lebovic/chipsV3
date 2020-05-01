@@ -239,10 +239,12 @@ rule target:
 # else:
 if config["trim_adapter"] and config["trim_adapter"] == "yes":
     include: "./modules/trim_adapter.snakefile"
+    include: "./modules/align_common.snakefile"
+    include: "./modules/align_bwa_trim.snakefile"
+else:
+    include: "./modules/align_bwa.snakefile"      # rules specific to BWA
+    include: "./modules/align_common.snakefile"  # common align rules
 
-include: "./modules/align_bwa.snakefile"      # rules specific to BWA
-
-include: "./modules/align_common.snakefile"  # common align rules
 include: "./modules/peaks.snakefile"         # peak calling rules
 include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
 include: "./modules/conservation.snakefile"  # generate conservation plot
