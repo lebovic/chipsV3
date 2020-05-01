@@ -8,7 +8,7 @@ _bwa_threads=4
 ###############################################################################
 # HELPERS
 ###############################################################################
-_contaminationPanel= config['contamination_panel'] if 'contamination_panel' in config and config['contamination_panel'] else []
+_contaminationPanel= config.get('contamination_panel', []) 
 
 def extractIndexName(path):
     """Given a contamination panel path, e.g. /some/path/to/BWA/hg19.fa,
