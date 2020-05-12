@@ -65,6 +65,7 @@ def json_getRunAndRep(wildcards):
 
 def json_getSample(wildcards):
     json_sample = config['runs'][wildcards.run]
+    #print(json_sample)
     return json_sample
 
 def json_checkBAMPE(wildcards):
@@ -140,20 +141,21 @@ rule json_dhs:
 
 rule json_enrichMeta:
     input:
-        meta = lambda wildcards: output_path + "/ceas/samples/%s/%s_meta.json" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0]),
-        mapped = lambda wildcards: output_path + "/align/%s/%s_mapping.txt" % (json_getSample(wildcards)[0], json_getSample(wildcards)[0]),
+        meta = lambda wildcards: list([output_path + "/ceas/samples/%s/%s_meta.json" % (sample, sample) for sample in json_getSample(wildcards) if sample]), #check for nulls
+        mapped = lambda wildcards: list([output_path + "/align/%s/%s_mapping.txt" % (sample, sample) for sample in json_getSample(wildcards) if sample]), #check for nulls
         dhs = lambda wildcards: output_path + "/ceas/%s/%s_DHS_summary.dhs" % (json_getRunAndRep(wildcards),json_getRunAndRep(wildcards))
     output:
         output_path + "/json/{run}/{run}_enrich_meta.json"
     params:
-        mapped_files = lambda wildcards, input: [" -m %s" % i for i in {input.mapped}],
+        meta_files = lambda wildcards, input: " -i ".join(input.meta),
+        mapped_files = lambda wildcards, input: " -m ".join(input.mapped),
         has_dhs = "-H %s " % config["DHS"],
         down = True,
-        sample_name = lambda wildcards: [" -s %s" % i for i in json_getSample(wildcards) if i] if json_getSample(wildcards) else "",
+        sample_name = lambda wildcards: " -s ".join([s for s in json_getSample(wildcards) if s]),
     message: "JSON: generate meta enrichment json"
     # log: output_path + "/logs/json/{sample}.log"
     shell:
-        "cidc_chips/modules/scripts/json/json_enrich_meta.py -i {input.meta} -o {output} {params.mapped_files} -D {input.dhs} {params.has_dhs} -d {params.down} -r {run} {params.sample_name}"
+        "cidc_chips/modules/scripts/json/json_enrich_meta.py -i {params.meta_files} -o {output} -m {params.mapped_files} -D {input.dhs} {params.has_dhs} -d {params.down} -r {run} -s {params.sample_name}"
 
 
 rule json_fastqc:
