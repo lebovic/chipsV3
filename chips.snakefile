@@ -142,17 +142,18 @@ def all_targets(wildcards):
 
         if hasInput:
             ls.extend(qdnaseq_targets(wildcards))
-    # skip running modules that useless in cistrome db 
-    if 'CistromeApi' in config and config['CistromeApi'] == True:
-        ls.extend(json_targets(wildcards))
-        ls.extend(cistrome_targets(wildcards))
-    else:
-        ls.extend(contamination_targets(wildcards))
-        # ls.extend(mapmaker_targets(wildcards))
-        # ls.extend(bam_snapshots_targets(wildcards))
-        ls.extend(report_targets(wildcards))
-        if "epicypher_analysis" in config and config["epicypher_analysis"]:
-            ls.extend(epicypher_targets(wildcards))
+    # RUN cistromeAPI things AND report --these are very low cost add-ons
+    #LEN: TODO- review these modules very closely!
+    #ls.extend(json_targets(wildcards))
+    #ls.extend(cistrome_targets(wildcards))
+
+    #REPORT
+    ls.extend(contamination_targets(wildcards))
+    # ls.extend(mapmaker_targets(wildcards))
+    # ls.extend(bam_snapshots_targets(wildcards))
+    ls.extend(report_targets(wildcards))
+    if "epicypher_analysis" in config and config["epicypher_analysis"]:
+        ls.extend(epicypher_targets(wildcards))
     ls.extend(checking_targets(wildcards))
     return ls
 
