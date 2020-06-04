@@ -16,6 +16,8 @@ def getFastq(wildcards):
 def getAlnFastq(wildcards):
     return config["samples"][wildcards.sample][int(wildcards.mate)]
 
+def getBam(wildcards):
+    return config["samples"][wildcards.sample][0] #returns only the 1st elm
 
 def getMates(wildcards):
     s = wildcards.sample
@@ -92,16 +94,39 @@ rule align_bwaConvert:
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 
+rule align_from_bam:
+    input:
+        getBam
+    output:
+        bam="analysis/align/{sample}/{sample}_fromBam.bam",
+    threads: _bwa_threads
+    params:
+        sentieon=config.get('sentieon',''),
+        index=config['bwa_index'],
+        #DON'T write a mini-program withi a program-
+        #awk cmd to add sample names to RGs!!
+        awk_cmd=lambda wildcards: "awk -v OFS=\'\\t\' \'{ split($2,a,\":\"); read_id=a[2]; $2=\"ID:%s.\" read_id; gsub(/SM:.+\\t/,\"SM:%s\\t\"); print $0}\'" % (wildcards.sample, wildcards.sample),
+        #NEVER do it twice!- gawk cmd to inject sample name into each read!!!
+        gawk_cmd=lambda wildcards: "gawk -v OFS=\'\\t\' \'{rg=match($0,/RG:Z:(\S+)/,a); read_id=a[1]; if (rg) {sub(/RG:Z:\S+/, \"RG:Z:%s.\" read_id, $0); print $0} else { print $0 }}\'" % wildcards.sample,
+    #benchmark: "benchmarks/align/{sample}/{sample}.align_from_bam.txt"
+    shell:
+        """samtools view -H {input} | grep \"^@RG\" | {params.awk_cmd} > {wildcards.sample}.header && samtools collate --output-fmt SAM -@ {threads} -Of {input} | {params.gawk_cmd} | samtools view -@ {threads} -b - | samtools fastq -@ {threads} -t -s /dev/null -0 /dev/null - | ({params.sentieon} bwa mem -t {threads} -M -K 10000000 -p -C -H {wildcards.sample}.header {params.index} - || echo -n 'error' ) | samtools view -Sb - > {output}; rm {wildcards.sample}.header"""
 
 def aggregate_align_input(wildcards):
-    # decision based on content of output file
-    with open(checkpoints.align_readsLength.get(sample=wildcards.sample).output[0]) as f:
-        if int(f.read().strip()) >= 40:
-            return output_path + "/align/{sample}/{sample}_mem.bam"
-        else:
-            return output_path + "/align/{sample}/{sample}_aln.bam"
-
-
+    # decision based on 1. whether it's a bam or fastq
+    # IF it's a fastq, then decide whether it's >= 40 bp (bwa mem) or bwa aln
+    sample_first_file = config["samples"][wildcards.sample][0]
+    ret = ""
+    if sample_first_file.endswith('.bam'):
+        ret= output_path + "/align/{sample}/{sample}_fromBam.bam"
+    else: #it's a fastq
+        with open(checkpoints.align_readsLength.get(sample=wildcards.sample).output[0]) as f:
+            if int(f.read().strip()) >= 40:
+                ret= output_path + "/align/{sample}/{sample}_mem.bam"
+            else:
+                ret= output_path + "/align/{sample}/{sample}_aln.bam"
+    #print(ret)
+    return ret
 checkpoint align_aggregate:
     input:
         aggregate_align_input

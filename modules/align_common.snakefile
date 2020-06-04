@@ -21,20 +21,6 @@ def align_targets(wildcards):
     ls.append(output_path + "/align/run_info.txt")
     return ls
 
-
-def getBam(wildcards):
-    """This input fn will check to see if the user specified a .fastq or a .bam
-    for the sample.  IF the former (.fastq), will simply return the canonical
-    path, otherwise (.bam) will return the user-specified (bam) path"""
-    #CHECK first entry's file suffix
-    s = wildcards.sample
-    first_file = config["samples"][wildcards.sample][0]
-    ret = output_path + "/align/%s/%s.bam" % (s,s)
-    if first_file.endswith('.bam'):
-        #CLEANER to check for .bam vs (.fastq, fq, fq.gz, etc)
-        ret = first_file
-    return [ret]
-
 def getSortMemory(wildcards):
     bam_size = math.ceil(os.path.getsize(checkpoints.align_aggregate.get(sample=wildcards.sample).output[0])/1024/1024/1024)
     memory = bam_size*2
@@ -52,8 +38,6 @@ rule align_all:
 checkpoint align_uniquelyMappedReads:
     """Get the uniquely mapped reads"""
     input:
-        #output_path + "/align/{sample}/{sample}.bam"
-        # getBam
         output_path + "/align/{sample}/{sample}.sorted.bam"
     output:
         temp(output_path + "/align/{sample}/{sample}_unique.bam")
@@ -70,8 +54,6 @@ checkpoint align_uniquelyMappedReads:
 rule align_mapStats:
     """Get the mapping stats for each aligment run"""
     input:
-        #bam=output_path + "/align/{sample}/{sample}.bam",
-        # bam=getBam,
         bam=output_path + "/align/{sample}/{sample}.sorted.bam",
         uniq_bam=output_path + "/align/{sample}/{sample}_unique.bam"
     output:
@@ -124,8 +106,7 @@ if "sentieon" in config and config["sentieon"]:
         """General sort rule--take a bam {filename}.bam and 
         output {filename}.sorted.bam"""
         input:
-            #output_path + "/align/{sample}/{filename}.bam"
-            getBam
+            output_path + "/align/{sample}/{sample}.bam"
         output:
             output_path + "/align/{sample}/{sample}.sorted.bam",
             #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
@@ -218,8 +199,7 @@ else:
         """General sort rule--take a bam {filename}.bam and 
         output {filename}.sorted.bam"""
         input:
-            #output_path + "/align/{sample}/{filename}.bam"
-            getBam
+            output_path + "/align/{sample}/{sample}.bam"
         output:
             output_path + "/align/{sample}/{sample}.sorted.bam",
             #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
@@ -279,8 +259,6 @@ rule align_indexBam:
 rule align_extractUnmapped:
     """Extract the unmapped reads and save as {sample}.unmapped.bam"""
     input:
-        #output_path + "/align/{sample}/{sample}.bam"
-        # getBam
         output_path + "/align/{sample}/{sample}.sorted.bam"
     output:
         temp(output_path + "/align/{sample}/{sample}.unmapped.bam")
