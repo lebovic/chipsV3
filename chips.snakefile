@@ -52,10 +52,12 @@ def check_bwa_index_exist(path):
     """
     bwa_suffix = ['.amb', '.ann', '.bwt', '.pac', '.sa']
     bwa_index_files = [ path + suffix for suffix in bwa_suffix ]
+    missing_index_files = []
     for file in bwa_index_files:
         if not os.path.isfile(file):
-            print( "\n" + "bwa index file {} does not exist!".format(file) + "\n")
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file)
+            missing_index_files.append(file)
+    return missing_index_files
+            
 
 def loadRef(config):
     """Adds the static reference paths found in config['ref']
@@ -70,6 +72,8 @@ def loadRef(config):
     f = open(config['ref'])
     ref_info = yaml.safe_load(f)
     f.close()
+
+    missing_ref = []
     #print(ref_info[config['assembly']])
     if ref_info.get(config['assembly']):
         for (k,v) in ref_info[config['assembly']].items():
@@ -78,37 +82,31 @@ def loadRef(config):
                 config[k] = v
             if k in ['geneTable', 'geneBed', 'conservation', 'DHS', 'exons', 'promoters', 'chrom_lens']:
                 if not os.path.isfile(v):
-                    print( "\n" + "{k} file {v} in the ref.ymal file does not exist!".format(k = k, v = v) + "\n")
-                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), v)
+                    missing_ref.append(v)                    
             elif k == "bwa_index":
-                check_bwa_index_exist(v)
+                missing_ref.extend(check_bwa_index_exist(v))
     else:
         print("assembly {} specified in config.yaml file does not exist in ref.yaml file".format(config['assembly']))
         sys.exit(1)
+
+    if config.get('contamination_panel_qc'):
+        # check if contamination reference files exist, The bwa index files should exist
+        for contamination in ref_info['contamination_panel']:
+            missing_ref.extend(check_bwa_index_exist(contamination))
+
+    return missing_ref
 
 def check_fastq_exist(config):
     """check if the fastq files listed in the config[samples]
     exist or not 
     """
+    missing_fqs = []
     samples = config['samples']
     for sample in samples.keys():
         for fq in samples[sample]:
             if not os.path.isfile(fq):
-                print( "\n" + "fastq file {} does not exist! make sure you have the right path.".format(fq) + "\n")
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), fq)
-
-
-
-def check_contamination_ref_exist(config):
-    """check if contamination reference files exist
-    e.g. config['contamination_panel']
-    The bwa index files should exist 
-    """
-    contamination_panel = config['contamination_panel']
-    for contamination in contamination_panel:
-        check_bwa_index_exist(contamination)
-
-
+                missing_fqs.append(fq)
+    return missing_fqs
 
 
 #---------  CONFIG set up  ---------------
@@ -116,14 +114,25 @@ configfile: "config.yaml"   # This makes snakemake load up yaml into config
 config = getRuns(config)
 # addPy2Paths_Config(config)
 
-#NOW load ref.yaml - SIDE-EFFECT: loadRef CHANGES config
-loadRef(config)
+#NOW load ref.yaml - SIDE-EFFECT: loadRef CHANGES config. Also returns a list of missing reference files
+missing_refs = loadRef(config)
+if missing_refs:
+    for reference in missing_refs:
+        print( "\n" + "ERROR!! file {} specified in the ref.yaml does not exist!".format(reference) + "\n")
+if missing_refs:
+    sys.exit(1)
+
 
 
 # preflight check for fastqs exist or not
-check_fastq_exist(config)
-# preflight check for contamination reference file exist or not
-check_contamination_ref_exist(config)
+missing_fqs = check_fastq_exist(config)
+if missing_fqs:
+    for fq in missing_fqs:
+        print( "\n" + "ERROR!! fastq file {} does not exist! make sure you have the right path.".format(fq) + "\n")
+if missing_fqs:
+    sys.exit(1) 
+
+
 #-----------------------------------------
 
 #------------------------------------------------------------------------------
@@ -175,9 +184,8 @@ def _getRepInput(temp, suffix=""):
 #------------------------------------------------------------------------------
 
 def all_targets(wildcards):
-    _qdnaseq = config["cnv_analysis"]
     ls = []
-    if config["trim_adapter"] and config["trim_adapter"] == "yes":
+    if config.get('trim_adapter'):
         ls.extend(trim_targets(wildcards))
     #IMPORT all of the module targets
     ls.extend(align_targets(wildcards))
@@ -193,6 +201,7 @@ def all_targets(wildcards):
             ls.extend(motif_targets(wildcards))
 
     #HANDLE CNV/qdnaseq analysis
+    _qdnaseq = config["cnv_analysis"]
     if _qdnaseq:
         #ls.extend(qdnaseq_targets(wildcards))
         #check for some inputs
@@ -213,10 +222,10 @@ def all_targets(wildcards):
         if hasInput:
             ls.extend(qdnaseq_targets(wildcards))
 
-    if config.get('contamination_panel'):
+    if config.get('contamination_panel_qc'):
         ls.extend(contamination_targets(wildcards))
     # skip running modules that useless in cistrome db 
-    if 'CistromeApi' in config and config['CistromeApi'] == True:
+    if config.get('CistromeApi'):
         ls.extend(json_targets(wildcards))
         ls.extend(cistrome_targets(wildcards))
     else:
@@ -237,7 +246,7 @@ rule target:
 # if config['aligner'] == 'bwt2':
 #     include: "./modules/align_bwt2.snakefile"     # rules specific to Bowtie2
 # else:
-if config["trim_adapter"] and config["trim_adapter"] == "yes":
+if config.get('trim_adapter'):
     include: "./modules/trim_adapter.snakefile"
     include: "./modules/align_common.snakefile"
     include: "./modules/align_bwa_trim.snakefile"
@@ -257,7 +266,7 @@ if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
     else:
         include: "./modules/motif_homer.snakefile"        # homer motif module
 
-if config.get('contamination_panel'):
+if config.get('contamination_panel_qc'):
     include: "./modules/contamination.snakefile" # contamination panel module
 include: "./modules/qdnaseq.snakefile"       # qdnaseq (CNV) module
 include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
