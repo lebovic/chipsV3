@@ -11,11 +11,11 @@ _bwa_k="2"
 
 
 def getTrimmedFastq(wildcards):
-	s = wildcards.sample
-	if len(config["samples"][s]) > 1:
-		return expand(output_path + "/trim_adaptor/%s/%s_{mate}.trimmed.fq" % (s,s), mate = range(2))
-	else:
-		return output_path + "/trim_adaptor/%s/%s_0.trimmed.fq" % (s,s)
+    s = wildcards.sample
+    if len(config["samples"][s]) > 1:
+        return expand(output_path + "/trim_adaptor/%s/%s_{mate}.trimmed.fq" % (s,s), mate = range(2))
+    else:
+        return output_path + "/trim_adaptor/%s/%s_0.trimmed.fq" % (s,s)
 
 
 def getAlnFastq(wildcards):
