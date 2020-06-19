@@ -1,6 +1,7 @@
-#MODULE: Align fastq files to genome - BWA specific calls
+#MODULE: Align fastq files to genome after trimming fastq with fastp - BWA specific calls
 #PARAMETERS:
 # _logfile=output_path + "/logs/align.log"
+
 import subprocess
 
 _bwa_threads=8
@@ -9,8 +10,12 @@ _bwa_l="32"
 _bwa_k="2"
 
 
-def getFastq(wildcards):
-    return config["samples"][wildcards.sample]
+def getTrimmedFastq(wildcards):
+    s = wildcards.sample
+    if len(config["samples"][s]) > 1:
+        return expand(output_path + "/trim_adaptor/%s/%s_{mate}.trimmed.fq" % (s,s), mate = range(2))
+    else:
+        return output_path + "/trim_adaptor/%s/%s_0.trimmed.fq" % (s,s)
 
 
 def getAlnFastq(wildcards):
@@ -38,10 +43,12 @@ checkpoint align_readsLength:
         # "mkdiroutput_path +  /fastqc/{wildcards.sample}/;"
         "python cidc_chips/modules/scripts/align_getReadLength.py -f {input} -o {output.length}"
 
+# bwa version print to stderr, rediret to stdout and get the version line
+BWA_VERSION = subprocess.check_output("bwa 2>&1 | head -3 | tail -1", shell=True)
 
 rule align_bwaMem:
     input:
-        getFastq
+        getTrimmedFastq
     output:
         temp(output_path + "/align/{sample}/{sample}_mem.bam")
     params:
@@ -50,15 +57,15 @@ rule align_bwaMem:
         read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
     message: "ALIGN: Running BWA mem for alignment for {input}"
+    version: BWA_VERSION
     log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_bwa.yaml"
     shell:
-        """{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"""
-
+        "{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
 
 rule align_bwaAln:
     input:
-        getAlnFastq
+        output_path + "/trim_adaptor/{sample}/{sample}_{mate}.trimmed.fq"
     output:
         sai=temp(output_path + "/align/{sample}/{sample}_{mate}_aln.sai")
     params:
@@ -76,7 +83,7 @@ rule align_bwaAln:
 rule align_bwaConvert:
     input:
         sai=getMates,
-        fastq=getFastq
+        fastq=getTrimmedFastq
     output:
         temp(output_path + "/align/{sample}/{sample}_aln.bam")
     params:
@@ -87,7 +94,7 @@ rule align_bwaConvert:
         sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else "",
         read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
-    message: "ALIGN: Converting BWA alignment to BAM"
+    message: "ALIGN: Converting BWA alignment to BAM for {input}"
     # log: output_path + "/logs/align/{sample}.log"
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
