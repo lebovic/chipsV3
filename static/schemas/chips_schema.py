@@ -93,7 +93,6 @@ builder.add_object(run)
 print(builder.to_json(indent=3))
 
 js = builder.to_json(indent=3)
-print(builder.to_schema)
 with open("chips_schema.json", "w") as outfile:
   outfile.write(js)
 
