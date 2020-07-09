@@ -22,8 +22,6 @@ alignment = {'total_reads': _int,
              'gc_content': _float_arr, #NOTE: could be floats
              'quality_score': _float_arr } #NOTE: could be floats
 
-gc = {'mq': _int, #NOTE: could be floats
-      'gc': _float  } #NOTE: could be floats
 
 contamination = {
   'contamination_percent' : _float_arr #NOTE: could be floats
@@ -39,7 +37,6 @@ sample = {'id': _string,
           'raw_file2': _file_path, #bucket path, in case of PE
           'dedup_bam_file': _file_path,
           'alignment': alignment,
-          'gc': gc,
           'contamination': contamination,
           'pbc': pbc
           }

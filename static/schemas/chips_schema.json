@@ -53,21 +53,6 @@
                   "total_reads"
                ]
             },
-            "gc": {
-               "type": "object",
-               "properties": {
-                  "mq": {
-                     "type": "integer"
-                  },
-                  "gc": {
-                     "type": "number"
-                  }
-               },
-               "required": [
-                  "gc",
-                  "mq"
-               ]
-            },
             "contamination": {
                "type": "object",
                "properties": {
@@ -106,7 +91,6 @@
             "alignment",
             "contamination",
             "dedup_bam_file",
-            "gc",
             "id",
             "pbc",
             "raw_file1",
@@ -161,21 +145,6 @@
                   "total_reads"
                ]
             },
-            "gc": {
-               "type": "object",
-               "properties": {
-                  "mq": {
-                     "type": "integer"
-                  },
-                  "gc": {
-                     "type": "number"
-                  }
-               },
-               "required": [
-                  "gc",
-                  "mq"
-               ]
-            },
             "contamination": {
                "type": "object",
                "properties": {
@@ -214,7 +183,6 @@
             "alignment",
             "contamination",
             "dedup_bam_file",
-            "gc",
             "id",
             "pbc",
             "raw_file1",
