@@ -12,6 +12,9 @@ dependencies:
 - numpy>=1.17.3
 - pandas>=0.25.3
 
+# adaptor trimming
+- fastp=0.20.1
+
 #align_*.snakefile
 - bwa=0.7.15
 - bowtie2=2.3.4.1
