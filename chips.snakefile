@@ -119,7 +119,6 @@ missing_refs = loadRef(config)
 if missing_refs:
     for reference in missing_refs:
         print( "\n" + "ERROR!! file {} specified in the ref.yaml does not exist!".format(reference) + "\n")
-if missing_refs:
     sys.exit(1)
 
 
@@ -129,7 +128,6 @@ missing_fqs = check_fastq_exist(config)
 if missing_fqs:
     for fq in missing_fqs:
         print( "\n" + "ERROR!! fastq file {} does not exist! make sure you have the right path.".format(fq) + "\n")
-if missing_fqs:
     sys.exit(1) 
 
 
