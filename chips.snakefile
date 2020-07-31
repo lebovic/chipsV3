@@ -93,6 +93,7 @@ def loadRef(config):
         # check if contamination reference files exist, The bwa index files should exist
         for contamination in ref_info['contamination_panel']:
             missing_ref.extend(check_bwa_index_exist(contamination))
+        config['contamination_panel'] = ref_info['contamination_panel']
 
     return missing_ref
 
