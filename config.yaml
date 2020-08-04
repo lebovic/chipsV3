@@ -21,10 +21,17 @@ assembly: GDC_hg38
 #To skip filtering, set cutoff 0 or leave it as blank
 cutoff: 150
 
+
 # PEAKS CALLING: Call broad peaks for some factors
 # This parameter will disable motif finding modules(whatever you set or not set motif)
 # Uncomment below line and set value as true
 #macs2_broadpeaks: false
+
+
+# for narrowpeak calling, extra parameters passed to macs2.
+# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,  
+# for narrowpeak, has to modify the below parameter.
+macs_extra_param:
 
 #MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'
 #OTHERWISE leave it as 'homer' (default)

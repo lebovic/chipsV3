@@ -10,7 +10,8 @@ _macs_extsize="146"
 # for narrowpeak calling, extra parameters passed to macs2.
 # e.g, --nomodel.  --nomodel is turned on for broad peaks by default,  
 # for narrowpeak, has to modify the below parameter.
-_macs_extra_param=""
+if config.get("macs_extra_param"):
+    _macs_extra_param=config["macs_extra_param"]
 
 def getTreats(wildcards):
     tmp=[]
