@@ -6,6 +6,12 @@ _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
 
+
+# for narrowpeak calling, extra parameters passed to macs2.
+# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,  
+# for narrowpeak, has to modify the below parameter.
+_macs_extra_param=""
+
 def getTreats(wildcards):
     tmp=[]
     #print(wildcards)
@@ -335,6 +341,7 @@ else:
             name="{run}.{rep}",
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            macs_extra_param = _macs_extra_param,
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2 for {input}"
@@ -343,7 +350,7 @@ else:
         shell:
            """
            macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} \
-           -g {params.genome_size} {params.BAMPE} \
+           -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} \
            {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} > {log} 2>&1
            """
         #run:
@@ -370,13 +377,14 @@ else:
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            macs_extra_param = _macs_extra_param,
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling filtered reads peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} "
            "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
 
     rule peaks_unsortPeaksToBed:
