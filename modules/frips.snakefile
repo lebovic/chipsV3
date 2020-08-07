@@ -252,7 +252,7 @@ rule frips_getSampleFragLength:
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:
-        temp(output_path + "/frag/{sample}/{sample}_frags.txt")
+        output_path + "/frag/{sample}/{sample}_frags.txt"
     shell:
         #GRAB out the 9th column, ensuring it's in 1-1000
         "samtools view -@ {threads} {input} | cut -f 9 | {params.awk_cmd} > {output} " #2>>{log}"
