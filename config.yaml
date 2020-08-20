@@ -31,7 +31,7 @@ cutoff: 150
 # for narrowpeak calling, extra parameters passed to macs2.
 # e.g, --nomodel.  --nomodel is turned on for broad peaks by default,  
 # for narrowpeak, has to modify the below parameter.
-macs_extra_param:
+# macs_extra_param: --nomodel
 
 #MOTIF CALLER: if you want to use MDSeqPos, set your aligner as 'mdseqpos'
 #OTHERWISE leave it as 'homer' (default)
