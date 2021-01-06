@@ -8,7 +8,7 @@ _macs_extsize="146"
 
 
 # for narrowpeak calling, extra parameters passed to macs2.
-# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,  
+# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,
 # for narrowpeak, has to modify the below parameter.
 _macs_extra_param = config.get("macs_extra_param", "")
 
@@ -181,7 +181,8 @@ if config.get("macs2_broadpeaks"):
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "--nolambda",
         message: "PEAKS: calling peaks with macs2 for {input}"
-        log:output_path + "/logs/peaks/{run}.{rep}.log"
+        log: output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             """
@@ -191,7 +192,7 @@ if config.get("macs2_broadpeaks"):
             --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} > {log} 2>&1
 
             """
-           
+
 
     rule peaks_macs2FilteredCallpeaksBroad:
         input:
@@ -216,6 +217,7 @@ if config.get("macs2_broadpeaks"):
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling broad peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            """
@@ -346,6 +348,7 @@ else:
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            """
@@ -355,7 +358,7 @@ else:
            """
         #run:
         #    treatment = "-t %s" % input.treat if input.treat else "",
-        #    control = "-c %s" % input.cont if input.cont else "",        
+        #    control = "-c %s" % input.cont if input.cont else "",
         #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
     rule peaks_macs2FilteredCallpeaks:
@@ -382,6 +385,7 @@ else:
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling filtered reads peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} "
@@ -592,7 +596,7 @@ rule peaks_gzipBdg:
 
 
 rule peaks_macsRunInfo:
-    """Dump the current version of macs and the fdr used into a text file 
+    """Dump the current version of macs and the fdr used into a text file
     for the report"""
     params:
         fdr = _macs_fdr,
@@ -603,7 +607,7 @@ rule peaks_macsRunInfo:
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "macs2 --version > {output} && echo fdr {params.fdr} >> {output}"
-    
+
 rule peaks_generateIGVsession:
     """Generates analysis/peaks/all_treatments.igv.xml, a igv session of all
     of the treatment.bw files"""
@@ -619,9 +623,9 @@ rule peaks_generateIGVsession:
     message: "PEAKS: generate IGV session for all treatment.bw files"
     shell:
         "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output}"# 2>>{log}"
-        
+
 rule peaks_generateIGVperTrack:
-    """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
+    """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of
     the treatment.bw file
     **VERY similar to generate_IGV_session, but this is for each individual
     treatment"""
