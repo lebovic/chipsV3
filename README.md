@@ -21,20 +21,21 @@ To install miniconda:
 1. download the Miniconda installer:
 
     ```bash
-    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    $ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     ```
 
 2. run the installer:
 
     ```bash
-    bash Miniconda3-latest-Linux-x86_64.sh
+    $ bash Miniconda3-latest-Linux-x86_64.sh
     ```
 
 3. update channels of conda:
 
     ```bash
-    conda config --add channels conda-forge
-    conda config --add channels bioconda
+    $ conda config --add channels defaults
+    $ conda config --add channels bioconda
+    $ conda config --add channels conda-forge
     ```
 ### Installing the Chips conda environments
 Conda environments are briefly explained [here](https://conda.io/docs/using/envs.html).  Briefly, if you are familiar with [Python Virtual Environments](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/) or [Docker Containers](https://www.docker.com/what-container) then Conda environments should be a familiar concept.  
@@ -50,30 +51,28 @@ Chips is dependent on conda environments, *chips*.
     After cloning the git repository, create the chips environment by doing this:
     - `cd cidc_chips`
     - `conda env create -f environment.yml -n chips`
-2. **Post installation steps: running setupChips.py**
-    If you are in the 'chips' directory, setupChips is found in a sub-directory, 'static/scripts'.  To run it:
-    1. load the chips conda environment:
-    `conda activate chips`
-    2. `python setupChips.py`
-3. **Post installation steps: configuring homer**:
+   **load the chips conda environment:
+    - `conda activate chips`
+
+2. **Post installation steps: configuring homer**:
     NOTE: Chips uses the [homer](http://homer.ucsd.edu/homer/motif/index.html) software for motif analysis.  It also has the capability of using the [MDSeqPos](https://github.com/XinDong9511/mdseqpos) motif finder for a similar analysis.  If you are interested in using MDSeqPos for motif analysis, please see **Appendix D**.
     - To activate/initialize homer:
     1. run the configure script:
 
     ```bash
-    configureHomer.pl -install
+    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install
     ```
     2. install the required assemblies:
 
     For human samples: 
     ```bash
-    configureHomer.pl -install hg38
-    configureHomer.pl -install hg19
+    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38
+    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg19
     ```
 
     For mouse samples: 
     ```bash
-    configureHomer.pl -install mm9
+    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install mm9
     ```
 ### Downloading the Chips static reference files
 Chips comes pre-packaged with static reference files (e.g. bwa index, refSeq tables, etc.) for hg19 and mm9.  You can download those files **HERE--missing**.  One benefit of 
