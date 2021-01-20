@@ -31,11 +31,10 @@ To install miniconda:
     ```
 
 3. update channels of conda:
+
     ```
-    $ conda config --add channels defaults
-
-    $ conda config --add channels bioconda
-
+    $ conda config --add channels defaults  
+    $ conda config --add channels bioconda  
     $ conda config --add channels conda-forge
     ```
 ### Installing the Chips conda environments
@@ -44,20 +43,20 @@ Conda environments are briefly explained [here](https://conda.io/docs/using/envs
 If you are **not familiar** with these concepts, then a conda environment is simply a **self-contained package space that is composed of various packages.**  So for example, a **bioinformatics** conda space may include packages such as **R**, **samtools**, **bedtools**, etc.
 
 Chips is dependent on conda environments, *chips*.
+
 0. **clone the chips source code**:
 
     ```
     git clone git@bitbucket.org:plumbers/cidc_chips.git
     ```
-    ** NOTE: this command will create a directory called 'chips'.  After the next five steps, this directory can be safely deleted as we will explain how to *Setup a Chips Project* below. **
+  ** NOTE: this command will create a directory called 'chips'.  After the next five steps, this directory can be safely deleted as we will explain how to *Setup a Chips Project** below. **
 
 1. **installing chips**:
     After cloning the git repository, create the chips environment by doing this:
+
     ```
-    $ cd cidc_chips
-
-    $ conda env create -f environment.yml -n chips
-
+    $ cd cidc_chips  
+    $ conda env create -f environment.yml -n chips  
     $ conda activate chips
     ```
 
@@ -77,8 +76,7 @@ Chips is dependent on conda environments, *chips*.
     For human samples:
 
     ```
-    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38
-
+    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38  
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg19
     ```
 
