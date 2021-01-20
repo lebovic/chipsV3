@@ -31,10 +31,11 @@ To install miniconda:
     ```
 
 3. update channels of conda:
-
     ```
     $ conda config --add channels defaults
+
     $ conda config --add channels bioconda
+
     $ conda config --add channels conda-forge
     ```
 ### Installing the Chips conda environments
@@ -53,27 +54,34 @@ Chips is dependent on conda environments, *chips*.
     After cloning the git repository, create the chips environment by doing this:
     ```
     $ cd cidc_chips
+
     $ conda env create -f environment.yml -n chips
-    $conda activate chips
+
+    $ conda activate chips
     ```
 
 2. **Post installation steps: configuring homer**:
     NOTE: Chips uses the [homer](http://homer.ucsd.edu/homer/motif/index.html) software for motif analysis.  It also has the capability of using the [MDSeqPos](https://github.com/XinDong9511/mdseqpos) motif finder for a similar analysis.  If you are interested in using MDSeqPos for motif analysis, please see **Appendix D**.
     - To activate/initialize homer:
+
     1. run the configure script:
 
     ```
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install
     ```
+
     2. install the required assemblies:
 
     For human samples:
+
     ```
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38
+
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg19
     ```
 
     For mouse samples:
+
     ```
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install mm9
     ```
@@ -82,7 +90,7 @@ Chips comes pre-packaged with static reference files (e.g. bwa index, refSeq tab
 
 # Using CHIPs
 ### Anatomy of a Chips project
-All work in Chips is done in a **PROJECT** directory, which is simply a directory to contain a single Chips analysis run.  **PROJECT** directories can be named anything (and they usually start with a simple mkdir command, e.g. mkdir chips_for_paper),  but what is CRITICAL about a **PROJECT** directory is that you fill them with the following core components:
+All work in Chips is done in a **PROJECT/** directory, which is simply a directory to contain a single Chips analysis run.  **PROJECT/** directories can be named anything (and they usually start with a simple mkdir command, e.g. mkdir chips_for_paper),  but what is CRITICAL about a **PROJECT/** directory is that you fill them with the following core components:
 (We first lay out the directory structure and explain each element below)
 > PROJECT/  
 > ├── cidc_chips/  
@@ -125,20 +133,21 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     In the PROJECT directory:  
     ```
     $ cp cidc_chips/config.yaml .
+    
     $ cp cidc_chips/metasheet.csv .
     ```
 
     b. **setup config.yaml**
         The config.yaml is where you define Chips run parameters and the ChIP-seq samples for analysis.
 
-        **genes_to_plot**: If set, genomic region and TSS will be displayed in Genome Trackview figure. Multiple genes should be separated by space (default: GAPDH ACTB TP53).
-        **upstream/downstream**: Upstream and Downstream of the genome region can be extended to have a better view of peaks.
-        **output_path**: Directory to save all the output files (default: analysis).
-        **assembly**: typically hg19/hg38 for human or mm9/mm10 for mouse (default: hg19)
-        **Choose the motif software**: choose either homer or MDSeqPos (default: homer)
-        **Contamination Panel**:The contamination panel is a panel that Chips will check for "cross-species" contamination. Out of the box, the config.yaml has hg19 and mm9 as assemblies to check.  **IF you would like to add other species/assemblies, simply add as many BWA indices as you would like**
-        **cnv_analysis**: Set to 'true' to enable copy number variation analysis
-        **samples**: __The most important part of the config file is to define the samples for Chips analysis.__
+        1. **genes_to_plot**: If set, genomic region and TSS will be displayed in Genome Trackview figure. Multiple genes should be separated by space (default: GAPDH ACTB TP53).
+        2. **upstream/downstream**: Upstream and Downstream of the genome region can be extended to have a better view of peaks.
+        3. **output_path**: Directory to save all the output files (default: analysis).
+        4. **assembly**: typically hg19/hg38 for human or mm9/mm10 for mouse (default: hg19)
+        5. **Choose the motif software**: choose either homer or MDSeqPos (default: homer)
+        6. **Contamination Panel**:The contamination panel is a panel that Chips will check for "cross-species" contamination. Out of the box, the config.yaml has hg19 and mm9 as assemblies to check.  **IF you would like to add other species/assemblies, simply add as many BWA indices as you would like**
+        7. **cnv_analysis**: Set to 'true' to enable copy number variation analysis
+        8. **samples**: __The most important part of the config file is to define the samples for Chips analysis.__
         Each sample is given an arbitrary name, e.g. MCF7_ER, MCF7_input, etc.  **Sample names, however, can not start with a number, and cannot contain '.', '-' (dash--use underscores instead)** (POSSIBLY others). For each sample, define the path to the raw data file (.fastq, .fastq.gz, .bam). For paired-end samples, simply add another line to define the path to the second pair.
 
     c. **setup metasheet.csv**:
@@ -148,11 +157,11 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
 
     `RunName,Treat1,Cont1,Treat2,Cont2`
 
-        **RunName**- arbitrary name for the run, e.g. *MCF7_ER_run*  
-        **Treat1**- The sample name that corresponds to treatment sample.  **It must exactly match the sample name used in config.yaml**  
-        **Cont1**- (optional) The input-control sample that should be paired with Treat1.  
-        **Treat2**- (optional) if you have replicates, define the treatment of the replicate here.  
-        **Cont2**- (optional) the input-control, if available, for Treat2  
+    **RunName**- arbitrary name for the run, e.g. *MCF7_ER_run*  
+    **Treat1**- The sample name that corresponds to treatment sample.  **It must exactly match the sample name used in config.yaml**  
+    **Cont1**- (optional) The input-control sample that should be paired with Treat1.  
+    **Treat2**- (optional) if you have replicates, define the treatment of the replicate here.  
+    **Cont2**- (optional) the input-control, if available, for Treat2  
 
 4. **Set Up Refs**
     - A pre-built [ref_files](http://cistrome.org/~galib/ref_files.tar.gz) can be downloaded from the link.
