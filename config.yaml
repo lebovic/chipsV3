@@ -2,6 +2,11 @@
 metasheet: 'metasheet.csv'
 ref: "cidc_chips/ref.yaml"
 
+#genome trackview parameters
+genes_to_plot: GAPDH ACTB TP53
+upstream: 50000
+downstream: 50000
+
 trim_adapter: true
 #Where you want to store your results
 #NOTE: you could comment this line, the default path is "analysis"
@@ -25,11 +30,11 @@ cutoff: 150
 # PEAKS CALLING: Call broad peaks for some factors
 # This parameter will disable motif finding modules(whatever you set or not set motif)
 # Uncomment below line and set value as true
-#macs2_broadpeaks: false
+macs2_broadpeaks: false
 
 
 # for narrowpeak calling, extra parameters passed to macs2.
-# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,  
+# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,
 # for narrowpeak, has to modify the below parameter.
 # macs_extra_param: --nomodel
 
@@ -37,7 +42,7 @@ cutoff: 150
 #OTHERWISE leave it as 'homer' (default)
 #
 #To skip motif scanning, simply comment out BOTH lines
-#motif: 'homer'
+motif: 'homer'
 #motif: 'mdseqpos'
 
 contamination_panel_qc: true

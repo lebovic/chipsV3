@@ -234,7 +234,7 @@ def all_targets(wildcards):
         if config.get('epicypher_analysis'):
             ls.extend(epicypher_targets(wildcards))
     ls.extend(checking_targets(wildcards))
-    ls.append(output_path+ "/report/report.html")
+    ls.append(output_path + "/report/report.html")
     #ls.extend(report_targets(wildcards))
     return ls
 
@@ -278,4 +278,4 @@ include: "./modules/targets.snakefile"       # targets module
 include: "./modules/json.snakefile"          # json module
 include: "./modules/cistrome.snakefile"      # cistrome adapter module
 include: "./modules/emptychecking.snakefile" # checking empty file module
-include: "./modules/report.snakefile"
+include: "./modules/new_report.snakefile"
