@@ -39,7 +39,7 @@ def getRuns(config):
 
 def check_bwa_index_exist(path):
     """check if bwa index files exist or not
-    given a path to the fasta. 
+    given a path to the fasta.
     e.g., given ./ref_files/hg38/bwa_indices/hg38/hg38.fa
     check if
     ./ref_files/hg38/bwa_indices/hg38/hg38.fa.amb
@@ -57,13 +57,13 @@ def check_bwa_index_exist(path):
         if not os.path.isfile(file):
             missing_index_files.append(file)
     return missing_index_files
-            
+
 
 def loadRef(config):
     """Adds the static reference paths found in config['ref']
     NOTE: if the elm is already defined, then we DO NOT clobber the value
 
-    Also check if reference files exist 
+    Also check if reference files exist
     e.g. The config['assembly'] is hg38
     In the ref.yaml file under hg38:
     bwa_index, geneTable, geneBed, conservation, DHS, exons, promoters, velcro_regions
@@ -82,7 +82,7 @@ def loadRef(config):
                 config[k] = v
             if k in ['geneTable', 'geneBed', 'conservation', 'DHS', 'exons', 'promoters', 'chrom_lens']:
                 if not os.path.isfile(v):
-                    missing_ref.append(v)                    
+                    missing_ref.append(v)
             elif k == "bwa_index":
                 missing_ref.extend(check_bwa_index_exist(v))
     else:
@@ -99,7 +99,7 @@ def loadRef(config):
 
 def check_fastq_exist(config):
     """check if the fastq files listed in the config[samples]
-    exist or not 
+    exist or not
     """
     missing_fqs = []
     samples = config['samples']
@@ -111,7 +111,7 @@ def check_fastq_exist(config):
 
 
 #---------  CONFIG set up  ---------------
-configfile: "config.yaml"   # This makes snakemake load up yaml into config 
+configfile: "config.yaml"   # This makes snakemake load up yaml into config
 config = getRuns(config)
 # addPy2Paths_Config(config)
 
@@ -129,7 +129,7 @@ missing_fqs = check_fastq_exist(config)
 if missing_fqs:
     for fq in missing_fqs:
         print( "\n" + "ERROR!! fastq file {} does not exist! make sure you have the right path.".format(fq) + "\n")
-    sys.exit(1) 
+    sys.exit(1)
 
 
 #-----------------------------------------
@@ -223,22 +223,24 @@ def all_targets(wildcards):
 
     if config.get('contamination_panel_qc'):
         ls.extend(contamination_targets(wildcards))
-    # skip running modules that useless in cistrome db 
+    # skip running modules that useless in cistrome db
     if config.get('CistromeApi'):
         ls.extend(json_targets(wildcards))
         ls.extend(cistrome_targets(wildcards))
     else:
         # ls.extend(mapmaker_targets(wildcards))
         # ls.extend(bam_snapshots_targets(wildcards))
-        ls.extend(report_targets(wildcards))
+        #ls.extend(report_targets(wildcards))
         if config.get('epicypher_analysis'):
             ls.extend(epicypher_targets(wildcards))
     ls.extend(checking_targets(wildcards))
+    ls.append(output_path+ "/report/report.html")
+    #ls.extend(report_targets(wildcards))
     return ls
 
 
 rule target:
-    input: 
+    input:
         all_targets,
 
     message: "Compiling all output"
@@ -272,9 +274,8 @@ include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
 include: "./modules/epicypher.snakefile"     # epicypher spike-in module
 include: "./modules/bam_snapshots.snakefile" # generate bam snapshots module
 include: "./modules/targets.snakefile"       # targets module
-include: "./modules/report.snakefile"        # report module
+#include: "./modules/report.snakefile"        # report module
 include: "./modules/json.snakefile"          # json module
 include: "./modules/cistrome.snakefile"      # cistrome adapter module
 include: "./modules/emptychecking.snakefile" # checking empty file module
-
-
+include: "./modules/report.snakefile"

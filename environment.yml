@@ -69,3 +69,21 @@ dependencies:
 
 #BUGS: minor missing
 - r-r.utils
+
+#report_example02.snakefile
+- matplotlib =3.1.1
+- intervaltree >=2.1.0
+- future >=0.17.0
+- hicmatrix >=15
+- pysam >=0.14
+- pytest
+- pip
+- gffutils >=0.9
+- pybedtools >=0.8.1
+- tqdm >=4.20
+- multiqc
+- plotly_express
+- markdown
+- pyyaml>=4
+- pip:
+    - "git+https://github.com/deeptools/pyGenomeTracks.git"

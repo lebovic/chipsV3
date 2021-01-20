@@ -13,6 +13,8 @@ def motif_targets(wildcards):
             runRep = "%s.%s" % (run, rep)
             # ls.append(output_path + "/motif/%s/" % runRep)
             ls.append(output_path + "/motif/%s/results/homerResults.html" % runRep)
+            ls.append(output_path + "/motif/%s/results/knownResults.txt" % runRep)
+            ls.append(output_path + "/motif/%s/results/knownResults/known1.logo.png"% runRep)
             ls.append(output_path + "/peaks/%s/%s_annotatePeaks.txt" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_annotatePeaks.tsv" % (runRep,runRep))
             ls.append(output_path + "/peaks/%s/%s_annotatePeaks.csv" % (runRep,runRep))
@@ -43,6 +45,8 @@ rule motif_homer:
         # path=directory(output_path + "/motif/{run}.{rep}/"),
         # results=directory(output_path + "/motif/{run}.{rep}/results"),
         html=output_path + "/motif/{run}.{rep}/results/homerResults.html",
+        txt=output_path + "/motif/{run}.{rep}/results/knownResults.txt",
+        logo=output_path + "/motif/{run}.{rep}/results/knownResults/known1.logo.png"
     params:
         genome=config['motif_path'],
         size=600,
@@ -50,6 +54,7 @@ rule motif_homer:
     message: "MOTIF: calling HOMER on top 5k summits"
     threads:_threads
     log: output_path + "/logs/motif/{run}.{rep}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_motif_homer.benchmark"
     #conda: "../envs/motif/motif.yaml"
     run:
         #check to see if _sorted_5k_summits.bed is valid
@@ -64,6 +69,8 @@ rule motif_homer:
         else:
             #FAIL - create empty outputs
             _createEmptyMotif(output.html)
+            _createEmptyMotif(output.txt)
+            _createEmptyMotif(output.logo)
 
 rule motif_getMotifSummary:
     """Summarize the top hits for each run into a file"""
@@ -95,6 +102,7 @@ rule motif_homerAnnotatePeaks:
         genome=config['motif_path'],
     message: "MOTIF: homer annotatePeaks"
     log: output_path + "/logs/motif/{run}.{rep}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_motif_homerAnnotatePeaks.benchmark"
     #conda: "../envs/motif/motif.yaml"
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
