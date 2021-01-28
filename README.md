@@ -139,17 +139,20 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     ```
     $ cd PROJECT
     ```
+
 1. **Create Data Directory**
     As explained above, creating a data directory is a place to gather all of your **raw data files (.fastq, .fastq.gz, .bam)**.  It is optional, but **highly recommended**.
     ```
     $ mkdir data
     ```
-    And in 'data', copy over or make symbolic links to your raw data files
+    And in 'data', copy over or make symbolic links to your raw data files  
+
 2. **Clone CHIPs Repository**
     In your PROJECT directory:  
     ```
     $ mv cidc_chips/ PROJECT/
     ```
+
 3. **Create config.yaml and metasheet.csv**
 
     a. **copy chips/config.yaml and chips/metasheet.csv into the PROJECT dir:**
@@ -159,7 +162,7 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     ```
     $ cp cidc_chips/config.yaml .
     ```
-    
+
     ```
     $ cp cidc_chips/metasheet.csv .
     ```
