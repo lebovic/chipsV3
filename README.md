@@ -33,8 +33,14 @@ To install miniconda:
 3. update channels of conda:
 
     ```
-    $ conda config --add channels defaults  
-    $ conda config --add channels bioconda  
+    $ conda config --add channels defaults
+    ```
+
+    ```
+    $ conda config --add channels bioconda
+    ```
+
+    ```
     $ conda config --add channels conda-forge
     ```
 
@@ -52,7 +58,7 @@ Chips is dependent on conda environments, *chips*.
     ```
   ** NOTE: this command will create a directory called 'chips'.  After the next five steps, this directory can be safely deleted as we will explain how to *Setup a Chips Project** below. **
 
-1. **installing chips**:
+1. **installing chips**:  
     After cloning the git repository, create the chips environment by doing this:
 
     ```
@@ -63,7 +69,12 @@ Chips is dependent on conda environments, *chips*.
     Or if you have mamba installed in your base environment, a faster method is:
 
     ```
-    $ mamba env create -f environment.yml -n chips  
+    $ mamba env create -f environment.yml -n chips
+    ```
+
+    Activate chips Conda Environment
+
+    ```
     $ conda activate chips
     ```
 
@@ -83,7 +94,9 @@ Chips is dependent on conda environments, *chips*.
     For human samples:
 
     ```
-    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38  
+    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38
+    ```
+    ```
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg19
     ```
 
@@ -119,7 +132,9 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
 0. **Create Project Directory**
     As explained above, the **PROJECT** directory is simply a directory to contain an entire Chips run.  **It can be named anything, but for this section, we'll simply call it 'PROJECT'**  
     ```
-    $ mkdir PROJECT    
+    $ mkdir PROJECT
+    ```
+    ```
     $ cd PROJECT
     ```
 1. **Create Data Directory**
@@ -140,7 +155,9 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     In the PROJECT directory:
 
     ```
-    $ cp cidc_chips/config.yaml .    
+    $ cp cidc_chips/config.yaml .
+    ```
+    ```
     $ cp cidc_chips/metasheet.csv .
     ```
 
