@@ -34,7 +34,9 @@ To install miniconda:
 
     ```
     $ conda config --add channels defaults  
+
     $ conda config --add channels bioconda  
+
     $ conda config --add channels conda-forge
     ```
 ### Installing the Chips conda environments
@@ -53,12 +55,11 @@ Chips is dependent on conda environments, *chips*.
 
 1. **installing chips**:
     After cloning the git repository, create the chips environment by doing this:
-
     ```
-    $ cd cidc_chips    
-    $ conda env create -f environment.yml -n chips    
-    # Or if you have mamba installed in your base environment, a faster method is:      
-    $ mamba env create -f environment.yml -n chips
+    $ cd cidc_chips  
+    $ conda env create -f environment.yml -n chips  
+    # Or if you have mamba installed in your base environment, a faster method is:  
+    $ mamba env create -f environment.yml -n chips  
     $ conda activate chips
     ```
 
