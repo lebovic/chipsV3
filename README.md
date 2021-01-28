@@ -33,8 +33,8 @@ To install miniconda:
 3. update channels of conda:
 
     ```
-    $ conda config --add channels defaults    
-    $ conda config --add channels bioconda    
+    $ conda config --add channels defaults  
+    $ conda config --add channels bioconda  
     $ conda config --add channels conda-forge
     ```
 ### Installing the Chips conda environments
@@ -57,6 +57,8 @@ Chips is dependent on conda environments, *chips*.
     ```
     $ cd cidc_chips    
     $ conda env create -f environment.yml -n chips    
+    # Or if you have mamba installed in your base environment, a faster method is:      
+    $ mamba env create -f environment.yml -n chips
     $ conda activate chips
     ```
 
@@ -76,7 +78,7 @@ Chips is dependent on conda environments, *chips*.
     For human samples:
 
     ```
-    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38    
+    $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38  
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg19
     ```
 
