@@ -55,8 +55,8 @@ Chips is dependent on conda environments, *chips*.
 
     ```
     git clone git@bitbucket.org:plumbers/cidc_chips.git
-    ```
-  ** NOTE: this command will create a directory called 'chips'.  After the next five steps, this directory can be safely deleted as we will explain how to *Setup a Chips Project** below. **
+    ```  
+    ** NOTE: this command will create a directory called 'chips'.  After the next five steps, this directory can be safely deleted as we will explain how to *Setup a Chips Project** below. **
 
 1. **installing chips**:  
     After cloning the git repository, create the chips environment by doing this:
@@ -66,13 +66,13 @@ Chips is dependent on conda environments, *chips*.
     $ conda env create -f environment.yml -n chips
     ```
 
-    Or if you have mamba installed in your base environment, a faster method is:
+    Or if you have mamba installed in your base environment, a faster method is:  
 
     ```
     $ mamba env create -f environment.yml -n chips
     ```
 
-    Activate chips Conda Environment
+    Activate chips Conda Environment:  
 
     ```
     $ conda activate chips
@@ -87,7 +87,7 @@ Chips is dependent on conda environments, *chips*.
 
     ```
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install
-    ```
+    ```  
 
     *  Install the required assemblies:
 
@@ -96,6 +96,7 @@ Chips is dependent on conda environments, *chips*.
     ```
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg38
     ```
+
     ```
     $ perl ~/miniconda3/envs/chips/share/homer/.//configureHomer.pl -install hg19
     ```
@@ -134,6 +135,7 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     ```
     $ mkdir PROJECT
     ```
+
     ```
     $ cd PROJECT
     ```
@@ -157,6 +159,7 @@ After a successful **Chips** run, another 'analysis' folder is generated which c
     ```
     $ cp cidc_chips/config.yaml .
     ```
+    
     ```
     $ cp cidc_chips/metasheet.csv .
     ```
