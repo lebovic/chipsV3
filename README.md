@@ -37,7 +37,7 @@ To install miniconda:
     $ conda config --add channels bioconda  
     $ conda config --add channels conda-forge
     ```
-    
+
 ### Installing the Chips conda environments
 Conda environments are briefly explained [here](https://conda.io/docs/using/envs.html).  Briefly, if you are familiar with [Python Virtual Environments](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/) or [Docker Containers](https://www.docker.com/what-container) then Conda environments should be a familiar concept.  
 
@@ -65,7 +65,6 @@ Chips is dependent on conda environments, *chips*.
     ```
     $ mamba env create -f environment.yml -n chips  
     $ conda activate chips
-
     ```
 
 2. **Post installation steps: configuring homer**:
