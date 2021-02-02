@@ -1,6 +1,7 @@
 #MODULE: Align fastq files to genome - common rules
 #import os
 _align_threads=8
+_sambamba_sort_mem=4
 
 def align_targets(wildcards):
     """Generates the targets for this module"""
@@ -35,6 +36,8 @@ def getBam(wildcards):
         ret = first_file
     return [ret]
 
+## this will require sambamba to use 2x size of the bam file for sorting, which is too big and may cause memory issues.
+## define the memory _sambamba_sort_mem on top of this snakefile instead
 def getSortMemory(wildcards):
     bam_size = math.ceil(os.path.getsize(checkpoints.align_aggregate.get(sample=wildcards.sample).output[0])/1024/1024/1024)
     memory = bam_size*2
@@ -229,7 +232,7 @@ else:
         benchmark: output_path + "/Benchmark/{sample}_align_sortBam.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
-            memory = lambda wildcards: getSortMemory(wildcards)
+            memory = _sambamba_sort_mem
         threads: _align_threads
         shell:
             "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
@@ -248,7 +251,7 @@ else:
         benchmark: output_path + "/Benchmark/{sample}_align_sortUnique.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
-            memory = lambda wildcards: getUniqueSortMemory(wildcards)
+            memory = _sambamba_sort_mem
         threads: _align_threads
         shell:
             "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
