@@ -10,7 +10,7 @@ GDC_hg38:
   bwa_index: ./ref_files/GDC_hg38/bwa_indices/GRCh38.d1.vd1.fa
 
   geneTable: ./ref_files/GDC_hg38/GDC_hg38.refGene
-  geneBed: ./ref_files/GDC_hg38/GDC_hg38.bed
+  geneBed: ./ref_files/GDC_hg38/GDC_hg38_refGene.bed
   conservation: ./ref_files/GDC_hg38/conservation/hg38.phastCons100way.bw
 
   DHS: ./ref_files/GDC_hg38/regions/hg38_cCREs.bed

@@ -1,4 +1,4 @@
-_fasp_threads=2
+_fastp_threads=2
 
 # def trim_targets(wildcards):
 #     """Generates the targets for this module"""
@@ -27,6 +27,7 @@ def trim_targets(wildcards):
         ls.append(output_path + "/trim_adaptor/%s/%s_fastp.json" % (sample,sample))
         ls.append(output_path + "/trim_adaptor/%s/%s_fastp.html" % (sample,sample))
         ls.append(output_path + "/trim_adaptor/%s/%s_0.trimmed.fq" % (sample,sample))
+        ls.append(output_path + "/trim_adaptor/%s/%s_1.trimmed.fq" % (sample,sample))
     return ls
 
 def getFastq(wildcards):
@@ -39,13 +40,13 @@ def getFastq(wildcards):
 
 FASTP_VERSION = subprocess.check_output("fastp -v", shell=True)
 
-# rule trim_fasp:
+# rule trim_fastp:
 #   input: getFastq
 #   output: 
 #       fastqs = expand(output_path + "/trim_adaptor/{{sample}}/{{sample}}_{mate}.trimmed.fq", mate = range(2)),
 #       json = output_path + "/trim_adaptor/{sample}/{sample}_fastp.json",
 #       html = output_path + "/trim_adaptor/{sample}/{sample}_fastp.html" 
-#   threads: _fasp_threads
+#   threads: _fastp_threads
 #   message: "trimming adaptors for {input} using fastp"
 #   log: output_path + "/logs/trim_adaptor/{sample}.log"
 #   conda: "../envs/trimming/trim_fastp.yaml"
@@ -57,24 +58,25 @@ FASTP_VERSION = subprocess.check_output("fastp -v", shell=True)
 #           shell("touch {output.fastqs[1]}")
     
 
-rule trim_fasp:
+rule trim_fastp:
     input: getFastq
     output: 
-        fq1 = output_path + "/trim_adaptor/{sample}/{sample}_0.trimmed.fq",
+        fq1 = temp(output_path + "/trim_adaptor/{sample}/{sample}_0.trimmed.fq"),
+        fq2 = temp(output_path + "/trim_adaptor/{sample}/{sample}_1.trimmed.fq"),
         json = output_path + "/trim_adaptor/{sample}/{sample}_fastp.json",
-        html = output_path + "/trim_adaptor/{sample}/{sample}_fastp.html" 
-    threads: _fasp_threads
-    params: 
-        fq2 = output_path + "/trim_adaptor/{sample}/{sample}_1.trimmed.fq"
+        html = output_path + "/trim_adaptor/{sample}/{sample}_fastp.html"
+    threads: _fastp_threads
     message: "trimming adaptors for {input} using fastp"
     version: FASTP_VERSION
     log: output_path + "/logs/trim_adaptor/{sample}.log"
     conda: "../envs/trimming/trim_fastp.yaml"
+    benchmark: output_path + "/Benchmark/{sample}_trim_adapter.benchmark"
     run:
         if len(input) > 1:
-            shell("fastp --thread {threads} --detect_adapter_for_pe --in1 {input[0]} --in2 {input[1]} --out1 {output.fq1} --out2 {params.fq2} -h {output.html} -j {output.json} > {log} 2>&1 ")
+            shell("fastp --thread {threads} --detect_adapter_for_pe --in1 {input[0]} --in2 {input[1]} --out1 {output.fq1} --out2 {output.fq2} -h {output.html} -j {output.json} > {log} 2>&1")
         else:
             shell("fastp --thread {threads} --in1 {input[0]} --out1 {output.fq1} -h {output.html} -j {output.json} > {log} 2>&1")
+            shell("touch{output.fq2}")
 
 
 
