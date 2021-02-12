@@ -80,6 +80,7 @@ rule align_mapStats:
     threads: _align_threads
     message: "ALIGN: get mapping stats for {input}"
     log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_mapStats.benchmark"
     conda: "../envs/align/align_common.yaml"
     #CAN/should samtools view be multi-threaded--
     #UPDATE: tricky on how to do this right w/ compounded commands
@@ -109,7 +110,8 @@ rule align_collectMapStats:
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "ALIGN: collect and parse ALL mapping stats for {input}"
-    # log: output_path + "/logs/align/{sample}.log"
+    #log: output_path + "/logs/align/{sample}.log"
+    #benchmark: output_path + "/Benchmark/{sample}_align_collectMapStats.benchmark"
     conda: "../envs/align/align_common.yaml"
     #NOTE: can't do conda envs with run
     #run:
@@ -261,6 +263,7 @@ rule align_filterBams:
         output_path + "/align/{sample}/{sample}_unique.sorted.sub%s.bam" % str(config['cutoff'])
     message: "ALIGN: filter bam files for {input}"
     log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_filterBams.benchmark"
     params:
         cutoff = config['cutoff']
     conda: "../envs/align/align_common.yaml"
@@ -275,6 +278,7 @@ rule align_indexBam:
         output_path + "/align/{sample}/{prefix}.bam.bai"
     message: "ALIGN: indexing bam file {input}"
     # log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_{prefix}_align_indexBam.benchmark"
     conda: "../envs/align/align_common.yaml"
     shell:
         "sambamba index {input} {output}"
@@ -289,6 +293,7 @@ rule align_extractUnmapped:
         temp(output_path + "/align/{sample}/{sample}.unmapped.bam")
     message: "ALIGN: extract unmapped reads for {input}"
     log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_extractUnmapped.benchmark"
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
@@ -310,6 +315,7 @@ rule align_bamToFastq:
         mate2 = lambda wildcards: "-fq2 " + output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: convert unmapped bam to fastq for {input}"
     log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_bamToFastq.benchmark"
     conda: "../envs/align/align_common.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} {params.mate2}"
@@ -325,6 +331,7 @@ rule align_gzipUnmappedFq:
         mate2 = lambda wildcards: output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: gzip unmapped fq files for {input}"
     log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_gzipUnmappedFq.benchmark"
     conda: "../envs/align/align_common.yaml"
     shell:
         "gzip -f {input} {params} 2>>{log}"

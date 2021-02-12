@@ -51,6 +51,7 @@ rule conservation_top5kBroadPeaks:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
     log: output_path + "/logs/conservation/{run}.{rep}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_conservation_top5kBroadPeaks.benchmark"
     conda: "../envs/conservation/conservation.yaml"
     shell:
         "head -n {params.lines} {input} > {output}"
@@ -65,6 +66,7 @@ rule conservation_top5kPeaks:
         lines = 5000
     message: "CONSERVATION: top5k_peaks"
     log: output_path + "/logs/conservation/{run}.{rep}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_conservation_top5kPeaks.benchmark"
     conda: "../envs/conservation/conservation.yaml"
     shell:
         "head -n {params.lines} {input} > {output}"
@@ -89,7 +91,7 @@ rule conservation_plotConservation:
         main_output_path=output_path
     message: "CONSERVATION: calling conservation script"
     log: output_path + "/logs/conservation/{run}.{rep}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_conservation_plotConservation.benchmark"
     conda: "../envs/conservation/conservation.yaml"
     shell:
         "cidc_chips/modules/scripts/conservation_onebw_plot.py -t Conservation_at_summits -d {params.db} -o  {params.main_output_path}/conserv/{params.run}/{params.run}_conserv -l Peak_summits {input} -w {params.width} > {output.score} 2>>{log}"
-

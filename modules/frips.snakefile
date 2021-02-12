@@ -46,7 +46,7 @@ rule frips_all:
 #SECTION: generate 4M sub-sampled bams
 #It's a bit redundant, but I tried my best to reduce the redundancy
 rule frips_createNonChrM:
-    """RULE that will generate the base file for both 
+    """RULE that will generate the base file for both
     4M_nonChrM.bam AND 4M_unique_nonChrM.bam so we save some redundancy here"""
     input:
         output_path + "/align/{sample}/{sample}.sorted.bam"
@@ -66,7 +66,7 @@ rule frips_createNonChrM:
 
 rule frips_sample4MFromNonChrM:
     """Sample 4M reads from nonChrM SAM file (from create nonChrM)
-    ref: https://sourceforge.net/p/samtools/mailman/message/29011091/ 
+    ref: https://sourceforge.net/p/samtools/mailman/message/29011091/
     see '-s 21.5'
     """
     input:
@@ -75,6 +75,7 @@ rule frips_sample4MFromNonChrM:
         n="4000000"
     message: "FRiPs: sample- 4M from non-chrM reads"
     log:output_path + "/logs/frips/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_frips_sample4MFromNonChrM.benchmark"
     conda: "../envs/frips/frips.yaml"
     output:
         temp(output_path + '/align/{sample}/{sample}_4M_nonChrM.bam')
@@ -94,6 +95,7 @@ rule frips_createUniqueNonChrM:
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: create uniquely mapped non-chrM reads {params.msg}"
     log:output_path + "/logs/frips/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_frips_createUniqueNonChrM.benchmark"
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:
@@ -103,7 +105,7 @@ rule frips_createUniqueNonChrM:
 
 rule frips_sample4MFromUniqueNonChrM:
     """Sample 4M reads from uniqueNonChrM reads
-    ref: https://sourceforge.net/p/samtools/mailman/message/29011091/ 
+    ref: https://sourceforge.net/p/samtools/mailman/message/29011091/
     see '-s 21.5'
     """
     input:
@@ -114,6 +116,7 @@ rule frips_sample4MFromUniqueNonChrM:
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads {params.msg}"
     log:output_path + "/logs/frips/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_frips_sample4MFromUniqueNonChrM.benchmark"
     conda: "../envs/frips/frips.yaml"
     output:
         temp(output_path + '/align/{sample}/{sample}_4M_unique_nonChrM.bam')
@@ -134,7 +137,8 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
         params:
             pval="1E-9"
         message: "FRiPs: calculate frips"
-        # log:output_path + "/logs/frips/{sample}.log"
+        log:output_path + "/logs/frips/{sample}.log"
+        benchmark: output_path + "/Benchmark/{sample}_frips_broadCalculate.benchmark"
         conda: "../envs/frips/frips.yaml"
         shell:
             "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
@@ -150,7 +154,8 @@ else:
         params:
             pval="1E-9"
         message: "FRiPs: calculate frips"
-        # log:output_path + "/logs/frips/{sample}.log"
+        log:output_path + "/logs/frips/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_frips_calculate.benchmark"
         conda: "../envs/frips/frips.yaml"
         shell:
             "cidc_chips/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
@@ -166,7 +171,7 @@ rule frips_plot:
         "cidc_chips/modules/scripts/frips_figure.py -f {input} -o {output}"
 
 rule frips_pbc:
-    """Generate the PBC histogram for each normalized sample, which will be 
+    """Generate the PBC histogram for each normalized sample, which will be
     used to calculate N1, Nd, and PBC (for the report)
     """
     input:
@@ -212,6 +217,7 @@ rule frips_nonChrMStats:
         output_path + "/align/{sample}/{sample}_nonChrM_stat.txt"
     message: "ALIGN: get nonChrM mapping stats for each bam"
     log: output_path + "/logs/frips/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_frips_nonChrMStats.benchmark"
     params:
         sam_th = _samtools_threads / 2
     threads: _samtools_threads
@@ -240,7 +246,7 @@ rule frips_collectNonChrMStats:
         "cidc_chips/modules/scripts/frips_collectNonChrM.py {params.files} > {output} " #2>>{log}"
 
 rule frips_getSampleFragLength:
-    """Dump all of the sample's fragment lengths into 
+    """Dump all of the sample's fragment lengths into
     frag/{sample}/{sample}_frags.txt, so we can generate the distribution plot in make_FragPlot
     """
     input:
@@ -249,6 +255,7 @@ rule frips_getSampleFragLength:
         awk_cmd = """awk ' $1 <= 1000 && $1 > 0 '"""
     message: "FRAG: get fragment sizes"
     log:output_path + "/logs/frips/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_frips_getSampleFragLength.benchmark"
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:
@@ -256,7 +263,7 @@ rule frips_getSampleFragLength:
     shell:
         #GRAB out the 9th column, ensuring it's in 1-1000
         "samtools view -@ {threads} {input} | cut -f 9 | {params.awk_cmd} > {output} " #2>>{log}"
- 
+
 rule frips_makeFragPlot:
     """plot the fragment distribution:
     generate the R plot by running frag_plotFragDist.R on _frags.txt
@@ -273,7 +280,7 @@ rule frips_makeFragPlot:
     shell:
         #RUN the R script to get the plot
         "cidc_chips/modules/scripts/frag_plotFragDist.R {input} {output} {params.name} " #2>>{log}"
-    
+
 rule frips_getFripStats:
     """Collect the frips statistics fromoutput_path +  /frips/{run}/{run}_frip.txt"""
     input:

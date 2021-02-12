@@ -574,7 +574,7 @@ rule cohort_report_data_quality_plots5:
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The fraction of reads in peaks (FRIP) score is the fraction of 4 million subsampled reads that fall within a defined peak region.'""",
-        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'FRIP score (% of peaks)','value':'FRIP score (% of peaks)'}}}),
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'FRIP score (% of reads)','value':'FRIP score (% of reads)'}}}),
     group: "cohort_report"
     shell:
         """echo "{params.caption}" >> {output.details} &&

@@ -46,8 +46,8 @@ def parseYaml(yaml_file):
     return ret
 
 def prettyprint(s, toUpper=False):
-    """Given a string, replaces underscores with spaces and uppercases the 
-    first letter of each word ONLY if the string is composed of lowercased 
+    """Given a string, replaces underscores with spaces and uppercases the
+    first letter of each word ONLY if the string is composed of lowercased
     letters.  If the param, toUpper is given then s.upper is returned.
 
     Examples: "data_quality" -> "Data Quality"
@@ -58,8 +58,10 @@ def prettyprint(s, toUpper=False):
     """
     if toUpper:
         s = s.upper()
+        s= s.replace("_", " ")
     elif s.islower(): #ONLY modify IF all letters are lowercase
         s = s.title()
+        s= s.replace("_", " ")
     return s
 
 def is_image_file(s):
@@ -103,14 +105,14 @@ def buildTable(tsv_file, details, jinjaEnv, cssClass=""):
     jinjaEnv.filters['get_value'] = get_val
     jinjaEnv.filters['get_prefix'] = get_prefix
     template = jinjaEnv.get_template("table.html")
-    
+
     #Title is the filename prettyprinted
     fname = ".".join(tsv_file.split("/")[-1].split(".")[:-1])
     #REMOVE index from file name, e.g. 01_foo -> foo
     index = fname.split("_")[0] #first save index
     fname = "_".join(fname.split("_")[1:])
     path = "/".join(tsv_file.split("/")[:-1]) #drop the file
-    title = prettyprint(fname)
+    title = prettyprint(fname, toUpper=True)
 
     vals = {'container': fname+'_container',
             'id': fname, 'title':title, 'class': cssClass}
@@ -123,16 +125,16 @@ def buildTable(tsv_file, details, jinjaEnv, cssClass=""):
     sub_caption = details.get('subcaption', None)
     if sub_caption:
         vals['sub_caption'] = renderMd(sub_caption)
-        
+
     table = []
     f = open(tsv_file)
     hdr = f.readline().strip().split(separator)
-    
+
     for l in f:
         tmp = l.strip().split(separator)
         table.append(tmp)
     f.close()
-    
+
     vals['header'] = hdr
     vals['table'] = table
     #print(vals)
@@ -146,7 +148,7 @@ def buildPlot(png_file, details, jinjaEnv):
     index = fname.split("_")[0] #first save index
     fname = "_".join(fname.split("_")[1:])
     path = "/".join(png_file.split("/")[:-1]) #drop the file
-    title = prettyprint(fname)
+    title = prettyprint(fname,toUpper=True)
 
     #make the png file path REALITIVE to the report.html file!
     png_file_relative = "/".join(png_file.split("/")[2:])
@@ -162,7 +164,7 @@ def buildPlot(png_file, details, jinjaEnv):
     sub_caption = details.get('subcaption', None)
     if sub_caption:
         vals['sub_caption'] = renderMd(sub_caption)
-        
+
     #print(vals)
     return template.render(vals)
 
@@ -171,9 +173,9 @@ def renderMd(s):
     return  markdown.markdown(s, extensions=['extra'])
 
 def readMqcData01(data_file, separator=","):
-    """This file is like a typical csv, where the first line is 
+    """This file is like a typical csv, where the first line is
     the header and first col = Sample names
-    returns a dictionary where the keys are sample names and the 
+    returns a dictionary where the keys are sample names and the
     values are dictionaries that represent the columns
     ref: https://multiqc.info/docs/#bar-graphs
     """
@@ -194,7 +196,7 @@ def readMqcData02(data_file, separator = ","):
     the header = X, Sample1, Sample2, ..., SampleN
     Each row represents the x-val, and then y-vals for each sample at
     the x-val
-    returns a dictionary where the keys are sample names and the 
+    returns a dictionary where the keys are sample names and the
     values x-y value pairs
     ref: https://multiqc.info/docs/#line-graph
     """
@@ -241,13 +243,13 @@ def buildMqcPlot(plot_file, details, jinjaEnv):
     index = fname.split("_")[0] #first save index
     plot_type = fname.split("_")[-1] #and plot type
     fname = "_".join(fname.split("_")[1:-1])
-    title = prettyprint(fname)
+    title = prettyprint(fname,toUpper=True)
 
     #check to see if we're adding a module or a plot
     if plot_type in _mqc_plot_types:
         #Pickout the proper mqc plot module to use
         mqc_plot = _mqc_plot_types[plot_type]
-    
+
         #READ in file--for now assume it's of type bar and have other handlers
         #later
         #HERE we should check for plot type
@@ -260,7 +262,7 @@ def buildMqcPlot(plot_file, details, jinjaEnv):
         else: #line
             data = readMqcData02(plot_file, sep)
             html_plot = mqc_plot.plot(data, details)
-                
+
 
 
         vals = {'id': fname,
@@ -354,7 +356,7 @@ def buildPlotly(plotly_file, details, jinjaEnv):
     index = fname.split("_")[0] #first save index
     plot_type = fname.split("_")[-1] #and plot type
     fname = "_".join(fname.split("_")[1:-1])
-    title = prettyprint(fname)
+    title = prettyprint(fname, toUpper=True)
 
     #Pickout the proper mqc plot module to use
     plot = getattr(px, plot_type) if plot_type != "oncoplot" else oncoplot
@@ -391,7 +393,7 @@ def buildPlotly(plotly_file, details, jinjaEnv):
 def oncoplot(df, **kwargs):
     """Given a dataframe returns a plotly oncoplot figure"""
     #print(kwargs)
-    
+
     #Sort samples by hits
     #ref: https://stackoverflow.com/questions/20480238/getting-top-3-rows-that-have-biggest-sum-of-columns-in-pandas-dataframe
     top_ngenes = min(kwargs['top_ngenes'], len(df.columns))
@@ -440,7 +442,7 @@ def main():
     optparser.add_option("-t", "--title", help="report title", default="WES Summary Report")
     optparser.add_option("-o", "--output", help="output html file")
     (options, args) = optparser.parse_args(sys.argv)
-    
+
     if not options.dir or not options.sections or not options.template or not options.output:
         optparser.print_help()
         sys.exit(-1)
@@ -457,14 +459,14 @@ def main():
 
     #Build up this dictionary
     wes_report = {'title':title}
-    
+
     #infer sections from the analysis/report dir structure
     #sections = os.listdir(options.dir)
     sections = options.sections.split(",")
     wes_panels = {}
     first_section = ""
     #ONLY sections so far--no further recursion
-    
+
     #for sect in os.listdir(options.dir):
     for (i, sect) in enumerate(sections):
         if sect == "static": #SKIP static content if it's there
@@ -485,7 +487,7 @@ def main():
             tmp = """<div id="%s" class="container wes_container">\n""" % sect
         else:
             tmp = """<div id="%s" class="container wes_container" style="display:none">\n""" % sect
-            
+
         for ffile in ordering:
             filepath = os.path.join(path, ffile)
             #I will soon deprecate these 'plots' sub-dir--is not currenlty used by either report
@@ -495,7 +497,7 @@ def main():
                 for f in csv_files:
                     plot_f = os.path.join(filepath, f)
                     plot(plot_f)
-                    
+
             elif os.path.isfile(filepath): #SKIP directories
                 #CHECK for file existance
                 if not os.path.exists(filepath):
@@ -532,7 +534,7 @@ def main():
     wes_report['plot_compressed_json'] = mqc_report.compress_json(mqc_report.plot_data)
     wes_report['wes_resources'] = json.dumps(_resources)
     wes_report['config'] = mqc_config
-    template.stream(wes_report).dump(options.output)  
+    template.stream(wes_report).dump(options.output)
 
 if __name__ == '__main__':
     main()
