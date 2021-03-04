@@ -78,7 +78,7 @@ for run in config["runs"].keys():
         GENOMETRACK_FILES.append(output_path + "/peaks/{runRep}/{runRep}_treat_pileup.bw".format(runRep = runRep))
 
 # Write the name of the assembly into a csv to display in the report
-File_object=open("cidc_chips/report/03_assembly.csv",'w')
+File_object=open("cidc_chips/report/ref_assembly.csv",'w')
 File_object.write(config["assembly"])
 File_object.close()
 
@@ -89,7 +89,7 @@ GENE_INCLUDED_LIST = []
 for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
     if gene in pd.read_csv(ref_bed, sep = '\t',header=None, index_col=None).iloc[:,-2].values:
         GENE_INCLUDED_LIST.append(gene)
-        TRACK_PNG_LIST.append((output_path + "/report/Quality/13_genome_track_for_{track}.png").format(track = gene))
+        TRACK_PNG_LIST.append((output_path + "/report/Genome_Track_View/01_genome_track_for_{track}.png").format(track = gene))
         print(gene + ' found in bed')
     else:
         print('Gene not in the lookup')
@@ -99,44 +99,40 @@ for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
 def report_targets(wildcards):
     """Generates the targets for this module"""
     ls = []
-    ls.append(output_path + "/report/Quality/01_contamination_bar.plotly")
-    ls.append(output_path + "/report/Downstream/01_details.yaml")
-    ls.append(output_path + "/report/Quality/02_mapped_reads_bar.plotly")
-    ls.append(output_path + "/report/Quality/03_pcr_bottleneck_coefficient_bar.plotly")
-    ls.append(output_path + "/report/Quality/04_fraction_of_reads_in_peaks_bar.plotly")
-    ls.append(output_path + "/report/Quality/04_details.yaml")
-    ls.append(output_path + "/report/Quality/05_number_of_peaks_bar.plotly")
-    ls.append(output_path + "/report/Quality/06_peak_annotations_bar.plotly")
-    ls.append(output_path + "/report/Quality/07_DNAse_I_hypersensitivity_bar.plotly")
-    ls.append(output_path + "/report/Quality/12_contamination_table.dt")
     ls.append(output_path + "/report/Overview/03_assembly.csv")
+    ls.append(output_path + "/report/Overview/02_select_software_versions.dt")
+    ls.append(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt")
+    ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/04_contamination_table.dt")
+    ls.append(output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.dt")
+    ls.append(output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/03_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly")
+    ls.append(output_path + "/report/Downstream/01_details.yaml")
+
     try:
         if config["motif"] == "homer":
-            #ls.extend(HOMERCONSERV_FILES_LOGOS_PROJECT)
-            #ls.extend(HOMERCONSERV_FILES_CONSERV_PROJECT)
-            #ls.extend(LOGOS_TXT_FILES)
             ls.append(output_path + "/report/Downstream/01_conservation_and_top_motifs.csv")
         else:
             print('not using homer')
     except KeyError:
         print('Homer not used.')
         ls.append(output_path + "/report/Downstream/01_conservation.csv")
-        ls.extend(expand(output_path + "/report/Quality/frag_files/{sample}_frags_hist.csv", sample = list(config["samples"].keys())))
+        ls.extend(expand(output_path + "/report/Reads_Level_Quality/frag_files/{sample}_frags_hist.csv", sample = list(config["samples"].keys())))
     ls.extend(TRACK_PNG_LIST)
-    #ls.extend(HOMERCONSERV_FILES_CONSERV_PROJECT)
-    ls.append(output_path + "/report/Quality/08_fragment_length_line.plotly")
     ls.append(output_path + "/data/pbc_parsed_samplenames.csv")
     ls.append(output_path + "/data/frip_score_parsed_samplenames.csv")
     ls.append(output_path + "/data/putative_targets_parsed_samplenames.csv")
     ls.append(output_path + "/data/dhs_parsed_samplenames.csv")
     ls.append(output_path + "/data/pbc_parsed.csv")
     ls.append(output_path + "/data/dhs_parsed.csv")
-    ls.append(output_path + "/report/Quality/11_read_level_summary_table.dt")
-    ls.append(output_path + "/report/Quality/10_peak_level_summary_table.dt")
     ls.append(output_path + "/report/tracks_all.ini")
     ls.append(output_path + "/report/tracks_all_vlines.ini")
-    #ls.append(output_path + "tracks_plot.png")
-    ls.append(output_path + "/report/Overview/02_select_software_versions.dt")
     return ls
 
 ###############################################################################
@@ -178,13 +174,13 @@ rule copy_for_report:
         output_path + "/peaks/peakStats.csv",
         output_path + "/ceas/meta.csv",
         output_path + "/ceas/dhs.csv",
-        "cidc_chips/report/04_details.yaml",
-        "cidc_chips/report/09_details.yaml",
-        "cidc_chips/report/03_assembly.csv",
-        "cidc_chips/report/01_chips_workflow.png",
-        "cidc_chips/report/01_details.yaml",
-        "cidc_chips/report/02_details.yaml",
-        "cidc_chips/report/13_details.yaml"
+        "cidc_chips/report/chips_workflow.png",
+        "cidc_chips/report/intro_details.yaml",
+        "cidc_chips/report/softwares_details.yaml",
+        "cidc_chips/report/ref_assembly.csv",
+        #"cidc_chips/report/frip_details.yaml",
+        "cidc_chips/report/fragsize_details.yaml",
+        "cidc_chips/report/trackView_details.yaml"
     output:
         output_path + "/data/contamination2.csv",
         output_path + "/data/mapped_reads.csv",
@@ -193,13 +189,13 @@ rule copy_for_report:
         output_path + "/data/number_of_peaks.csv",
         output_path + "/data/putative_targets.csv",
         output_path + "/data/dhs.csv",
-        output_path + "/report/Overview/04_details.yaml",
-        output_path + "/report/Quality/08_details.yaml",
-        output_path + "/report/Overview/03_assembly.csv",
         output_path + "/report/Overview/01_chips_workflow.png",
         output_path + "/report/Overview/01_details.yaml",
         output_path + "/report/Overview/02_details.yaml",
-        output_path + "/report/Quality/13_details.yaml"
+        output_path + "/report/Overview/03_assembly.csv",
+        #output_path + "/report/Peaks_Level_Quality/03_details.yaml",
+        output_path + "/report/Reads_Level_Quality/06_details.yaml",
+        output_path + "/report/Genome_Track_View/01_details.yaml"
     run:
         for i in range(len(input)):
             shell("cp {infile} {outfile}".format(infile=input[i], outfile= output[i]))
@@ -447,7 +443,7 @@ rule make_lines_for_frag_hist:
     input:
         expand(output_path + "/frag/{sample}/{sample}_frags.txt", sample = list(config["samples"].keys()))
     output:
-        expand(output_path + "/report/Quality/frag_files/{sample}_frags_hist.csv", sample = list(config["samples"].keys()))
+        expand(output_path + "/report/Reads_Level_Quality/frag_files/{sample}_frags_hist.csv", sample = list(config["samples"].keys()))
     run:
         print(input)
         def parse_frag_normed(frag_files_path):
@@ -463,7 +459,7 @@ rule make_lines_for_frag_hist:
                 a_df['Fragment size in bp'] = a_df['Bin']*5
                 outname = fname+'_hist.csv'
                 print(outname)
-                outdir = output_path + "/report/Quality/frag_files/"
+                outdir = output_path + "/report/Reads_Level_Quality/frag_files/"
                 fullname = os.path.join(outdir, outname)
                 a_df[['Fragment size in bp', 'Density']].to_csv(fullname)
             return None
@@ -473,9 +469,9 @@ rule make_lines_for_frag_hist:
 rule frag_plot_paste:
     """Make fragment plots"""
     input:
-        expand(output_path + "/report/Quality/frag_files/{sample}_frags_hist.csv", sample = list(config["samples"].keys()))
+        expand(output_path + "/report/Reads_Level_Quality/frag_files/{sample}_frags_hist.csv", sample = list(config["samples"].keys()))
     output:
-        output_path + "/report/Quality/08_fragment_length_line.plotly"
+        output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly"
     run:
         dfList = []
         for i in range(len(input)):
@@ -483,7 +479,7 @@ rule frag_plot_paste:
         dfs = [df.set_index('Fragment size in bp') for df in dfList]
         df_save = pd.concat(dfs, axis=1)
         df_save.columns = list(config["samples"].keys())
-        df_save.to_csv(output_path + "/report/Quality/08_fragment_length_line.plotly")
+        df_save.to_csv(output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly")
 ###############################################################################
 # Plot contamination
 rule cohort_report_data_quality_plots:
@@ -491,8 +487,8 @@ rule cohort_report_data_quality_plots:
     input:
         output_path + "/data/contamination2_parsed.csv"
     output:
-        csv=output_path + "/report/Quality/01_contamination_bar.plotly",
-        details=output_path + "/report/Quality/01_details.yaml",
+        csv=output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/05_details.yaml",
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The reported values for each species represent the percent of 100,000 reads that map to the reference genome of that species.'""",
@@ -509,8 +505,8 @@ rule cohort_report_data_quality_plots2:
     input:
         output_path + "/data/mapped_reads.csv"
     output:
-        csv=output_path + "/report/Quality/02_mapped_reads_bar.plotly",
-        details=output_path + "/report/Quality/02_details.yaml",
+        csv=output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/02_details.yaml",
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'Mapped reads refer to the number of reads successfully mapping to the genome, while uniquely mapped reads are the subset of mapped reads mapping only to one genomic location.'""",
@@ -539,8 +535,8 @@ rule cohort_report_data_quality_plots4:
     input:
         output_path + "/data/pbc_parsed_samplenames.csv"
     output:
-        csv=output_path + "/report/Quality/03_pcr_bottleneck_coefficient_bar.plotly",
-        details=output_path + "/report/Quality/03_details.yaml",
+        csv=output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/03_details.yaml",
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The PCR bottleneck coefficient (PBC) refers to the number of locations with exactly one uniquely mapped read divided by the number of unique genomic locations.'""",
@@ -569,8 +565,8 @@ rule cohort_report_data_quality_plots5:
     input:
         output_path + "/data/frip_score_parsed_samplenames.csv"
     output:
-        csv=output_path + "/report/Quality/04_fraction_of_reads_in_peaks_bar.plotly",
-        details=output_path + "/report/Quality/04_details.yaml",
+        csv=output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/03_details.yaml",
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The fraction of reads in peaks (FRIP) score is the fraction of 4 million subsampled reads that fall within a defined peak region.'""",
@@ -587,8 +583,8 @@ rule cohort_report_data_quality_plots6:
     input:
         output_path + "/data/number_of_peaks.csv"
     output:
-        csv=output_path + "/report/Quality/05_number_of_peaks_bar.plotly",
-        details=output_path + "/report/Quality/05_details.yaml",
+        csv=output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/02_details.yaml",
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The total peaks called, the peaks with a > 10 fold change (10FC), and the peaks with a > 20 fold change (20FC) for each run are represented here.'""",
@@ -617,8 +613,8 @@ rule cohort_report_data_quality_plots7:
     input:
         output_path + "/data/putative_targets_parsed_samplenames.csv"
     output:
-        csv=output_path + "/report/Quality/06_peak_annotations_bar.plotly",
-        details=output_path + "/report/Quality/06_details.yaml",
+        csv=output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/04_details.yaml",
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The proportions of peaks for each sample overlapping with the promoters, exons, introns, and intergenic regions are shown here.'""",
@@ -645,8 +641,8 @@ rule cohort_report_data_quality_plots8:
     input:
         output_path + "/data/dhs_parsed_samplenames.csv"
     output:
-        csv=output_path + "/report/Quality/07_DNAse_I_hypersensitivity_bar.plotly",
-        details=output_path + "/report/Quality/07_details.yaml",
+        csv=output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/05_details.yaml",
     params:
         files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'DNAse hypersensitive sites (DHS) may represent highly active regions of the genome. The data below represent the percentage of 4 million subsampled peaks that intersect with DHS peaks as defined by list of known DHS regions (specific to each species).'""",
@@ -662,8 +658,8 @@ rule report_simple_table1:
     input:
          output_path + "/data/contamination2.csv"
     output:
-         csv=output_path + "/report/Quality/12_contamination_table.dt",
-         details=output_path + "/report/Quality/12_details.yaml"
+         csv=output_path + "/report/Reads_Level_Quality/04_contamination_table.dt",
+         details=output_path + "/report/Reads_Level_Quality/04_details.yaml"
     params:
          caption="caption: 'Contamination percentages for all reference genomes are included here.' "
     shell:
@@ -674,39 +670,39 @@ rule report_simple_table1:
 rule copy_for_report_table_2:
     """Copy the csv files for rendering table of read data"""
     input:
-        output_path + "/report/Quality/02_mapped_reads_bar.plotly",
-        output_path + "/report/Quality/03_pcr_bottleneck_coefficient_bar.plotly"
+        output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly",
+        output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly"
     output:
-        temp(output_path + "/report/Quality/11_read_level_summary_table_for_format.csv")
+        temp(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table_for_format.csv")
     run:
-        mapping_df = pd.read_csv(output_path + "/report/Quality/02_mapped_reads_bar.plotly", index_col=0)
-        pbc_df = pd.read_csv(output_path + "/report/Quality/03_pcr_bottleneck_coefficient_bar.plotly").set_index(mapping_df.index)
+        mapping_df = pd.read_csv(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly", index_col=0)
+        pbc_df = pd.read_csv(output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly").set_index(mapping_df.index)
         result2 = pd.concat([mapping_df, pbc_df], axis=1, sort=False)
         result2['Uniquely Mapped'] = result2['UniquelyMapped']
-        result2[['Total', 'Mapped', 'Uniquely Mapped', 'PBC']].to_csv(output_path + "/report/Quality/11_read_level_summary_table_for_format.csv")
+        result2[['Total', 'Mapped', 'Uniquely Mapped', 'PBC']].to_csv(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table_for_format.csv")
 ###############################################################################
 # Format csv for read level data table
 rule copy_for_report_table_2_format_data:
     """Format the data in csv files for rendering table of read data"""
     input:
-        output_path + "/report/Quality/11_read_level_summary_table_for_format.csv"
+        output_path + "/report/Reads_Level_Quality/01_read_level_summary_table_for_format.csv"
     output:
-        temp(output_path + "/report/Quality/11_read_level_summary_format.csv")
+        temp(output_path + "/report/Reads_Level_Quality/01_read_level_summary_format.csv")
     run:
-        read_to_format_df = pd.read_csv(output_path + "/report/Quality/11_read_level_summary_table_for_format.csv", index_col=0)
+        read_to_format_df = pd.read_csv(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table_for_format.csv", index_col=0)
         read_to_format_df['Total (M)'] = np.rint(read_to_format_df['Total']/1000000).astype(int)
         read_to_format_df['Mapped (M)'] = np.rint(read_to_format_df['Mapped']/1000000).astype(int)
         read_to_format_df['Uniquely Mapped (M)'] = np.rint(read_to_format_df['Uniquely Mapped']/1000000).astype(int)
         read_to_format_df['PBC'] = np.around(read_to_format_df['PBC'], decimals=2)
-        read_to_format_df[['Total (M)', 'Mapped (M)', 'Uniquely Mapped (M)', 'PBC']].to_csv(output_path + "/report/Quality/11_read_level_summary_format.csv")
+        read_to_format_df[['Total (M)', 'Mapped (M)', 'Uniquely Mapped (M)', 'PBC']].to_csv(output_path + "/report/Reads_Level_Quality/01_read_level_summary_format.csv")
 ###############################################################################
 # Render read level data table
 rule report_simple_table2:
     input:
-         output_path + "/report/Quality/11_read_level_summary_format.csv"
+         output_path + "/report/Reads_Level_Quality/01_read_level_summary_format.csv"
     output:
-         csv=output_path + "/report/Quality/11_read_level_summary_table.dt",
-         details=output_path + "/report/Quality/11_details.yaml"
+         csv=output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt",
+         details=output_path + "/report/Reads_Level_Quality/01_details.yaml"
     params:
          caption="caption: 'Abbreviations: M, million; PBC, PCR bottlneck coefficient.' "
     shell:
@@ -717,43 +713,43 @@ rule report_simple_table2:
 rule copy_for_report_table_3:
     """Copy the csv files for rendering table of peak data"""
     input:
-        output_path + "/report/Quality/04_fraction_of_reads_in_peaks_bar.plotly",
-        output_path + "/report/Quality/05_number_of_peaks_bar.plotly",
-        output_path + "/report/Quality/06_peak_annotations_bar.plotly",
-        output_path + "/report/Quality/07_DNAse_I_hypersensitivity_bar.plotly"
+        output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+        output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly",
+        output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+        output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly"
     output:
-        temp(output_path + "/report/Quality/10_peak_level_summary_table_for_format.csv")
+        temp(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table_for_format.csv")
     run:
-        df2 = pd.read_csv(output_path + "/report/Quality/05_number_of_peaks_bar.plotly", index_col=0)
-        df1 = pd.read_csv(output_path + "/report/Quality/04_fraction_of_reads_in_peaks_bar.plotly").set_index(df2.index)
-        df3 = pd.read_csv(output_path + "/report/Quality/06_peak_annotations_bar.plotly").set_index(df2.index)
-        df4 = pd.read_csv(output_path + "/report/Quality/07_DNAse_I_hypersensitivity_bar.plotly").set_index(df2.index)
+        df2 = pd.read_csv(output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly", index_col=0)
+        df1 = pd.read_csv(output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly").set_index(df2.index)
+        df3 = pd.read_csv(output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly").set_index(df2.index)
+        df4 = pd.read_csv(output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly").set_index(df2.index)
         result = pd.concat([df2, df1, df3, df4], axis=1, sort=False)
-        result3c = result[['Total', '10FC', '20FC', 'FRiP', '% peaks in promoters', '% peaks in exons', '% peaks in introns', '% peaks in intergenic regions', '% peaks in DHS']].to_csv(output_path + "/report/Quality/10_peak_level_summary_table_for_format.csv")
+        result3c = result[['Total', '10FC', '20FC', 'FRiP', '% peaks in promoters', '% peaks in exons', '% peaks in introns', '% peaks in intergenic regions', '% peaks in DHS']].to_csv(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table_for_format.csv")
 ###############################################################################
 # Format csv for peak level data table
 rule copy_for_report_table_3_format_data:
     """Format the data in csv files for rendering table of peak data"""
     input:
-        output_path + "/report/Quality/10_peak_level_summary_table_for_format.csv"
+        output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table_for_format.csv"
     output:
-        temp(output_path + "/report/Quality/10_peak_level_summary_format.csv")
+        temp(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_format.csv")
     run:
-        read_to_format_df2 = pd.read_csv(output_path + "/report/Quality/10_peak_level_summary_table_for_format.csv", index_col=0)
+        read_to_format_df2 = pd.read_csv(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table_for_format.csv", index_col=0)
         read_to_format_df2['% prom'] = np.around(read_to_format_df2['% peaks in promoters'],decimals=2)
         read_to_format_df2['% exons'] = np.around(read_to_format_df2['% peaks in exons'],decimals=2)
         read_to_format_df2['% introns'] = np.around(read_to_format_df2['% peaks in introns'],decimals=2)
         read_to_format_df2['% inter'] = np.around(read_to_format_df2['% peaks in intergenic regions'],decimals=2)
         read_to_format_df2['% DHS'] = np.around(read_to_format_df2['% peaks in DHS'],decimals=2)
-        read_to_format_df2[['Total', '10FC', '20FC', 'FRiP', '% prom', '% exons', '% introns', '% inter', '% DHS']].to_csv(output_path + "/report/Quality/10_peak_level_summary_format.csv")
+        read_to_format_df2[['Total', '10FC', '20FC', 'FRiP', '% prom', '% exons', '% introns', '% inter', '% DHS']].to_csv(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_format.csv")
 ###############################################################################
 # Render table for peak level data
 rule report_simple_table3_format:
     input:
-         output_path + "/report/Quality/10_peak_level_summary_format.csv"
+         output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_format.csv"
     output:
-         csv=output_path + "/report/Quality/10_peak_level_summary_table.dt",
-         details=output_path + "/report/Quality/10_details.yaml"
+         csv=output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.dt",
+         details=output_path + "/report/Peaks_Level_Quality/01_details.yaml"
     params:
          caption="caption: 'Abbreviations: 10FC, > 10 fold change; 20FC, > 20 fold change; FRiP, Fraction of reads in peaks; Prom, Promoter; Inter, Intergenic; DHS, DNAseI hypersensitivity sites' "
     shell:
@@ -765,8 +761,6 @@ rule genome_tracks_init:
     """Make genome track initial file"""
     input:
         GENOMETRACK_FILES
-        #glob.glob(output_path + "report/Quality/tss_*"),
-        #VERTICAL_LINE_BED_FILES
     output:
         output_path + "/report/tracks_all.ini"
     run:
@@ -841,7 +835,7 @@ rule report_auto_render:
     params:
         jinja2_template="cidc_chips/report/index.sample.html",
         output_path = output_path + "/report",
-        sections_list=",".join(['Overview', "Quality", "Downstream"]), #define sections order here
+        sections_list=",".join(['Overview', "Reads_Level_Quality", "Peaks_Level_Quality", "Genome_Track_View","Downstream"]), #define sections order here
         title="CHIPs Report",
     output:
         output_path+ "/report/report.html"
