@@ -1,6 +1,9 @@
 #MODULE: Align fastq files to genome - common rules
 #import os
 _align_threads=8
+#memory for samtools sort default 2G, this is the max required memory per thread.
+#samtools uses the _align_threads for sorting, so at least 16G memory is needed for a sample.
+_samtools_sort_mem=2
 
 def align_targets(wildcards):
     """Generates the targets for this module"""
@@ -35,15 +38,15 @@ def getBam(wildcards):
         ret = first_file
     return [ret]
 
-def getSortMemory(wildcards):
-    bam_size = math.ceil(os.path.getsize(checkpoints.align_aggregate.get(sample=wildcards.sample).output[0])/1024/1024/1024)
-    memory = bam_size*2
-    return str(memory)
+#def getSortMemory(wildcards):
+#    bam_size = math.ceil(os.path.getsize(checkpoints.align_aggregate.get(sample=wildcards.sample).output[0])/1024/1024/1024)
+#    memory = bam_size*2
+#    return str(memory)
 
-def getUniqueSortMemory(wildcards):
-    bam_size = math.ceil(os.path.getsize(checkpoints.align_uniquelyMappedReads.get(sample=wildcards.sample).output[0])/1024/1024/1024)
-    memory = bam_size*2
-    return str(memory)
+#def getUniqueSortMemory(wildcards):
+#    bam_size = math.ceil(os.path.getsize(checkpoints.align_uniquelyMappedReads.get(sample=wildcards.sample).output[0])/1024/1024/1024)
+#    memory = bam_size*2
+#    return str(memory)
 
 rule align_all:
     input:
@@ -80,7 +83,6 @@ rule align_mapStats:
     threads: _align_threads
     message: "ALIGN: get mapping stats for {input}"
     log: output_path + "/logs/align/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_align_mapStats.benchmark"
     conda: "../envs/align/align_common.yaml"
     #CAN/should samtools view be multi-threaded--
     #UPDATE: tricky on how to do this right w/ compounded commands
@@ -110,8 +112,7 @@ rule align_collectMapStats:
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "ALIGN: collect and parse ALL mapping stats for {input}"
-    #log: output_path + "/logs/align/{sample}.log"
-    #benchmark: output_path + "/Benchmark/{sample}_align_collectMapStats.benchmark"
+    # log: output_path + "/logs/align/{sample}.log"
     conda: "../envs/align/align_common.yaml"
     #NOTE: can't do conda envs with run
     #run:
@@ -210,7 +211,6 @@ else:
             # bai = output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
         message: "ALIGN: dedup sorted unique bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
-        benchmark: output_path + "/Benchmark/{sample}_align_dedup.benchmark"
         conda: "../envs/align/align_common.yaml"
         threads: _align_threads
         shell:
@@ -228,13 +228,12 @@ else:
             #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
         message: "ALIGN: sort bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
-        benchmark: output_path + "/Benchmark/{sample}_align_sortBam.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
-            memory = lambda wildcards: getSortMemory(wildcards)
+            memory = _samtools_sort_mem
         threads: _align_threads
         shell:
-            "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
+            "samtools sort {input} -o {output} -@ {threads} -m {params.memory}G -T {output[0]}.tmp 2>>{log}"
 
     rule align_sortUniqueBams:
         """General sort rule--take a bam {filename}.bam and
@@ -247,13 +246,12 @@ else:
             #output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai"
         message: "ALIGN: sort bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
-        benchmark: output_path + "/Benchmark/{sample}_align_sortUnique.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
-            memory = lambda wildcards: getUniqueSortMemory(wildcards)
+            memory = _samtools_sort_mem
         threads: _align_threads
         shell:
-            "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
+            "samtools sort {input} -o {output} -@ {threads} -m {params.memory}G -T {output[0]}.tmp 2>>{log}"
 
 rule align_filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""
@@ -263,7 +261,6 @@ rule align_filterBams:
         output_path + "/align/{sample}/{sample}_unique.sorted.sub%s.bam" % str(config['cutoff'])
     message: "ALIGN: filter bam files for {input}"
     log: output_path + "/logs/align/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_align_filterBams.benchmark"
     params:
         cutoff = config['cutoff']
     conda: "../envs/align/align_common.yaml"
@@ -278,7 +275,6 @@ rule align_indexBam:
         output_path + "/align/{sample}/{prefix}.bam.bai"
     message: "ALIGN: indexing bam file {input}"
     # log: output_path + "/logs/align/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_{prefix}_align_indexBam.benchmark"
     conda: "../envs/align/align_common.yaml"
     shell:
         "sambamba index {input} {output}"
@@ -293,7 +289,6 @@ rule align_extractUnmapped:
         temp(output_path + "/align/{sample}/{sample}.unmapped.bam")
     message: "ALIGN: extract unmapped reads for {input}"
     log: output_path + "/logs/align/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_align_extractUnmapped.benchmark"
     conda: "../envs/align/align_common.yaml"
     threads: _align_threads
     shell:
@@ -315,7 +310,6 @@ rule align_bamToFastq:
         mate2 = lambda wildcards: "-fq2 " + output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: convert unmapped bam to fastq for {input}"
     log: output_path + "/logs/align/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_align_bamToFastq.benchmark"
     conda: "../envs/align/align_common.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} {params.mate2}"
@@ -331,7 +325,6 @@ rule align_gzipUnmappedFq:
         mate2 = lambda wildcards: output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: gzip unmapped fq files for {input}"
     log: output_path + "/logs/align/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_align_gzipUnmappedFq.benchmark"
     conda: "../envs/align/align_common.yaml"
     shell:
         "gzip -f {input} {params} 2>>{log}"
@@ -355,3 +348,4 @@ rule align_readsPerChromStat:
     conda: "../envs/align/align_common.yaml"
     shell:
         "cidc_chips/modules/scripts/align_readsPerChrom.sh -a {input.bam} > {output} 2>> {log}"
+

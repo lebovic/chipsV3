@@ -59,7 +59,7 @@ def prettyprint(s, toUpper=False):
     if toUpper:
         s = s.upper()
         s= s.replace("_", " ")
-    elif s.islower(): #ONLY modify IF all letters are lowercase
+    else:
         s = s.title()
         s= s.replace("_", " ")
     return s
