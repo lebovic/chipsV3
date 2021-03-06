@@ -1,9 +1,7 @@
 #MODULE: Align fastq files to genome - common rules
 #import os
 _align_threads=8
-#memory for samtools sort default 2G, this is the max required memory per thread.
-#samtools uses the _align_threads for sorting, so at least 16G memory is needed for a sample.
-_samtools_sort_mem=2
+_sambamba_sort_mem=4
 
 def align_targets(wildcards):
     """Generates the targets for this module"""
@@ -38,15 +36,17 @@ def getBam(wildcards):
         ret = first_file
     return [ret]
 
-#def getSortMemory(wildcards):
-#    bam_size = math.ceil(os.path.getsize(checkpoints.align_aggregate.get(sample=wildcards.sample).output[0])/1024/1024/1024)
-#    memory = bam_size*2
-#    return str(memory)
+## this will require sambamba to use 2x size of the bam file for sorting, which is too big and may cause memory issues.
+## define the memory _sambamba_sort_mem on top of this snakefile instead
+def getSortMemory(wildcards):
+    bam_size = math.ceil(os.path.getsize(checkpoints.align_aggregate.get(sample=wildcards.sample).output[0])/1024/1024/1024)
+    memory = bam_size*2
+    return str(memory)
 
-#def getUniqueSortMemory(wildcards):
-#    bam_size = math.ceil(os.path.getsize(checkpoints.align_uniquelyMappedReads.get(sample=wildcards.sample).output[0])/1024/1024/1024)
-#    memory = bam_size*2
-#    return str(memory)
+def getUniqueSortMemory(wildcards):
+    bam_size = math.ceil(os.path.getsize(checkpoints.align_uniquelyMappedReads.get(sample=wildcards.sample).output[0])/1024/1024/1024)
+    memory = bam_size*2
+    return str(memory)
 
 rule align_all:
     input:
@@ -211,6 +211,7 @@ else:
             # bai = output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
         message: "ALIGN: dedup sorted unique bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
+        benchmark: output_path + "/Benchmark/{sample}_align_dedup.benchmark"
         conda: "../envs/align/align_common.yaml"
         threads: _align_threads
         shell:
@@ -228,12 +229,13 @@ else:
             #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
         message: "ALIGN: sort bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
+        benchmark: output_path + "/Benchmark/{sample}_align_sortBam.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
-            memory = _samtools_sort_mem
+            memory = _sambamba_sort_mem
         threads: _align_threads
         shell:
-            "samtools sort {input} -o {output} -@ {threads} -m {params.memory}G -T {output[0]}.tmp 2>>{log}"
+            "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
 
     rule align_sortUniqueBams:
         """General sort rule--take a bam {filename}.bam and
@@ -246,12 +248,13 @@ else:
             #output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai"
         message: "ALIGN: sort bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
+        benchmark: output_path + "/Benchmark/{sample}_align_sortUnique.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
-            memory = _samtools_sort_mem
+            memory = _sambamba_sort_mem
         threads: _align_threads
         shell:
-            "samtools sort {input} -o {output} -@ {threads} -m {params.memory}G -T {output[0]}.tmp 2>>{log}"
+            "sambamba sort {input} -o {output} -t {threads} -m {params.memory}G 2>>{log}"
 
 rule align_filterBams:
     """Filter out the long reads to get more accurate results in peaks calling"""
@@ -348,4 +351,3 @@ rule align_readsPerChromStat:
     conda: "../envs/align/align_common.yaml"
     shell:
         "cidc_chips/modules/scripts/align_readsPerChrom.sh -a {input.bam} > {output} 2>> {log}"
-
