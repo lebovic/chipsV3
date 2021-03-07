@@ -59,7 +59,7 @@ rule align_bwaMem:
     message: "ALIGN: Running BWA mem for alignment for {input}"
     version: BWA_VERSION
     log: output_path + "/logs/align/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_aligntrim_bwaMem.benchmark"
+    benchmark: output_path + "/Benchmark/{sample}_align_bwaMem.benchmark"
     conda: "../envs/align/align_bwa.yaml"
     shell:
         "{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
@@ -78,7 +78,7 @@ rule align_bwaAln:
     threads: _bwa_threads
     message: "ALIGN: Running BWA aln for alignment for {input}"
     log: output_path + "/logs/align/{sample}_{mate}.log"
-    benchmark: output_path + "/Benchmark/{sample}_{mate}_aligntrim_bwaAln.benchmark"
+    benchmark: output_path + "/Benchmark/{sample}_{mate}_align_bwaAln.benchmark"
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai} 2>>{log}"
 
@@ -97,8 +97,8 @@ rule align_bwaConvert:
         read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
     message: "ALIGN: Converting BWA alignment to BAM for {input}"
-    # log: output_path + "/logs/align/{sample}.log"
-    # benchmark: output_path + "/Benchmark/{sample}_aligntrim_bwaConvert.benchmark"
+    log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_bwaConvert.benchmark"
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 

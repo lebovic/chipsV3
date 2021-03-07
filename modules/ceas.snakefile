@@ -65,6 +65,7 @@ rule ceas_annotatePeaksRegions:
         summary=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt",
     message: "CEAS: annotating peak regions"
     log: output_path + "/logs/ceas/{run}.{rep}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_ceas_annotatePeaksRegions.benchmark"
     conda: "../envs/ceas/ceas.yaml"
     params:
         db=config['geneTable'],
@@ -108,7 +109,7 @@ rule ceas_DHSIntersect:
         "intersectBed -wa -u -a {input} -b {params.dhs} > {output} " #2>>{log}"
     #run:
         #HACK! IN the CASE where no DHS is defined/available for species/assemb
-        #USE AN EMPTY FILE.  CONSEQUENCE- everything downstream will count 0 
+        #USE AN EMPTY FILE.  CONSEQUENCE- everything downstream will count 0
         #DHS regions, NOT N/A
     #    if config['DHS']:
     #        shell("intersectBed -wa -u -a {input} -b {params.dhs} > {output} 2>>{log}")
@@ -165,7 +166,7 @@ rule ceas_VELCROIntersect:
     #    else:
     #        #No velcro file defined --> empty output
     #        shell("touch {output} && echo 'WARNING: no velcro region defined' >>{log}")
-    
+
 rule ceas_VELCROStat:
     """collect VELCRO stats"""
     input:
@@ -189,7 +190,8 @@ rule ceas_bamRegionStat:
         #for use in message only
         msg = lambda wildcards: "%s:%s" % (wildcards.sample, wildcards.region)
     message: "CEAS: bam stat region {params.msg}"
-    # log: output_path + "/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{sample}.{region}.log"
+    benchmark: output_path + "/Benchmark/{sample}.{region}_ceas_bamRegionStat.benchmark"
     conda: "../envs/ceas/ceas.yaml"
     output:
         #make temp
@@ -207,7 +209,8 @@ rule ceas_collectBamRegionStatsToJson:
         prom = output_path + "/ceas/samples/{sample}/{sample}.promoters",
         exon = output_path + "/ceas/samples/{sample}/{sample}.exons",
     message: "CEAS: collect bam region stats into json file"
-    # log: output_path + "/logs/ceas/{run}.{rep}.log"
+    log: output_path + "/logs/ceas/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_ceas_collectBamRegionStatsToJson.benchmark"
     conda: "../envs/ceas/ceas.yaml"
     output:
         output_path + "/ceas/samples/{sample}/{sample}_meta.json"
@@ -256,7 +259,7 @@ rule ceas_collectCEASstats:
     params:
         files = lambda wildcards, input: [" -f %s" % i for i in input]
     message: "CEAS: collect CEAS stats"
-    # log: output_path + "/logs/ceas/{run}.{rep}.log"
+    #log: output_path + "/logs/ceas/{run}.{rep}.log"
     conda: "../envs/ceas/ceas.yaml"
     output:
         output_path + '/ceas/meta.csv'
