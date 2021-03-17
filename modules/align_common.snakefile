@@ -1,7 +1,7 @@
 #MODULE: Align fastq files to genome - common rules
 #import os
 _align_threads=8
-_sambamba_sort_mem=4
+_sambamba_sort_mem=2
 
 def align_targets(wildcards):
     """Generates the targets for this module"""
