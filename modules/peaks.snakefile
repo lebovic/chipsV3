@@ -6,6 +6,12 @@ _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
 
+
+# for narrowpeak calling, extra parameters passed to macs2.
+# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,
+# for narrowpeak, has to modify the below parameter.
+_macs_extra_param = config.get("macs_extra_param", "")
+
 def getTreats(wildcards):
     tmp=[]
     #print(wildcards)
@@ -175,7 +181,8 @@ if config.get("macs2_broadpeaks"):
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "--nolambda",
         message: "PEAKS: calling peaks with macs2 for {input}"
-        log:output_path + "/logs/peaks/{run}.{rep}.log"
+        log: output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             """
@@ -185,7 +192,7 @@ if config.get("macs2_broadpeaks"):
             --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} > {log} 2>&1
 
             """
-           
+
 
     rule peaks_macs2FilteredCallpeaksBroad:
         input:
@@ -210,6 +217,7 @@ if config.get("macs2_broadpeaks"):
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling broad peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            """
@@ -299,7 +307,8 @@ if config.get("macs2_broadpeaks"):
         output:
             output_path + "/peaks/peakStats.csv"
         message: "PEAKS: collecting peaks stats for each run for {input}"
-        # log:output_path + "/logs/peaks/{run}.{rep}.log"
+        log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_getBroadStats.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
@@ -312,6 +321,7 @@ if config.get("macs2_broadpeaks"):
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
         message: "PEAKS: Plot peaks region for {input}"
         conda: "../envs/peaks/peaks.yaml"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_broadPeaksPlot.benchmark"
         shell:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
@@ -335,20 +345,22 @@ else:
             name="{run}.{rep}",
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            macs_extra_param = _macs_extra_param,
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            """
            macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} \
-           -g {params.genome_size} {params.BAMPE} \
+           -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} \
            {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} > {log} 2>&1
            """
         #run:
         #    treatment = "-t %s" % input.treat if input.treat else "",
-        #    control = "-c %s" % input.cont if input.cont else "",        
+        #    control = "-c %s" % input.cont if input.cont else "",
         #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
     rule peaks_macs2FilteredCallpeaks:
@@ -370,13 +382,15 @@ else:
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            macs_extra_param = _macs_extra_param,
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling filtered reads peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} "
            "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
 
     rule peaks_unsortPeaksToBed:
@@ -459,7 +473,8 @@ else:
         output:
             output_path + "/peaks/peakStats.csv"
         message: "PEAKS: collecting peaks stats for each run for {input}"
-        # log:output_path + "/logs/peaks/{run}.{rep}.log"
+        #log:output_path + "/logs/peaks/{run}.{rep}.log"
+        #benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_getPeaksStats.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
@@ -475,7 +490,7 @@ else:
         shell:
             "sort -r -n -k 5 {input} > {output} "#2>>{log}"
 
-    rule peaks_broadPeaksPlot:
+    rule peaks_NarrowPeaksPlot:
         input:
             peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
             ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
@@ -483,6 +498,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
         message: "PEAKS: Plot peaks region for {input}"
         conda: "../envs/peaks/peaks.yaml"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_NarrowPeaksPlot.benchmark"
         shell:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
@@ -500,6 +516,7 @@ rule peaks_macs2GetFragment:
     message: "PEAKS: Get fragment size with macs2 for {input}"
     log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_macs2GetFragment.benchmark"
     shell:
        "macs2 predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
 
@@ -513,7 +530,8 @@ rule peaks_sortBedgraphs:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    #log:output_path + "/logs/peaks/{run}.{rep}.log"
+    #benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_sortBedgraphs.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedSort {input} {output}"# 2>>{log}"
@@ -529,7 +547,8 @@ rule peaks_bdgToBw:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_bdgToBw.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} "#2>>{log}"
@@ -544,7 +563,7 @@ rule peaks_sortFilteredBedgraphs:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    #log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedSort {input} {output}"# 2>>{log}"
@@ -560,7 +579,8 @@ rule peaks_filteredBdgToBw:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_filteredBdgToBw.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output}"# 2>>{log}"
@@ -577,14 +597,15 @@ rule peaks_gzipBdg:
         #msg just for message below
         msg= lambda wildcards: "%s.%s" % (wildcards.run, wildcards.rep)
     message: "PEAKS: compressing sorted.bdg {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_gzipBdg.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "gzip {input.bdg} " #2>> {log}"
 
 
 rule peaks_macsRunInfo:
-    """Dump the current version of macs and the fdr used into a text file 
+    """Dump the current version of macs and the fdr used into a text file
     for the report"""
     params:
         fdr = _macs_fdr,
@@ -595,7 +616,7 @@ rule peaks_macsRunInfo:
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "macs2 --version > {output} && echo fdr {params.fdr} >> {output}"
-    
+
 rule peaks_generateIGVsession:
     """Generates analysis/peaks/all_treatments.igv.xml, a igv session of all
     of the treatment.bw files"""
@@ -611,9 +632,9 @@ rule peaks_generateIGVsession:
     message: "PEAKS: generate IGV session for all treatment.bw files"
     shell:
         "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output}"# 2>>{log}"
-        
+
 rule peaks_generateIGVperTrack:
-    """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
+    """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of
     the treatment.bw file
     **VERY similar to generate_IGV_session, but this is for each individual
     treatment"""

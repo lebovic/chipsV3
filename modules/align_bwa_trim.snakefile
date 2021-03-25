@@ -4,7 +4,7 @@
 
 import subprocess
 
-_bwa_threads=8
+_bwa_threads=4
 _bwa_q="5"
 _bwa_l="32"
 _bwa_k="2"
@@ -59,6 +59,7 @@ rule align_bwaMem:
     message: "ALIGN: Running BWA mem for alignment for {input}"
     version: BWA_VERSION
     log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_bwaMem.benchmark"
     conda: "../envs/align/align_bwa.yaml"
     shell:
         "{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
@@ -76,9 +77,10 @@ rule align_bwaAln:
         sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else ""
     threads: _bwa_threads
     message: "ALIGN: Running BWA aln for alignment for {input}"
-    # log: output_path + "/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}_{mate}.log"
+    benchmark: output_path + "/Benchmark/{sample}_{mate}_align_bwaAln.benchmark"
     shell:
-        "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}"
+        "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai} 2>>{log}"
 
 rule align_bwaConvert:
     input:
@@ -95,7 +97,8 @@ rule align_bwaConvert:
         read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
     message: "ALIGN: Converting BWA alignment to BAM for {input}"
-    # log: output_path + "/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_bwaConvert.benchmark"
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 
@@ -126,4 +129,3 @@ rule align_macsRunInfo:
     conda: "../envs/align/align_bwa.yaml"
     shell:
         "cidc_chips/modules/scripts/align_parseBwaVersion.py -o {output}"
-

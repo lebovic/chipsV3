@@ -3,12 +3,12 @@
 _bwa_q="5"
 _bwa_l="32"
 _bwa_k="2"
-_bwa_threads=4
+_bwa_threads=8
 
 ###############################################################################
 # HELPERS
 ###############################################################################
-_contaminationPanel= config.get('contamination_panel', []) 
+_contaminationPanel= config.get('contamination_panel', [])
 
 def extractIndexName(path):
     """Given a contamination panel path, e.g. /some/path/to/BWA/hg19.fa,
@@ -33,7 +33,7 @@ def contamination_targets(wildcards):
 def get100k_sample(wildcards):
     """NOTE: there are two different 100k files, either _100k.fastq or
     _100k.bam.fastq.  The former comes from runs that have fastqs as input,
-    while latter started w/ bams as inputs.  
+    while latter started w/ bams as inputs.
 
     This fn distinguishes which. (based on fastqc.snakefile getFastqcInput
     """
@@ -50,7 +50,7 @@ rule contamination_all:
         contamination_targets
 
 rule contamination_alignContamination:
-    """For each sample, run an alignment for each entry in the 
+    """For each sample, run an alignment for each entry in the
     contaminationPanel and get the mapping rate"""
     input:
         get100k_sample
@@ -65,10 +65,11 @@ rule contamination_alignContamination:
         panel = lambda wildcards: wildcards.panel
     threads: _bwa_threads
     message: "CONTAMINATION: checking {params.sample} against {params.panel}"
-    # log: output_path + "/logs/contamination/{sample}.log"
+    log: output_path + "/logs/contamination/{sample}.{panel}.log"
+    benchmark: output_path + "/Benchmark/{sample}.{panel}_contam.benchmark"
     conda: "../envs/contamination/contamination.yaml"
     shell:
-        "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} "#2>> {log}"
+        "bwa mem -t {threads} {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
 
 rule contamination_Stats:
     """Extract the mapping stats for each species"""
