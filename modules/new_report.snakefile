@@ -15,7 +15,8 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Overview/03_assembly.csv")
 
     ls.append(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt")
-    ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/01_details.yaml")
+    #ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
     return ls
 
 rule report_all:
@@ -39,7 +40,7 @@ rule report_overview_software_versions:
         tsv=output_path + "/report/Overview/02_select_software_versions.tsv",
         details=output_path + "/report/Overview/02_details.yaml",
     params:
-        caption="""caption: 'The details of other software used in CHIPs are written to software_versions_all.txt in the directory where this report was generated.'"""       
+        caption="""caption: 'The details of other software used in CHIPs are written to software_versions_all.txt in the directory where this report was generated.'"""
     shell:
         """echo "{params.caption}" >> {output.details} && """
         """cidc_chips/modules/scripts/report/overview/software_versions.py -o {output.tsv}"""
@@ -56,15 +57,19 @@ rule report_overview_assembly:
 
 ########################### Read Level Quality Section ########################
 #GALI start here
-#rule report_read_level_summary_table:
-#    input:
-#        mapping=output_path + "/data/mapped_reads.csv"
-#        pbc=output_path + "/data/pbc_parsed_samplenames.csv",
-#    output:
-#        output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt"
-#    shell:
-#        #GALI to fill in
-    
+rule report_read_level_summary_table:
+    input:
+        mapping=output_path + "/align/mapping.csv",
+        pbc=output_path + "/frips/pbc.csv",
+    output:
+        csv=output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt",
+        details=output_path + "/report/Reads_Level_Quality/01_details.yaml",
+    params:
+        caption="""caption: 'Abbreviations: M, million; PBC, PCR bottlneck coefficient.'"""
+    shell:
+        """echo "{params.caption}" >> {output.details} && """
+        """cidc_chips/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
+
 ########################### END Read Level Quality Section ####################
 
 rule report_auto_render:
@@ -76,7 +81,7 @@ rule report_auto_render:
         jinja2_template="cidc_chips/report/index.sample.html",
         output_path = output_path + "/report",
         #sections_list=",".join(['Overview', "Reads_Level_Quality", "Peaks_Level_Quality", "Genome_Track_View","Downstream"]), #define sections order here
-        sections_list=",".join(['Overview']), #define sections order here
+        sections_list=",".join(['Overview','Reads_Level_Quality']), #define sections order here
         title="CHIPs Report",
     output:
         output_path+ "/report/report.html"
