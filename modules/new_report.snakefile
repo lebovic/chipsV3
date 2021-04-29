@@ -13,12 +13,17 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Overview/02_select_software_versions.tsv")
     ls.append(output_path + "/report/Overview/02_details.yaml")
     ls.append(output_path + "/report/Overview/03_assembly.csv")
-
+    #READ LEVEL QUALITY
     ls.append(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt")
     ls.append(output_path + "/report/Reads_Level_Quality/01_details.yaml")
     ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
     ls.append(output_path + "/report/Reads_Level_Quality/02_details.yaml")
-    #ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/03_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/04_contamination_table.dt")
+    ls.append(output_path + "/report/Reads_Level_Quality/04_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/05_details.yaml")
     return ls
 
 rule report_all:
@@ -86,6 +91,67 @@ rule report_mapped_reads_bar:
         """echo "{params.plot_options}" >> {output.details} &&"""
         """cp {input} {output.csv}"""
 
+#GALI TODO: write a helper script to calculate pbc using pbc.csv 
+rule report_read_level_pbc:
+    """Plot PBC"""
+    input:
+        output_path + "/frips/pbc.csv",
+    output:
+        csv=output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/03_details.yaml",
+    params:
+        files = lambda wildcards,input: " -f ".join(input),
+        caption="""caption: 'The PCR bottleneck coefficient (PBC) refers to the number of locations with exactly one uniquely mapped read divided by the number of unique genomic locations.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'PBC score','value':'PBC score'}}}),
+    group: "cohort_report"
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details} &&
+        cp {input} {output.csv}"""
+
+rule report_read_level_contamination_tbl:
+    input:
+         output_path + "/contam/contamination.csv"
+    output:
+         csv=output_path + "/report/Reads_Level_Quality/04_contamination_table.dt",
+         details=output_path + "/report/Reads_Level_Quality/04_details.yaml"
+    params:
+         caption="caption: 'Contamination percentages for all reference genomes are included here.' "
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        cp {input} {output.csv}"""
+
+
+#GALI TODO: write a helper script to combine the myco percentages
+rule report_read_level_contamination_plot:
+    """Plot contamination"""
+    input:
+        output_path + "/contam/contamination.csv"
+    output:
+        csv=output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/05_details.yaml",
+    params:
+        files = lambda wildcards,input: " -f ".join(input),
+        caption="""caption: 'The reported values for each species represent the percent of 100,000 reads that map to the reference genome of that species.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of 100,000 reads','value':'Percentage of 100,000 reads'}}}),
+    group: "cohort_report"
+    shell:
+        #GALI TODO: contamination2.csv -> contamination2_parsed.csv??
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details} &&
+        cp {input} {output.csv}"""
+
+#Gali TODO- write a helper script to generate plotly line graph
+# rule report_read_level_fragment_plot:
+#     """Make fragment plots"""
+#     input:
+#         expand(output_path + "/frag/{sample}/{sample}_frags.txt", sample = list(config["samples"].keys()))
+#     output:
+#         output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly"
+#     params:
+#         files = lambda wildcards,inputs: " -f ".join(input) #A way to join input files for the helper script
+#     shell:
+#         pass
 ########################### END Read Level Quality Section ####################
 
 rule report_auto_render:
