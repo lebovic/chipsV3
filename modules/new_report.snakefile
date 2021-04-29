@@ -16,6 +16,8 @@ def report_htmlTargets(wildcards):
 
     ls.append(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt")
     ls.append(output_path + "/report/Reads_Level_Quality/01_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/02_details.yaml")
     #ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
     return ls
 
@@ -69,6 +71,20 @@ rule report_read_level_summary_table:
     shell:
         """echo "{params.caption}" >> {output.details} && """
         """cidc_chips/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
+
+rule report_mapped_reads_bar:
+    input:
+        output_path + "/align/mapping.csv",
+    output:
+        csv=output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/02_details.yaml",
+    params:
+        caption="""caption: 'Mapped reads refer to the number of reads successfully mapping to the genome, while uniquely mapped reads are the subset of mapped reads mapping only to one genomic location.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Number of reads','value':'Number of reads'}}}),
+    shell:
+        """echo "{params.caption}" >> {output.details} && """
+        """echo "{params.plot_options}" >> {output.details} &&"""
+        """cp {input} {output.csv}"""
 
 ########################### END Read Level Quality Section ####################
 

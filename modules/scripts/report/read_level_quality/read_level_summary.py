@@ -42,7 +42,7 @@ def main():
     #write to the output file
     out = open(options.output, "w")
     #write header
-    out.write("%s\n" % ",".join(["Sample", "Total (M)", "Mapped (M)", "Uniqely Mapped (M)", "PBC"]))
+    out.write("%s\n" % ",".join(["Sample", "Total (M)", "Mapped (M)", "Uniquely Mapped (M)", "PBC"]))
     #concatenate each line by matching sample name
     for k in mapping_out.keys():
         l= [str(k)]
