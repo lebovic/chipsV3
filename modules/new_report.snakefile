@@ -13,6 +13,7 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Overview/02_select_software_versions.tsv")
     ls.append(output_path + "/report/Overview/02_details.yaml")
     ls.append(output_path + "/report/Overview/03_assembly.csv")
+    
     #READ LEVEL QUALITY
     ls.append(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt")
     ls.append(output_path + "/report/Reads_Level_Quality/01_details.yaml")
@@ -24,6 +25,12 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Reads_Level_Quality/04_details.yaml")
     ls.append(output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly")
     ls.append(output_path + "/report/Reads_Level_Quality/05_details.yaml")
+    
+    #PEAK LEVEL QUALITY
+    #ls.append(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.csv")
+    ls.append(output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/02_details.yaml")
+    
     return ls
 
 rule report_all:
@@ -63,7 +70,6 @@ rule report_overview_assembly:
 ########################### END OVERVIEW Section ##############################
 
 ########################### Read Level Quality Section ########################
-#GALI start here
 rule report_read_level_summary_table:
     input:
         mapping=output_path + "/align/mapping.csv",
@@ -153,7 +159,76 @@ rule report_read_level_contamination_plot:
 #     shell:
 #         pass
 ########################### END Read Level Quality Section ####################
+########################### Peak Level Quality Section ########################
+    
+#GALI todo- write the shell part of this rule
+#NOTE: it's ok to have derived report files as input
+# rule report_peak_level_summary:
+#     """Copy the csv files for rendering table of peak data"""
+#     input:
+#         output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+#         output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly",
+#         output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+#         output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly"
+#     output:
+#         output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.csv"
+#     shell:
+#         pass
 
+rule report_peak_level_peaks_plot:
+    """Render number of peaks"""
+    input:
+        output_path + "/peaks/peakStats.csv",
+    output:
+        csv=output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/02_details.yaml",
+    params:
+        files = lambda wildcards,input: " -f ".join(input),
+        caption="""caption: 'The total peaks called, the peaks with a > 10 fold change (10FC), and the peaks with a > 20 fold change (20FC) for each run are represented here.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Number of peaks','value':'Number of peaks'}}}),
+    group: "cohort_report"
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details} &&
+        cp {input} {output.csv}"""
+
+#GALI todo
+# rule report_peaks_level_frips:
+#     """Render FRIP"""
+#     input:
+#         #GALI to do--pull in the right input files for this plot
+#     output:
+#         csv=output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+#         details=output_path + "/report/Peaks_Level_Quality/03_details.yaml",
+#     params:
+#         files = lambda wildcards,input: " -f ".join(input),
+#         caption="""caption: 'The fraction of reads in peaks (FRIP) score is the fraction of 4 million subsampled reads that fall within a defined peak region.'""",
+#         plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'FRIP score (% of reads)','value':'FRIP score (% of reads)'}}}),
+#     group: "cohort_report"
+#     shell:
+# #        """echo "{params.caption}" >> {output.details} &&
+# #        echo "{params.plot_options}" >> {output.details} &&
+# ##        cp {input} {output.csv}"""
+
+#GALI TODO
+# rule report_peaks_level_annotations:
+#     input:
+#         #GALI TODO- figure out which input files are needed to generate the output (when using a helper script to help parse)
+#     output:
+#         csv=output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+#         details=output_path + "/report/Peaks_Level_Quality/04_details.yaml",
+#     params:
+#         files = lambda wildcards,input: " -f ".join(input),
+#         caption="""caption: 'The proportions of peaks for each sample overlapping with the promoters, exons, introns, and intergenic regions are shown here.'""",
+#         plot_options = yaml_dump({'plotly': {'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of peaks','value':'Percentage of peaks'}}}),
+#     group: "cohort_report"
+#     shell:
+#         pass
+
+#GALI TODO
+# rule report_peaks_level_dnase
+# ...
+########################### END Peak Level Quality Section ####################
 rule report_auto_render:
     """Generalized rule to dynamically generate the report BASED
     on what is in the report directory"""
@@ -163,7 +238,7 @@ rule report_auto_render:
         jinja2_template="cidc_chips/report/index.sample.html",
         output_path = output_path + "/report",
         #sections_list=",".join(['Overview', "Reads_Level_Quality", "Peaks_Level_Quality", "Genome_Track_View","Downstream"]), #define sections order here
-        sections_list=",".join(['Overview','Reads_Level_Quality']), #define sections order here
+        sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality']), #define sections order here
         title="CHIPs Report",
     output:
         output_path+ "/report/report.html"
