@@ -14,7 +14,7 @@ def main():
     optparser = OptionParser(usage=usage)
     optparser.add_option("-m", "--map", help="mapping.csv file in analysis/align/")
     optparser.add_option("-p", "--pbc", help="pbc.csv file in analysis/frips/")
-    optparser.add_option("-o", "--output", help="output .csv file")
+    optparser.add_option("-o", "--output", help="output .plotly file")
     (options, args) = optparser.parse_args(sys.argv)
 
     #Setup dictionaries for storing data

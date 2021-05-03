@@ -13,7 +13,7 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Overview/02_select_software_versions.tsv")
     ls.append(output_path + "/report/Overview/02_details.yaml")
     ls.append(output_path + "/report/Overview/03_assembly.csv")
-    
+
     #READ LEVEL QUALITY
     ls.append(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt")
     ls.append(output_path + "/report/Reads_Level_Quality/01_details.yaml")
@@ -25,12 +25,14 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Reads_Level_Quality/04_details.yaml")
     ls.append(output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly")
     ls.append(output_path + "/report/Reads_Level_Quality/05_details.yaml")
-    
+    ls.append(output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/06_details.yaml")
+
     #PEAK LEVEL QUALITY
     #ls.append(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.csv")
     ls.append(output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly")
     ls.append(output_path + "/report/Peaks_Level_Quality/02_details.yaml")
-    
+
     return ls
 
 rule report_all:
@@ -83,7 +85,7 @@ rule report_read_level_summary_table:
         """echo "{params.caption}" >> {output.details} && """
         """cidc_chips/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
 
-rule report_mapped_reads_bar:
+rule report_read_level_mapped_reads:
     input:
         output_path + "/align/mapping.csv",
     output:
@@ -97,8 +99,7 @@ rule report_mapped_reads_bar:
         """echo "{params.plot_options}" >> {output.details} &&"""
         """cp {input} {output.csv}"""
 
-#GALI TODO: write a helper script to calculate pbc using pbc.csv 
-rule report_read_level_pbc:
+rule report_read_level_pcr_bottleneck_coefficient:
     """Plot PBC"""
     input:
         output_path + "/frips/pbc.csv",
@@ -106,14 +107,13 @@ rule report_read_level_pbc:
         csv=output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly",
         details=output_path + "/report/Reads_Level_Quality/03_details.yaml",
     params:
-        files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The PCR bottleneck coefficient (PBC) refers to the number of locations with exactly one uniquely mapped read divided by the number of unique genomic locations.'""",
         plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'PBC score','value':'PBC score'}}}),
     group: "cohort_report"
     shell:
         """echo "{params.caption}" >> {output.details} &&
         echo "{params.plot_options}" >> {output.details} &&
-        cp {input} {output.csv}"""
+        cidc_chips/modules/scripts/report/read_level_quality/read_level_pbc.py -p {input} -o {output.csv}"""
 
 rule report_read_level_contamination_tbl:
     input:
@@ -127,8 +127,6 @@ rule report_read_level_contamination_tbl:
         """echo "{params.caption}" >> {output.details} &&
         cp {input} {output.csv}"""
 
-
-#GALI TODO: write a helper script to combine the myco percentages
 rule report_read_level_contamination_plot:
     """Plot contamination"""
     input:
@@ -137,30 +135,32 @@ rule report_read_level_contamination_plot:
         csv=output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly",
         details=output_path + "/report/Reads_Level_Quality/05_details.yaml",
     params:
-        files = lambda wildcards,input: " -f ".join(input),
+        #files=lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The reported values for each species represent the percent of 100,000 reads that map to the reference genome of that species.'""",
         plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of 100,000 reads','value':'Percentage of 100,000 reads'}}}),
     group: "cohort_report"
     shell:
-        #GALI TODO: contamination2.csv -> contamination2_parsed.csv??
         """echo "{params.caption}" >> {output.details} &&
         echo "{params.plot_options}" >> {output.details} &&
-        cp {input} {output.csv}"""
+        cidc_chips/modules/scripts/report/read_level_quality/read_level_contam.py -c {input} -o {output.csv}"""
 
-#Gali TODO- write a helper script to generate plotly line graph
-# rule report_read_level_fragment_plot:
-#     """Make fragment plots"""
-#     input:
-#         expand(output_path + "/frag/{sample}/{sample}_frags.txt", sample = list(config["samples"].keys()))
-#     output:
-#         output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly"
-#     params:
-#         files = lambda wildcards,inputs: " -f ".join(input) #A way to join input files for the helper script
-#     shell:
-#         pass
+rule report_read_level_fragment_plot:
+    """Make fragment plots"""
+    input:
+        expand(output_path + "/frag/{sample}/{sample}_frags.txt", sample = list(config["samples"].keys())),
+    output:
+        csv=output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly",
+        details=output_path + "/report/Reads_Level_Quality/06_details.yaml",
+    params:
+        files=lambda wildcards, input: " -f ".join(input),
+        caption="""caption: 'Fragment size distributions show paired-end fragments in each sample. The plotted value for each sample is the probability density in a 5 bp bin size normalized so the integral is 1.'""",
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        cidc_chips/modules/scripts/report/read_level_quality/read_level_frag.py -f {params.files} -o {output.csv}"""
+
 ########################### END Read Level Quality Section ####################
 ########################### Peak Level Quality Section ########################
-    
+
 #GALI todo- write the shell part of this rule
 #NOTE: it's ok to have derived report files as input
 # rule report_peak_level_summary:
@@ -183,7 +183,7 @@ rule report_peak_level_peaks_plot:
         csv=output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly",
         details=output_path + "/report/Peaks_Level_Quality/02_details.yaml",
     params:
-        files = lambda wildcards,input: " -f ".join(input),
+        #files = lambda wildcards,input: " -f ".join(input),
         caption="""caption: 'The total peaks called, the peaks with a > 10 fold change (10FC), and the peaks with a > 20 fold change (20FC) for each run are represented here.'""",
         plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Number of peaks','value':'Number of peaks'}}}),
     group: "cohort_report"
