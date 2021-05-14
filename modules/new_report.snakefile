@@ -5,6 +5,13 @@
 # Import packages
 import yaml
 from yaml import dump as yaml_dump
+import pandas as pd
+import os
+import csv
+import matplotlib.pyplot as plt
+import numpy as np
+import re
+import glob
 
 def report_htmlTargets(wildcards):
     ls = []
@@ -29,10 +36,20 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Reads_Level_Quality/06_details.yaml")
 
     #PEAK LEVEL QUALITY
-    #ls.append(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.csv")
+    ls.append(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.dt")
+    ls.append(output_path + "/report/Peaks_Level_Quality/01_details.yaml")
     ls.append(output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly")
     ls.append(output_path + "/report/Peaks_Level_Quality/02_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/03_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/04_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/05_details.yaml")
 
+    #Genome Track View
+    for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
+        ls.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
     return ls
 
 rule report_all:
@@ -161,19 +178,26 @@ rule report_read_level_fragment_plot:
 ########################### END Read Level Quality Section ####################
 ########################### Peak Level Quality Section ########################
 
-#GALI todo- write the shell part of this rule
-#NOTE: it's ok to have derived report files as input
-# rule report_peak_level_summary:
-#     """Copy the csv files for rendering table of peak data"""
-#     input:
-#         output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
-#         output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly",
-#         output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
-#         output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly"
-#     output:
-#         output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.csv"
-#     shell:
-#         pass
+rule report_peak_level_summary:
+    """Copy the csv files for rendering table of peak data"""
+    input:
+        map= output_path + "/align/mapping.csv",
+        peak= output_path + "/peaks/peakStats.csv",
+        frip= output_path + "/frips/frips.csv",
+        ceas= output_path + "/ceas/meta.csv",
+        dhs= output_path + "/ceas/dhs.csv",
+    output:
+        details= output_path + "/report/Peaks_Level_Quality/01_details.yaml",
+        sum= output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.dt",
+        frip= output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+        ceas= output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+        dhs= output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly",
+    params:
+        caption="caption: 'Abbreviations: 10FC, > 10 fold change; 20FC, > 20 fold change; FRiP, Fraction of reads in peaks; Prom, Promoter; Inter, Intergenic; DHS, DNAseI hypersensitivity sites' "
+    shell:
+        """
+        echo "{params.caption}" >> {output.details} &&
+        cidc_chips/modules/scripts/report/peak_level_quality/peak_level_summary.py -p {input.peak} -f {input.frip} -m {input.ceas} -d {input.dhs} -s {output.sum} -r {output.frip} -a {output.ceas} -o {output.dhs}"""
 
 rule report_peak_level_peaks_plot:
     """Render number of peaks"""
@@ -192,43 +216,103 @@ rule report_peak_level_peaks_plot:
         echo "{params.plot_options}" >> {output.details} &&
         cp {input} {output.csv}"""
 
-#GALI todo
-# rule report_peaks_level_frips:
-#     """Render FRIP"""
-#     input:
-#         #GALI to do--pull in the right input files for this plot
-#     output:
-#         csv=output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
-#         details=output_path + "/report/Peaks_Level_Quality/03_details.yaml",
-#     params:
-#         files = lambda wildcards,input: " -f ".join(input),
-#         caption="""caption: 'The fraction of reads in peaks (FRIP) score is the fraction of 4 million subsampled reads that fall within a defined peak region.'""",
-#         plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'FRIP score (% of reads)','value':'FRIP score (% of reads)'}}}),
-#     group: "cohort_report"
-#     shell:
-# #        """echo "{params.caption}" >> {output.details} &&
-# #        echo "{params.plot_options}" >> {output.details} &&
-# ##        cp {input} {output.csv}"""
 
-#GALI TODO
-# rule report_peaks_level_annotations:
-#     input:
-#         #GALI TODO- figure out which input files are needed to generate the output (when using a helper script to help parse)
-#     output:
-#         csv=output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
-#         details=output_path + "/report/Peaks_Level_Quality/04_details.yaml",
-#     params:
-#         files = lambda wildcards,input: " -f ".join(input),
-#         caption="""caption: 'The proportions of peaks for each sample overlapping with the promoters, exons, introns, and intergenic regions are shown here.'""",
-#         plot_options = yaml_dump({'plotly': {'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of peaks','value':'Percentage of peaks'}}}),
-#     group: "cohort_report"
-#     shell:
-#         pass
+rule report_peaks_level_frips:
+    """Render FRIP"""
+    output:
+        #csv=output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/03_details.yaml",
+    params:
+        caption="""caption: 'The fraction of reads in peaks (FRIP) score is the fraction of 4 million subsampled reads that fall within a defined peak region.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'FRIP score (% of reads)','value':'FRIP score (% of reads)'}}}),
+    group: "cohort_report"
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details}"""
 
-#GALI TODO
-# rule report_peaks_level_dnase
-# ...
+rule report_peaks_level_annotations:
+    """Render peak annotation"""
+    output:
+        #csv=output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/04_details.yaml",
+    params:
+        files = lambda wildcards,input: " -f ".join(input),
+        caption="""caption: 'The proportions of peaks for each sample overlapping with the promoters, exons, introns, and intergenic regions are shown here.'""",
+        plot_options = yaml_dump({'plotly': {'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of peaks','value':'Percentage of peaks'}}}),
+    group: "cohort_report"
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details}"""
+
+rule report_peaks_level_dhs:
+    """Render peak dhs"""
+    output:
+        #csv=output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/05_details.yaml",
+    params:
+        caption="""caption: 'DNAse hypersensitive sites (DHS) may represent highly active regions of the genome. The data below represent the percentage of 4 million subsampled peaks that intersect with DHS peaks as defined by list of known DHS regions (specific to each species).'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of peaks','value':'Percentage of peaks'}}}),
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details}"""
+
 ########################### END Peak Level Quality Section ####################
+########################### Genome Track View Section ########################
+rule report_genome_track_make_bed:
+    """Make new bed files for genome track"""
+    input:
+        config['geneBed'],
+    output:
+        extend= output_path + "/report/Genome_Track_View/extend.bed",
+        tss= output_path + "/report/Genome_Track_View/tss.bed"
+    params:
+        up= config['upstream'],
+        down= config['downstream'],
+    shell:
+        """cidc_chips/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.extend} -t {output.tss}"""
+
+def genome_tracks_init_inputFn(wildcards):
+    ls = []
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ls.append((output_path + "/peaks/{runRep}/{runRep}_treat_pileup.bw").format(runRep = runRep))
+    return ls
+
+rule report_genome_track_make_tracks:
+    """Make genome track configuration file"""
+    input:
+        genome_tracks_init_inputFn
+    output:
+        output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
+    params:
+        track= temp(output_path + "/report/Genome_Track_View/tracks_all.ini"),
+        extend= output_path + "/report/Genome_Track_View/extend.bed",
+        tss= output_path + "/report/Genome_Track_View/tss.bed",
+    shell:
+        """make_tracks_file --trackFiles {input} -o {params.track} &&
+        cidc_chips/modules/scripts/report/genome_track_view/make_track_file.py -i {params} -e {params.extend} -t {params.tss} -o {output}"""
+
+png_list = []
+for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
+    png_list.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+
+
+rule report_genome_track_make_plot:
+    """Make genome track plot"""
+    input:
+        ini= output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
+        extend= output_path + "/report/Genome_Track_View/extend.bed",
+    output:
+        png_list
+        #png= lambda wildcards: [" -o " + output_path + "/report/Genome_Track_View/%s_genome_track_for_%s.png" % (i,i) for i, i in enumerate(config["genes_to_plot"].strip().split())]
+    params:
+        genes= lambda wildcards: [" -g %s" % g for g in config["genes_to_plot"].strip().split()],
+        png= lambda wildcards, output: " -o ". join(output),
+    shell:
+        """cidc_chips/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.extend} {params.genes} -o {params.png}"""
+
+########################### END Genome Track View Section ####################
 rule report_auto_render:
     """Generalized rule to dynamically generate the report BASED
     on what is in the report directory"""
@@ -238,7 +322,7 @@ rule report_auto_render:
         jinja2_template="cidc_chips/report/index.sample.html",
         output_path = output_path + "/report",
         #sections_list=",".join(['Overview', "Reads_Level_Quality", "Peaks_Level_Quality", "Genome_Track_View","Downstream"]), #define sections order here
-        sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality']), #define sections order here
+        sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality', 'Genome_Track_View']), #define sections order here
         title="CHIPs Report",
     output:
         output_path+ "/report/report.html"
