@@ -277,25 +277,27 @@ def genome_tracks_init_inputFn(wildcards):
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
             ls.append((output_path + "/peaks/{runRep}/{runRep}_treat_pileup.bw").format(runRep = runRep))
-    return ls
+    tmp {'pileups': ls,
+         'extend':output_path + "/report/Genome_Track_View/extend.bed",
+         'tss': output_path + "/report/Genome_Track_View/tss.bed",
+         }
+    return tmp
 
 rule report_genome_track_make_tracks:
     """Make genome track configuration file"""
     input:
-        genome_tracks_init_inputFn
+        unpack(genome_tracks_init_inputFn) #input.pileups, input.extend,
     output:
         output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
     params:
         track= temp(output_path + "/report/Genome_Track_View/tracks_all.ini"),
-        extend= output_path + "/report/Genome_Track_View/extend.bed",
-        tss= output_path + "/report/Genome_Track_View/tss.bed",
     shell:
-        """make_tracks_file --trackFiles {input} -o {params.track} &&
-        cidc_chips/modules/scripts/report/genome_track_view/make_track_file.py -i {params} -e {params.extend} -t {params.tss} -o {output}"""
+        """make_tracks_file --trackFiles {input.pileup} -o {params.track} &&
+        cidc_chips/modules/scripts/report/genome_track_view/make_track_file.py -i {params} -e {input.extend} -t {input.tss} -o {output}"""
 
-png_list = []
+_png_list = []
 for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
-    png_list.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+    _png_list.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
 
 
 rule report_genome_track_make_plot:
@@ -304,7 +306,7 @@ rule report_genome_track_make_plot:
         ini= output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
         extend= output_path + "/report/Genome_Track_View/extend.bed",
     output:
-        png_list
+        _png_list
         #png= lambda wildcards: [" -o " + output_path + "/report/Genome_Track_View/%s_genome_track_for_%s.png" % (i,i) for i, i in enumerate(config["genes_to_plot"].strip().split())]
     params:
         genes= lambda wildcards: [" -g %s" % g for g in config["genes_to_plot"].strip().split()],
@@ -313,7 +315,7 @@ rule report_genome_track_make_plot:
         """cidc_chips/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.extend} {params.genes} -o {params.png}"""
 
 ########################### END Genome Track View Section ####################
-########################### Downstreat Section ################################
+########################### Downstream Section ################################
 def report_downstream_conser_motif_inputFn(wildcards):
     #get conservation png files
     runRep_ls = []
@@ -326,7 +328,7 @@ def report_downstream_conser_motif_inputFn(wildcards):
 
     #get homer ls files
     homer_ls = []
-    if config['motif'] == 'homer':
+    if 'motif' in config and config['motif'] == 'homer':
         for run in config["runs"].keys():
             for rep in _reps[run]:
                 runRep = "%s.%s" % (run, rep)
@@ -350,9 +352,9 @@ rule report_downstream_conser_motif:
         runReps = lambda wildcards, input: " -r ".join(input.runReps),
     shell:
         #TODO:need to look up name and log pval for each runRep's homer results
-        "cidc_chips/modules/scripts/report/downstream/conserv_motif_table.py -r {params.runReps} -c {params.conserv_logos} -m {params.motif_logos}"
+        "cidc_chips/modules/scripts/report/downstream/conserv_motif_table.py -r {params.runReps} -c {params.conserv_logos} -m {params.motif_logos} -O {params.outpath}"
     
-########################### END Downstreat Section ############################
+########################### END Downstream Section ############################
 rule report_auto_render:
     """Generalized rule to dynamically generate the report BASED
     on what is in the report directory"""
