@@ -313,6 +313,46 @@ rule report_genome_track_make_plot:
         """cidc_chips/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.extend} {params.genes} -o {params.png}"""
 
 ########################### END Genome Track View Section ####################
+########################### Downstreat Section ################################
+def report_downstream_conser_motif_inputFn(wildcards):
+    #get conservation png files
+    runRep_ls = []
+    conserv_ls = []
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            runRep_ls.append(runRep)
+            conserv_ls.append((output_path + "/conserv/{runRep}/{runRep}_conserv_thumb.png").format(runRep = runRep))
+
+    #get homer ls files
+    homer_ls = []
+    if config['motif'] == 'homer':
+        for run in config["runs"].keys():
+            for rep in _reps[run]:
+                runRep = "%s.%s" % (run, rep)
+                #LEN: Please check this path!
+                conserv_ls.append((output_path + "/motif/{runRep}/results/knownResults/known1.logo.pnt").format(runRep = runRep))
+    tmp = {'conserv_logos': conserv_ls,
+           'homer_logos': homer_ls,
+           'runReps': runRep_ls}
+    return tmp
+
+rule report_downstream_conser_motif:
+    input:
+        unpack(report_downstream_conser_motif_inputFn)
+    output:
+        csv = output_path + "/report/Downstream/01_conservation_and_top_motifs.csv",
+        det = output_path + "/report/Downstream/01_details.yaml"
+    params:
+        outpath="report/Downstream/",
+        conserv_logos= lambda wildcards, input: " -c ".join(input.conserv_logos),
+        motif_logos= lambda wildcards, input: " -m ".join(input.motif_logos),
+        runReps = lambda wildcards, input: " -r ".join(input.runReps),
+    shell:
+        #TODO:need to look up name and log pval for each runRep's homer results
+        "cidc_chips/modules/scripts/report/downstream/conserv_motif_table.py -r {params.runReps} -c {params.conserv_logos} -m {params.motif_logos}"
+    
+########################### END Downstreat Section ############################
 rule report_auto_render:
     """Generalized rule to dynamically generate the report BASED
     on what is in the report directory"""
