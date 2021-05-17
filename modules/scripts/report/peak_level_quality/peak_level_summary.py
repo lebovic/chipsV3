@@ -52,8 +52,12 @@ def main():
     next(fhd)
     for line in fhd:
         line = line.strip().split(",")
-        r = [round(100*(int(line[2])/int(line[1])), 2), round(100*(int(line[3])/int(line[1])), 2), round(100*(int(line[4])/int(line[1])), 2), round(100*(int(line[5])/int(line[1])) ,2)]
-        not_r = [100*(int(line[2])/int(line[1])), 100*(int(line[3])/int(line[1])), 100*(int(line[4])/int(line[1])), 100*(int(line[5])/int(line[1]))]
+        if (int(line[1]) != 0): #Check for div by 0
+            r = [round(100*(int(line[2])/int(line[1])), 2), round(100*(int(line[3])/int(line[1])), 2), round(100*(int(line[4])/int(line[1])), 2), round(100*(int(line[5])/int(line[1])) ,2)]
+            not_r = [100*(int(line[2])/int(line[1])), 100*(int(line[3])/int(line[1])), 100*(int(line[4])/int(line[1])), 100*(int(line[5])/int(line[1]))]
+        else:
+            r = [0,0,0,0]
+            not_r = [0,0,0,0]
         meta_out[line[0]].extend(r)
         meta_nor_out[line[0]].extend(not_r)
     fhd.close()
@@ -63,7 +67,11 @@ def main():
     next(fhd)
     for line in fhd:
         line = line.strip().split(",")
-        l = [round(100*(int(line[2])/int(line[1])), 2)]
+        if (int(line[1]) != 0): #Check for div by 0
+            l = [round(100*(int(line[2])/int(line[1])), 2)]
+        else:
+            l = [0]
+
         dhs_out[line[0]].extend(l)
     fhd.close()
 
