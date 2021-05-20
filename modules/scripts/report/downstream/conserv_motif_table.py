@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """GALI BAI
-Script to summanry conservation and motif finding results
+Script to summary conservation and motif finding results
 When homer is on, prints out a csv file with header- 'Sample', 'Conservation', 'Motif', 'Homer Motif Logo', 'Negative Log P-value'
 Otherwise, prints out a csv file with header- 'Sample', 'Conservation'
 """
