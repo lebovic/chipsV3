@@ -47,9 +47,14 @@ def report_htmlTargets(wildcards):
     ls.append(output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly")
     ls.append(output_path + "/report/Peaks_Level_Quality/05_details.yaml")
 
-    #Genome Track View
+    #GENOME TRACK VIEW
     for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
-        ls.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+        if gene in pd.read_csv(config['geneBed'], sep = '\t',header=None, index_col=None).iloc[:-3].values:
+            ls.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+
+    #DOWNSTREAM
+    ls.append(output_path + "/report/Downstream/01_conservation_and_top_motifs.csv")
+    ls.append(output_path + "/report/Downstream/01_details.yaml")
     return ls
 
 rule report_all:
@@ -277,8 +282,8 @@ def genome_tracks_init_inputFn(wildcards):
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
             ls.append((output_path + "/peaks/{runRep}/{runRep}_treat_pileup.bw").format(runRep = runRep))
-    tmp {'pileups': ls,
-         'extend':output_path + "/report/Genome_Track_View/extend.bed",
+    tmp = {'pileups': ls,
+         'extend': output_path + "/report/Genome_Track_View/extend.bed",
          'tss': output_path + "/report/Genome_Track_View/tss.bed",
          }
     return tmp
@@ -286,18 +291,21 @@ def genome_tracks_init_inputFn(wildcards):
 rule report_genome_track_make_tracks:
     """Make genome track configuration file"""
     input:
-        unpack(genome_tracks_init_inputFn) #input.pileups, input.extend,
+        unpack(genome_tracks_init_inputFn)
     output:
         output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
     params:
         track= temp(output_path + "/report/Genome_Track_View/tracks_all.ini"),
     shell:
-        """make_tracks_file --trackFiles {input.pileup} -o {params.track} &&
-        cidc_chips/modules/scripts/report/genome_track_view/make_track_file.py -i {params} -e {input.extend} -t {input.tss} -o {output}"""
+        """make_tracks_file --trackFiles {input.pileups} -o {params.track} &&
+        cidc_chips/modules/scripts/report/genome_track_view/make_track_file.py -i {params.track} -e {input.extend} -t {input.tss} -o {output}"""
 
 _png_list = []
 for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
-    _png_list.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+    if gene in pd.read_csv(config['geneBed'], sep = '\t',header=None, index_col=None).iloc[:-3].values:
+        _png_list.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+    else:
+        print(gene + " not found")
 
 
 rule report_genome_track_make_plot:
@@ -318,25 +326,25 @@ rule report_genome_track_make_plot:
 ########################### Downstream Section ################################
 def report_downstream_conser_motif_inputFn(wildcards):
     #get conservation png files
-    runRep_ls = []
     conserv_ls = []
     for run in config["runs"].keys():
         for rep in _reps[run]:
             runRep = "%s.%s" % (run, rep)
-            runRep_ls.append(runRep)
             conserv_ls.append((output_path + "/conserv/{runRep}/{runRep}_conserv_thumb.png").format(runRep = runRep))
 
     #get homer ls files
     homer_ls = []
+    motif_ls = []
     if 'motif' in config and config['motif'] == 'homer':
         for run in config["runs"].keys():
             for rep in _reps[run]:
                 runRep = "%s.%s" % (run, rep)
                 #LEN: Please check this path!
-                conserv_ls.append((output_path + "/motif/{runRep}/results/knownResults/known1.logo.pnt").format(runRep = runRep))
+                homer_ls.append((output_path + "/motif/{runRep}/results/knownResults/known1.logo.png").format(runRep = runRep))
+                motif_ls.append((output_path + "/motif/{runRep}/results/knownResults.txt").format(runRep = runRep))
     tmp = {'conserv_logos': conserv_ls,
            'homer_logos': homer_ls,
-           'runReps': runRep_ls}
+           'motif_txt': motif_ls}
     return tmp
 
 rule report_downstream_conser_motif:
@@ -344,16 +352,17 @@ rule report_downstream_conser_motif:
         unpack(report_downstream_conser_motif_inputFn)
     output:
         csv = output_path + "/report/Downstream/01_conservation_and_top_motifs.csv",
-        det = output_path + "/report/Downstream/01_details.yaml"
+        details = output_path + "/report/Downstream/01_details.yaml",
     params:
-        outpath="report/Downstream/",
+        outpath=output_path + "/report/Downstream",
         conserv_logos= lambda wildcards, input: " -c ".join(input.conserv_logos),
-        motif_logos= lambda wildcards, input: " -m ".join(input.motif_logos),
-        runReps = lambda wildcards, input: " -r ".join(input.runReps),
+        motif_logos= lambda wildcards, input: " -m ".join(input.homer_logos),
+        motif_txt= lambda wildcards, input: " -t ".join(input.motif_txt),
+        caption = """caption: 'The conservation plots of transcription factor (ChIP-seq) runs typically show a high focal point around peak summits (characterized as "needle points"), while histone runs typically show bimodal peaks (characterized as "shoulders"). If motif analysis is enabled, the top 5000 most significant peak summits (ranked by the MACS P-value) are written to a subfolder for each sample in the report directory. Though several motifs typically arise for each sample, only the top hit is shown here. Further downstream analyses, including regulatory potential scores derived from LISA, are also available for each sample in the report directory.' """
     shell:
-        #TODO:need to look up name and log pval for each runRep's homer results
-        "cidc_chips/modules/scripts/report/downstream/conserv_motif_table.py -r {params.runReps} -c {params.conserv_logos} -m {params.motif_logos} -O {params.outpath}"
-    
+        """ echo "{params.caption}" > {output.details} &&
+        cidc_chips/modules/scripts/report/downstream/conserv_motif_table.py -c {params.conserv_logos} -p {params.outpath} -o {output.csv} -t {params.motif_txt} -m {params.motif_logos}"""
+
 ########################### END Downstream Section ############################
 rule report_auto_render:
     """Generalized rule to dynamically generate the report BASED
@@ -363,8 +372,7 @@ rule report_auto_render:
     params:
         jinja2_template="cidc_chips/report/index.sample.html",
         output_path = output_path + "/report",
-        #sections_list=",".join(['Overview', "Reads_Level_Quality", "Peaks_Level_Quality", "Genome_Track_View","Downstream"]), #define sections order here
-        sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality', 'Genome_Track_View']), #define sections order here
+        sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality', 'Genome_Track_View', 'Downstream']),
         title="CHIPs Report",
     output:
         output_path+ "/report/report.html"
