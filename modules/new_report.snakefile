@@ -59,7 +59,7 @@ def report_htmlTargets(wildcards):
 
 rule report_all:
     input:
-        output_path+ "/report/report.html"
+        output_path+ "/report/report.zip"
 
 ########################### OVERVIEW Section ##################################
 rule report_overview_workflow:
@@ -382,3 +382,14 @@ rule report_auto_render:
         "REPORT: Generating example report"
     shell:
         """python cidc_chips/modules/scripts/report.py -d {params.output_path} -s {params.sections_list} -j {params.jinja2_template} -t "{params.title}" -o {output} && cp -r cidc_chips/report/static {params.output_path}"""
+
+rule report_zip:
+    """Zip final report"""
+    input:
+        output_path+ "/report/report.html"
+    output:
+        output_path+ "/report/report.zip"
+    params:
+        output_path+ "/report/"
+    shell:
+        """cd {params} && zip -q -r report.zip *"""
