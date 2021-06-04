@@ -234,7 +234,7 @@ def all_targets(wildcards):
         if config.get('epicypher_analysis'):
             ls.extend(epicypher_targets(wildcards))
     ls.extend(checking_targets(wildcards))
-    ls.append(output_path + "/report/report.html")
+    ls.append(output_path + "/report/report.zip")
     #ls.extend(report_targets(wildcards))
     return ls
 
