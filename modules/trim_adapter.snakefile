@@ -71,6 +71,7 @@ rule trim_fastp:
     log: output_path + "/logs/trim_adaptor/{sample}.log"
     conda: "../envs/trimming/trim_fastp.yaml"
     benchmark: output_path + "/Benchmark/{sample}_trim_adapter.benchmark"
+    resources: mem_mb=20000 
     run:
         if len(input) > 1:
             shell("fastp --thread {threads} --detect_adapter_for_pe --in1 {input[0]} --in2 {input[1]} --out1 {output.fq1} --out2 {output.fq2} -h {output.html} -j {output.json} > {log} 2>&1")
