@@ -234,6 +234,9 @@ def all_targets(wildcards):
         if config.get('epicypher_analysis'):
             ls.extend(epicypher_targets(wildcards))
     ls.extend(checking_targets(wildcards))
+    #ADD a switch to check if cfce_report is to be generated
+    ls.extend(cfce_report_targets(wildcards))
+
     ls.append(output_path + "/report/report.zip")
     #ls.extend(report_targets(wildcards))
     return ls
@@ -279,3 +282,4 @@ include: "./modules/json.snakefile"          # json module
 include: "./modules/cistrome.snakefile"      # cistrome adapter module
 include: "./modules/emptychecking.snakefile" # checking empty file module
 include: "./modules/new_report.snakefile"
+include: "./modules/cfce_report.snakefile"   #LEGACY cfce_report

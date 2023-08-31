@@ -1,0 +1,11 @@
+.. image:: $cfce_logo
+
+========================================================================
+Chips: ChIP-seq Analysis Pipeline for Snakemake
+========================================================================
+
+Sequence Summary Table
+======================
+    The Sequence Summary table is simply the textual representation of what was shown graphically in the "Alignment Summary" and "PBC Summary" plots.  The FastQC column represents the median read quality (phred) score for the sample.  Typically **a median quality score of > 20 is good**.
+
+{samplesSummaryTable}

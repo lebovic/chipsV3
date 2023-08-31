@@ -86,5 +86,4 @@ dependencies:
 - markdown
 - pyyaml>=4
 - pygenometracks
-#- pip:
-#    - "git+https://github.com/deeptools/pyGenomeTracks.git"
+- docutils=0.16
