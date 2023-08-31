@@ -6,6 +6,12 @@ _macs_fdr="0.01"
 _macs_keepdup="1"
 _macs_extsize="146"
 
+
+# for narrowpeak calling, extra parameters passed to macs2.
+# e.g, --nomodel.  --nomodel is turned on for broad peaks by default,
+# for narrowpeak, has to modify the below parameter.
+_macs_extra_param = config.get("macs_extra_param", "")
+
 def getTreats(wildcards):
     tmp=[]
     #print(wildcards)
@@ -152,7 +158,7 @@ rule peaks_all:
     input:
         peaks_targets
 
-if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
+if config.get("macs2_broadpeaks"):
     rule peaks_macs2CallpeaksBroad:
         input:
             treat=getTreats,
@@ -174,12 +180,19 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "--nolambda",
-        message: "PEAKS: calling peaks with macs2"
-        log:output_path + "/logs/peaks/{run}.{rep}.log"
+        message: "PEAKS: calling peaks with macs2 for {input}"
+        log: output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
-           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
+            """
+            macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} \
+            -g {params.genome_size} {params.BAMPE} \
+            --extsize {params.extsize} --nomodel {params.treatment} {params.control} \
+            --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} > {log} 2>&1
+
+            """
+
 
     rule peaks_macs2FilteredCallpeaksBroad:
         input:
@@ -202,19 +215,24 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
-        message: "PEAKS: calling broad peaks with macs2"
+        message: "PEAKS: calling broad peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
-           "--extsize {params.extsize} --nomodel {params.treatment} {params.control} --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} "
+           """
+           macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} \
+           -g {params.genome_size} {params.BAMPE} \
+           --extsize {params.extsize} --nomodel {params.treatment} {params.control} \
+           --broad --broad-cutoff {params.fdr} --outdir {params.outdir} -n {params.name} > {log} 2>&1
+           """
 
     rule peaks_unsortBoardPeaksToBed:
         input:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
-        message: "PEAKS: Converting unsorted peak file to bed file"
+        message: "PEAKS: Converting unsorted peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -225,7 +243,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.broadPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak"
-        message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
+        message: "PEAKS: sorting the narrowPeaks by -log10qval (col9) for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -237,7 +255,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
-        message: "PEAKS: Converting sorted peak file to bed file"
+        message: "PEAKS: Converting sorted peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -249,7 +267,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.broadPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.broadPeak"
-        message: "PEAKS: get 5 fold peaks"
+        message: "PEAKS: get 5 fold peaks for {input}"
         log:output_path + "/logs/targets/{run}.{rep}.log"
         shell:
             # """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
@@ -261,7 +279,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.broadPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.bed"
-        message: "PEAKS: Converting sorted 5 fold peak file to bed file"
+        message: "PEAKS: Converting sorted 5 fold peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -273,7 +291,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.broadPeak" % str(config['cutoff'])
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.bed" % str(config['cutoff'])
-        message: "PEAKS: Converting sorted peak file to bed file"
+        message: "PEAKS: Converting sorted peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -288,8 +306,9 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             files = lambda wildcards, input: [" -f %s" % i for i in input]
         output:
             output_path + "/peaks/peakStats.csv"
-        message: "PEAKS: collecting peaks stats for each run"
-        # log:output_path + "/logs/peaks/{run}.{rep}.log"
+        message: "PEAKS: collecting peaks stats for each run for {input}"
+        log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_getBroadStats.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
@@ -300,8 +319,9 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
-        message: "PEAKS: Plot peaks region"
+        message: "PEAKS: Plot peaks region for {input}"
         conda: "../envs/peaks/peaks.yaml"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_broadPeaksPlot.benchmark"
         shell:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
@@ -325,17 +345,22 @@ else:
             name="{run}.{rep}",
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            macs_extra_param = _macs_extra_param,
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
-        message: "PEAKS: calling peaks with macs2"
+        message: "PEAKS: calling peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
-           "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} " #2>>{log}"
+           """
+           macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} \
+           -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} \
+           {params.treatment} {params.control} --outdir {params.outdir} -n {params.name} > {log} 2>&1
+           """
         #run:
         #    treatment = "-t %s" % input.treat if input.treat else "",
-        #    control = "-c %s" % input.cont if input.cont else "",        
+        #    control = "-c %s" % input.cont if input.cont else "",
         #    shell("{params.pypath} {config[macs2_path]} callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} --extsize {params.extsize} --nomodel {treatment} {control} --outdir {params.outdir} -n {params.name} 2>>{log}")
 
     rule peaks_macs2FilteredCallpeaks:
@@ -357,13 +382,15 @@ else:
             name="{run}.{rep}.sub%s" % str(config['cutoff']),
             #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
             BAMPE = lambda wildcards: checkBAMPE(wildcards),
+            macs_extra_param = _macs_extra_param,
             treatment = lambda wildcards, input: [" -t %s" % i for i in input.treat] if input.treat else "",
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
-        message: "PEAKS: calling filtered reads peaks with macs2"
+        message: "PEAKS: calling filtered reads peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
-           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} "
+           "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} "
            "{params.treatment} {params.control} --outdir {params.outdir} -n {params.name} "#2>>{log}"
 
     rule peaks_unsortPeaksToBed:
@@ -371,7 +398,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.bed"
-        message: "PEAKS: Converting unsorted peak file to bed file"
+        message: "PEAKS: Converting unsorted peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -383,7 +410,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
-        message: "PEAKS: Converting sorted peak file to bed file"
+        message: "PEAKS: Converting sorted peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -395,7 +422,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.narrowPeak" % str(config['cutoff'])
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}.sub%s_peaks.bed" % str(config['cutoff'])
-        message: "PEAKS: Converting sorted peak file to bed file"
+        message: "PEAKS: Converting sorted peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -406,7 +433,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
-        message: "PEAKS: sorting the narrowPeaks by -log10qval (col9)"
+        message: "PEAKS: sorting the narrowPeaks by -log10qval (col9) for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -418,7 +445,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.narrowPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.narrowPeak"
-        message: "PEAKS: get 5 fold peaks"
+        message: "PEAKS: get 5 fold peaks for {input}"
         log:output_path + "/logs/targets/{run}.{rep}.log"
         shell:
             # """awk '($1 != "chr" && $1 !="#" && $8 >= 5)' {input} | awk '{{OFS="\\t"; print $1,$2,$3,$10,$9}}' > {output}"""
@@ -430,7 +457,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.narrowPeak"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_5fold_peaks.bed"
-        message: "PEAKS: Converting sorted 5 fold peak file to bed file"
+        message: "PEAKS: Converting sorted 5 fold peak file to bed file for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
@@ -445,8 +472,9 @@ else:
             files = lambda wildcards, input: [" -f %s" % i for i in input]
         output:
             output_path + "/peaks/peakStats.csv"
-        message: "PEAKS: collecting peaks stats for each run"
-        # log:output_path + "/logs/peaks/{run}.{rep}.log"
+        message: "PEAKS: collecting peaks stats for each run for {input}"
+        #log:output_path + "/logs/peaks/{run}.{rep}.log"
+        #benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_getPeaksStats.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             "cidc_chips/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
@@ -456,20 +484,21 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_summits.bed"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_summits.bed"
-        message: "PEAKS: sorting the summits bed by score"
+        message: "PEAKS: sorting the summits bed by score for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             "sort -r -n -k 5 {input} > {output} "#2>>{log}"
 
-    rule peaks_broadPeaksPlot:
+    rule peaks_NarrowPeaksPlot:
         input:
             peaks=output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.narrowPeak",
             ceas=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt"
         output:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
-        message: "PEAKS: Plot peaks region"
+        message: "PEAKS: Plot peaks region for {input}"
         conda: "../envs/peaks/peaks.yaml"
+        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_NarrowPeaksPlot.benchmark"
         shell:
             "cidc_chips/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
@@ -484,9 +513,10 @@ rule peaks_macs2GetFragment:
         #handle PE alignments--need to add -f BAMPE to macs2 callpeaks
         treatment = lambda wildcards, input: [" -i %s" % i for i in input.treat] if input.treat else "",
         genome = config['genome_size']
-    message: "PEAKS: Get fragment size with macs2"
+    message: "PEAKS: Get fragment size with macs2 for {input}"
     log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_macs2GetFragment.benchmark"
     shell:
        "macs2 predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
 
@@ -500,7 +530,8 @@ rule peaks_sortBedgraphs:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    #log:output_path + "/logs/peaks/{run}.{rep}.log"
+    #benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_sortBedgraphs.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedSort {input} {output}"# 2>>{log}"
@@ -516,7 +547,8 @@ rule peaks_bdgToBw:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_bdgToBw.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} "#2>>{log}"
@@ -531,7 +563,7 @@ rule peaks_sortFilteredBedgraphs:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    #log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedSort {input} {output}"# 2>>{log}"
@@ -547,7 +579,8 @@ rule peaks_filteredBdgToBw:
         #msg just for message below
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_filteredBdgToBw.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output}"# 2>>{log}"
@@ -564,14 +597,15 @@ rule peaks_gzipBdg:
         #msg just for message below
         msg= lambda wildcards: "%s.%s" % (wildcards.run, wildcards.rep)
     message: "PEAKS: compressing sorted.bdg {params.msg}"
-    # log:output_path + "/logs/peaks/{run}.{rep}.log"
+    log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
+    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_gzipBdg.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "gzip {input.bdg} " #2>> {log}"
 
 
 rule peaks_macsRunInfo:
-    """Dump the current version of macs and the fdr used into a text file 
+    """Dump the current version of macs and the fdr used into a text file
     for the report"""
     params:
         fdr = _macs_fdr,
@@ -582,7 +616,7 @@ rule peaks_macsRunInfo:
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "macs2 --version > {output} && echo fdr {params.fdr} >> {output}"
-    
+
 rule peaks_generateIGVsession:
     """Generates analysis/peaks/all_treatments.igv.xml, a igv session of all
     of the treatment.bw files"""
@@ -598,9 +632,9 @@ rule peaks_generateIGVsession:
     message: "PEAKS: generate IGV session for all treatment.bw files"
     shell:
         "cidc_chips/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output}"# 2>>{log}"
-        
+
 rule peaks_generateIGVperTrack:
-    """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of 
+    """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of
     the treatment.bw file
     **VERY similar to generate_IGV_session, but this is for each individual
     treatment"""

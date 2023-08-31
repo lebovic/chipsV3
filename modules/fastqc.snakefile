@@ -18,7 +18,7 @@ def fastqc_targets(wildcards):
     return ls
 
 def getFastqcInput(wildcards):
-    """Get the input file for fastqc. It's either the 100k.fastq sample or the 
+    """Get the input file for fastqc. It's either the 100k.fastq sample or the
      original bam"""
     s = wildcards.sample
     first_file = config["samples"][wildcards.sample][0]
@@ -43,7 +43,7 @@ def getFastqcBam(wildcards):
     return ret
 
 def getFastq3(wildcards):
-    """Get associated fastqs for each sample.  
+    """Get associated fastqs for each sample.
     NOTE: if PE, take the first pair"""
     s = config["samples"][wildcards.sample]
     return s[0]
@@ -62,14 +62,15 @@ rule fastqc_downsampleFastq:
         seed=11,
         #how many to sample
         size=100000
-    message: "FASTQC: sample_fastq"
-    log:output_path + "/logs/fastqc/{sample}.log"
+    message: "FASTQC: downsample {input} to 100k reads"
+    log: output_path + "/logs/fastqc/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_fastqc_downsample.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "seqtk sample -s {params.seed} {input} {params.size} > {output} 2>>{log}"
 
 rule fastqc_sampleBam:
-    """USED only when the sample-input is a bam file.  
+    """USED only when the sample-input is a bam file.
     Subsample bam to 100k reads"""
     input:
         getFastqcBam
@@ -77,8 +78,9 @@ rule fastqc_sampleBam:
         n=100000
     output:
         temp(output_path + "/align/{sample}/{sample}_100k.bam")
-    message: "FASTQC: sampling 100k reads from bam"
-    log:output_path + "/logs/fastqc/{sample}.log"
+    message: "FASTQC: sampling 100k reads from bam for {input}"
+    log: output_path + "/logs/fastqc/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_fastqc_samplebam.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_sampleBam.sh -i {input} -n {params.n} -o {output}"
@@ -89,12 +91,13 @@ rule fastqc_convertBamToFastq:
         output_path + "/align/{sample}/{sample}_100k.bam"
     output:
         temp(output_path + "/align/{sample}/{sample}_100k.bam.fastq")
-    message: "FASTQC: converting 100k.bam to 100k.fastq"
-    log:output_path + "/logs/fastqc/{sample}.log"
+    message: "FASTQC: converting 100k.bam to 100k.fastq for {input}"
+    log: output_path + "/logs/fastqc/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_fastqc_bamtofastq.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} 2>> {log}"
-    
+
 rule fastqc_callFastqc:
     """CALL FASTQC on each sub-sample"""
     input:
@@ -109,8 +112,9 @@ rule fastqc_callFastqc:
     params:
         sample = lambda wildcards: wildcards.sample,
         main_output_path = output_path
-    message: "FASTQC: call fastqc"
-    log:output_path + "/logs/fastqc/{sample}.log"
+    message: "FASTQC: call fastqc for {input}"
+    log: output_path + "/logs/fastqc/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_fastqc_call.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "fastqc {input} --extract -o {params.main_output_path}/fastqc/{params.sample} 2>>{log}"
@@ -124,8 +128,9 @@ rule fastqc_getPerSequenceQual:
     params:
         #DON'T forget quotes
         section="'Per sequence quality'"
-    message: "FASTQC: get_PerSequenceQual"
-    log:output_path + "/logs/fastqc/{sample}.log"
+    message: "FASTQC: get_PerSequenceQual for {input}"
+    log: output_path + "/logs/fastqc/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_fastqc_SeqQual.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -139,8 +144,9 @@ rule fastqc_getPerSequenceGC:
     params:
         #DON'T forget quotes
         section="'Per sequence GC content'"
-    message: "FASTQC: get_PerSequenceGC"
-    log:output_path + "/logs/fastqc/{sample}.log"
+    message: "FASTQC: get_PerSequenceGC for {input}"
+    log: output_path + "/logs/fastqc/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_fastqc_GC.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -152,8 +158,9 @@ rule fastqc_extractFastQCStats:
         qual = output_path + "/fastqc/{sample}/{sample}_perSeqQual.txt"
     output:
         output_path + "/fastqc/{sample}/{sample}_stats.csv"
-    message: "FASTQC: extract_FastQCStats"
+    message: "FASTQC: extract_FastQCStats from {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_fastqc_extractFastQCStats.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "cidc_chips/modules/scripts/fastqc_stats.py -a {input.qual} -b {input.gc} > {output} 2>>{log}"
@@ -164,7 +171,7 @@ rule fastqc_collectFastQCStats:
         expand(output_path + "/fastqc/{sample}/{sample}_stats.csv", sample=sorted(config["samples"]))
     output:
         output_path + "/fastqc/fastqc.csv"
-    message: "FASTQC: collect and parse ALL mapping stats"
+    message: "FASTQC: collect and parse ALL mapping stats for {input}"
     # log: output_path + "/logs/fastqc/{sample}.log"
     #conda: "../envs/fastqc/fastqc.yaml"
     run:
@@ -173,7 +180,7 @@ rule fastqc_collectFastQCStats:
 
 rule fastqc_plotFastQCGC:
     """Plots the GC distribution of the sample according to data in
-    perSeqGC.txt.  
+    perSeqGC.txt.
     Generates a full-size image and *thumbnail image* (embedded into report)
     """
     input:
@@ -182,7 +189,7 @@ rule fastqc_plotFastQCGC:
         png=output_path + "/fastqc/{sample}/{sample}_perSeqGC.png",
         thumb=output_path + "/fastqc/{sample}/{sample}_perSeqGC_thumb.png",
     message:
-        "FASTQC: generating GC content distrib. plots"
+        "FASTQC: generating GC content distrib. plots for {input}"
     log: output_path + "/logs/fastqc/{sample}.log"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:

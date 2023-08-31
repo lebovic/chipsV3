@@ -35,8 +35,8 @@ frac=$(echo "$NUM/$count" | bc -l)
 if [ "$count" -le "$NUM" ]; then
     #do nothing- just convert sam to bam
     echo "FRiP: read count < $NUM, take ALL reads"
-    #samtools view -b $INPUT > $OUTPUT
-    cp $INPUT $OUTPUT
+    samtools view -b $INPUT > $OUTPUT
+    #cp $INPUT $OUTPUT
 else
     echo "FRiP: sampling $NUM reads"
     samtools view -b -s $frac $INPUT> $OUTPUT

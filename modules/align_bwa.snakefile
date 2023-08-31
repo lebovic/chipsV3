@@ -48,14 +48,15 @@ rule align_bwaMem:
         temp(output_path + "/align/{sample}/{sample}_mem.bam")
     params:
         index=config['bwa_index'],
-        sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else "",
+        sentieon=config.get("sentieon", ""),
         read_group=lambda wildcards: "@RG\\tID:%s\\tSM:%s\\tPL:ILLUMINA" % (wildcards.sample, wildcards.sample)
     threads: _bwa_threads
-    message: "ALIGN: Running BWA mem for alignment"
+    message: "ALIGN: Running BWA mem for alignment for {input}"
     log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_bwaMem.benchmark"
     conda: "../envs/align/align_bwa.yaml"
     shell:
-        """{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"""
+        "{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
 
 
 rule align_bwaAln:
@@ -70,8 +71,9 @@ rule align_bwaAln:
         bwa_k = _bwa_k,
         sentieon=config["sentieon"] if ("sentieon" in config) and config["sentieon"] else ""
     threads: _bwa_threads
-    message: "ALIGN: Running BWA aln for alignment"
+    message: "ALIGN: Running BWA aln for alignment for {input}"
     # log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_{mate}_align_bwaAln.benchmark"
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}"
 
@@ -91,6 +93,7 @@ rule align_bwaConvert:
     threads: _bwa_threads
     message: "ALIGN: Converting BWA alignment to BAM"
     # log: output_path + "/logs/align/{sample}.log"
+    benchmark: output_path + "/Benchmark/{sample}_align_bwaConvert.benchmark"
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 
@@ -144,4 +147,3 @@ rule align_macsRunInfo:
     conda: "../envs/align/align_bwa.yaml"
     shell:
         "cidc_chips/modules/scripts/align_parseBwaVersion.py -o {output}"
-
