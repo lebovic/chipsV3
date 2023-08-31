@@ -1,4 +1,4 @@
-name: chips
+name: cidc_chips
 channels:
 - bioconda
 - conda-forge
@@ -81,9 +81,10 @@ dependencies:
 - gffutils >=0.9
 - pybedtools >=0.8.1
 - tqdm >=4.20
-- multiqc
+- multiqc=1.9
 - plotly_express
 - markdown
 - pyyaml>=4
-- pip:
-    - "git+https://github.com/deeptools/pyGenomeTracks.git"
+- pygenometracks
+#- pip:
+#    - "git+https://github.com/deeptools/pyGenomeTracks.git"
