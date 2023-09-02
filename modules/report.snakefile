@@ -4,6 +4,8 @@ from snakemake.report import data_uri_from_file
 import json
 import pandas as pd
 
+_report_log=output_path + "/logs/report.log"
+
 def parse_mapped_rate(sample):
     file = output_path + "/align/%s/%s_mapping.txt" %(sample,sample)
     f = open(file)
@@ -368,7 +370,7 @@ rule report_plotMapStat:
         output_path + "/align/mapping.csv"
     output:
         output_path + "/report/image/mapping.png"
-    log: _logfile
+    log: _report_log
     conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/report_mapStats.R {input} {output}"
@@ -379,7 +381,7 @@ rule report_plotPBCStat:
         output_path + "/frips/pbc.csv"
     output:
         output_path + "/report/image/pbc.png"
-    log: _logfile
+    log: _report_log
     conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/report_plotPBC.R {input} {output}"
@@ -389,7 +391,7 @@ rule report_plotPeakFoldChange:
         output_path + "/peaks/peakStats.csv"
     output:
         output_path + "/report/image/peakFoldChange.png"
-    log: _logfile
+    log: _report_log
     conda: "../envs/report/report.yaml"
     shell:
         "Rscript cidc_chips/modules/scripts/report_plotFoldChange.R {input} {output}"

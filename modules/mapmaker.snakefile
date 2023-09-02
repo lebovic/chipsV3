@@ -1,7 +1,7 @@
 #MODULE: mapmaker- generating the analysis/mapmaker folder
 #The folder should be a fully runnable version of the latest mapmaker USING
 #the chips run information
-_logfile=output_path + "/logs/mapmaker.log"
+_mapmaker_log=output_path + "/logs/mapmaker.log"
 
 def mapmaker_targets(wildcards):
     """Generates the targets for this module"""
@@ -30,7 +30,7 @@ rule mapmaker_all:
 rule mapmaker_clone:
     """Clones the mapmaker project"""
     message: "MAPMAKER: cloning the mapmaker project from github"
-    log: _logfile
+    log: _mapmaker_log
     output:
         # output_path + "/mapmaker",
         output_path + "/mapmaker/.config.yaml",
@@ -61,7 +61,7 @@ rule mapmaker_config:
         igv_files = lambda wildcards, input: [" -i %s" % make_relative(igv) for igv in input.igv_files],
         names = lambda wildcards : [" -n %s" % i for i in config['runs']]
     message: "MAPMAKER: configuring mapmaker"
-    log: _logfile
+    log: _mapmaker_log
     conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         output_path + "/mapmaker/config.yaml"
@@ -85,7 +85,7 @@ rule mapmaker_meta:
         #run_names=config['runs']
         names = lambda wildcards : [" -n %s" % i for i in config['runs']]
     message: "MAPMAKER: configuring mapmaker"
-    log: _logfile
+    log: _mapmaker_log
     conda: "../envs/mapmaker/mapmaker.yaml"
     output:
         output_path + "/mapmaker/metasheet.csv"
