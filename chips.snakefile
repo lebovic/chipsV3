@@ -234,11 +234,12 @@ def all_targets(wildcards):
         if config.get('epicypher_analysis'):
             ls.extend(epicypher_targets(wildcards))
     ls.extend(checking_targets(wildcards))
-    #ADD a switch to check if cfce_report is to be generated
-    ls.extend(cfce_report_targets(wildcards))
-
     ls.append(output_path + "/report/report.zip")
     #ls.extend(report_targets(wildcards))
+
+    #Check to see if we should also generate the CFCE report
+    if config.get('cfce_report', False):
+        ls.extend(cfce_report_targets(wildcards))
     return ls
 
 
