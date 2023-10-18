@@ -8,6 +8,8 @@
 
 GDC_hg38:
   bwa_index: ./ref_files/GDC_hg38/bwa_indices/GDC_hg38/GRCh38.d1.vd1.CIDC.fa
+  chromap_ref: ./ref_files/hg38/chromap/hg38.fa
+  chromap_index: ./ref_files/hg38/chromap/hg38_k23_index
 
   geneTable: ./ref_files/GDC_hg38/GDC_hg38.refGene
   geneBed: ./ref_files/GDC_hg38/GDC_hg38_refGene.bed
@@ -28,6 +30,8 @@ GDC_hg38:
 
 hg38:
   bwa_index: ./ref_files/hg38/bwa_indices/hg38/hg38.fa
+  chromap_ref: ./ref_files/hg38/chromap/hg38.fa
+  chromap_index: ./ref_files/hg38/chromap/hg38_k23_index
 
   geneTable: ./ref_files/hg38/hg38.refGene
   geneBed: ./ref_files/hg38/hg38_refGene.bed
@@ -48,7 +52,9 @@ hg38:
 
 hg19:
   bwa_index: ./ref_files/hg19/bwa_indices/hg19/hg19.fa
-
+  chromap_ref: ./ref_files/hg19/chromap/hg19.fa
+  chromap_index: ./ref_files/hg19/chromap/hg19_k23_index
+  
   geneTable: ./ref_files/hg19/hg19.refGene
   geneBed: ./ref_files/hg19/hg19_refGene.bed
   conservation: ./ref_files/hg19/conservation/hg19.100way.phastCons.bw

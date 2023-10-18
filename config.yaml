@@ -2,6 +2,14 @@
 metasheet: 'metasheet.csv'
 ref: "cidc_chips/ref.yaml"
 
+#Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
+assembly: GDC_hg38
+
+#ALIGNER: if you want to use chromap, set your aligner as 'chromap';
+#OTHERWISE leave it as 'bwa' (default)
+aligner: 'bwa'
+#aligner: 'chromap'
+
 #genome trackview parameters
 genes_to_plot: GAPDH ACTB TP53
 upstream: 50000
@@ -12,8 +20,6 @@ trim_adapter: true
 #NOTE: you could comment this line, the default path is "analysis"
 output_path: "analysis"
 
-#Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
-assembly: GDC_hg38
 
 #ALIGNER: if you have sentieon license and got sentieon installed on your machine
 #Uncomment the following line and set absolute path of sentieon

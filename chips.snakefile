@@ -184,7 +184,7 @@ def _getRepInput(temp, suffix=""):
 
 def all_targets(wildcards):
     ls = []
-    if config.get('trim_adapter'):
+    if config.get("aligner") != 'chromap' and config.get('trim_adapter'):
         ls.extend(trim_targets(wildcards))
     #IMPORT all of the module targets
     ls.extend(align_targets(wildcards))
@@ -251,14 +251,16 @@ rule target:
 # if config['aligner'] == 'bwt2':
 #     include: "./modules/align_bwt2.snakefile"     # rules specific to Bowtie2
 # else:
-if config.get('trim_adapter'):
-    include: "./modules/trim_adapter.snakefile"
-    include: "./modules/align_common.snakefile"
-    include: "./modules/align_bwa_trim.snakefile"
-else:
-    include: "./modules/align_bwa.snakefile"      # rules specific to BWA
-    include: "./modules/align_common.snakefile"  # common align rules
+if config.get("aligner") == "chromap":
+    include: "./modules/align_chromap.snakefile" # rules specific to Chromap
+else: #default to bwa alignment
+    if config.get('trim_adapter'):
+        include: "./modules/trim_adapter.snakefile"
+        include: "./modules/align_bwa_trim.snakefile"
+    else:
+        include: "./modules/align_bwa.snakefile"      # rules specific to BWA
 
+include: "./modules/align_common.snakefile"
 include: "./modules/peaks.snakefile"         # peak calling rules
 include: "./modules/fastqc.snakefile"        # fastqc (sequence qual) rules
 include: "./modules/conservation.snakefile"  # generate conservation plot
