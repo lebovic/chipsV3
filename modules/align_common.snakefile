@@ -294,20 +294,37 @@ rule align_extractUnmapped:
         #NOTE: -@ = --threads
         "samtools view -b -F 2 -@ {threads} {input} > {output} 2>>{log}"
 
+rule align_sortUnmapped:
+    """Sort the {sample}.unmapped.bam file by read name, in prep for fastq
+    conversion"""
+    input:
+        output_path + "/align/{sample}/{sample}.unmapped.bam"
+    output:
+        temp(output_path + "/align/{sample}/{sample}.unmapped.sorted.bam")
+    log: output_path + "/logs/align/{sample}.sortUnmapped.log"
+    conda: "../envs/align/align_common.yaml"
+    threads: _align_threads
+    shell:
+        "sambamba sort -o {output} -N -t {threads} {input}"
+
 rule align_bamToFastq:
     """Convert the unmapped.bam to fastq"""
     input:
-        output_path + "/align/{sample}/{sample}.unmapped.bam"
+        output_path + "/align/{sample}/{sample}.unmapped.sorted.bam"
     output:
         output_path + "/align/{sample}/{sample}.unmapped.fq"
     params:
         #handle PE alignments!
-        mate2 = lambda wildcards: "-fq2 " + output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
+        #mate2 = lambda wildcards: "-fq2 " + output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
+        mate2 = lambda wildcards: "-2 " + output_path + "/align/%s/%s.unmapped.fq2" % (wildcards.sample,wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else ""
     message: "ALIGN: convert unmapped bam to fastq for {input}"
-    log: output_path + "/logs/align/{sample}.log"
+    log: output_path + "/logs/align/{sample}.bamToFastq.log"
     conda: "../envs/align/align_common.yaml"
+    threads: _align_threads
     shell:
-        "bamToFastq -i {input} -fq {output} {params.mate2}"
+        #"bamToFastq -i {input} -fq {output} {params.mate2}"
+        #LEN: using samtools fastq instead
+        "samtools fastq -@ {threads} -1 {output} {params.mate2} -0 /dev/null -s /dev/null {input}"
 
 rule align_gzipUnmappedFq:
     """gzip unmapped fq(s)"""
