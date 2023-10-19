@@ -95,6 +95,14 @@ def loadRef(config):
             missing_ref.extend(check_bwa_index_exist(contamination))
         config['contamination_panel'] = ref_info['contamination_panel']
 
+    #ALSO load virusseq
+    if config.get("run_virusseq"):
+        for (k,v) in ref_info['virusseq'].items():
+            #NO CLOBBERING what is user-defined!
+            if k not in config:
+                config[k] = v
+
+
     return missing_ref
 
 def check_fastq_exist(config):
@@ -237,6 +245,9 @@ def all_targets(wildcards):
     ls.append(output_path + "/report/report.zip")
     #ls.extend(report_targets(wildcards))
 
+    if config.get("run_virusseq", False):
+        ls.extend(virusseq_targets(wildcards))
+
     #Check to see if we should also generate the CFCE report
     if config.get('cfce_report', False):
         ls.extend(cfce_report_targets(wildcards))
@@ -283,6 +294,7 @@ include: "./modules/targets.snakefile"       # targets module
 #include: "./modules/report.snakefile"        # report module
 include: "./modules/json.snakefile"          # json module
 include: "./modules/cistrome.snakefile"      # cistrome adapter module
+include: "./modules/virusseq.snakefile"        # virusseq module
 include: "./modules/emptychecking.snakefile" # checking empty file module
 include: "./modules/new_report.snakefile"
 include: "./modules/cfce_report.snakefile"   #LEGACY cfce_report

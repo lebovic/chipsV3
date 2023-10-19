@@ -61,6 +61,10 @@ cnv_analysis: true
 #default: 'SNAP'
 #epicypher_analysis: 'SNAP'
 
+#Uncomment the following if you want to perform a scan of viral dna on your
+#samples.  Possible value are [true,false]; default: false
+#run_virusseq: false
+
 # FOR CISTROME DATABASE TEAM:
 # Uncomment it to enable json and cistrome modules
 # This will bulid a adapter for Cistrome DB at {Cistrome_path}
