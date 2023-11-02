@@ -298,10 +298,9 @@ include: "./modules/mapmaker.snakefile"      # chips-mapmaker interface module
 include: "./modules/epicypher.snakefile"     # epicypher spike-in module
 include: "./modules/bam_snapshots.snakefile" # generate bam snapshots module
 include: "./modules/targets.snakefile"       # targets module
-#include: "./modules/report.snakefile"        # report module
+include: "./modules/report.snakefile"        # report module
 include: "./modules/json.snakefile"          # json module
 include: "./modules/cistrome.snakefile"      # cistrome adapter module
 include: "./modules/virusseq.snakefile"        # virusseq module
 include: "./modules/emptychecking.snakefile" # checking empty file module
-include: "./modules/new_report.snakefile"
 include: "./modules/cfce_report.snakefile"   #LEGACY cfce_report

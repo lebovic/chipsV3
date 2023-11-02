@@ -1,425 +1,395 @@
-import os
-import subprocess
-from snakemake.report import data_uri_from_file
-import json
+# Author: Len Taing, Clara Cousins, Gali Bai
+# Last modified: 01/11/2021
+#MODULE: Chips report module
+
+# Import packages
+import yaml
+from yaml import dump as yaml_dump
 import pandas as pd
+import os
+import csv
+import matplotlib.pyplot as plt
+import numpy as np
+import re
+import glob
 
-_report_log=output_path + "/logs/report.log"
-
-def parse_mapped_rate(sample):
-    file = output_path + "/align/%s/%s_mapping.txt" %(sample,sample)
-    f = open(file)
-    total = int(f.readline().strip().split()[0])
-    #skip 3 lines
-    l = f.readline()
-    l = f.readline()
-    l = f.readline()
-    mapped = int(f.readline().strip().split()[0])
-    #skip 8 lines
-    l = f.readline()
-    l = f.readline()
-    l = f.readline()
-    l = f.readline()
-    l = f.readline()
-    l = f.readline()
-    l = f.readline()
-    l = f.readline()
-    uniq_mapped = int(f.readline().strip())
-    f.close()
-    return total,mapped,uniq_mapped
-
-def parse_GC_rate(sample):
-    file = output_path + "/fastqc/%s/%s_stats.csv" %(sample,sample)
-    f = open(file)
-    MQ = int(f.readline().strip().split(",")[1])
-    GC = int(f.readline().strip().split(",")[1])
-    f.close()
-    return MQ,GC
-
-def parse_contamination(sample):
-    file = output_path + "/contam/%s/%s_contamination.txt"%(sample,sample)
-    f = open(file)
-    percentage = [item.strip().split() for item in f.readlines()]
-    f.close()
-    return percentage
-
-def parse_PBC(sample):
-    file = output_path + "/frips/%s/%s_pbc.txt"%(sample,sample)
-    f = open(file)
-    firstLine = f.readline().strip().split()
-    N1 = int(firstLine[1]) 
-    Nd = N1
-    for l in f:
-        tmp = l.strip().split()
-        Nd += int(tmp[1])
-    f.close()
-    return N1,Nd
-
-def parse_FRiP(runRep):
-    file = output_path + "/frips/%s/%s_frip.txt"%(runRep,runRep)
-    f = open(file)
-    ReadsInPeaks = int(f.readline().strip().split()[1])
-    Total = int(f.readline().strip().split()[1])
-    f.close()
-    return ReadsInPeaks,Total
-
-def parse_peaks(runRep):
-    try:
-        f = open(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
-    except FileNotFoundError:
-        f = open(output_path+"/peaks/%s/%s_peaks.broadPeak"%(runRep,runRep))
-    #start the counts
-    tot = fc_10 = fc_20 = 0
-    for l in f:
-        tmp = l.strip().split("\t") 
-        #note FC is 7th col
-        fc = float(tmp[6])
-        if fc >= 20.0:
-            fc_20 += 1
-        if fc >= 10.0:
-            fc_10 += 1
-        tot += 1
-    f.close()
-    with open(output_path+"/ceas/%s/%s_summary.txt"%(runRep,runRep),"r") as ceas_meta:
-        ceas_meta=(ceas_meta.read().replace("\'","\""))
-        ceas = json.loads(ceas_meta)
-        prom = ceas['Promoter']
-        exon = ceas['Exon']
-        intr = ceas['Intron']
-        inte = ceas['Intergenic']
-    with open(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep),"r") as dhs_meta:
-        dhs_list = dhs_meta.readline().strip().split(",")
-        if dhs_list[0] and int(dhs_list[0]) > 0:
-            dhs="%.2f%%" % (int(dhs_list[1])*100/int(dhs_list[0]))
-        else:
-            dhs="%.2f%%" % 0.0
-    return tot,fc_10,fc_20,dhs,prom,exon,intr,inte
-
-def parse_targets(runRep):
-    file = output_path +"/targets/%s/%s_gene_score.txt" % (runRep,runRep)
-    table = pd.read_csv(file,comment = "#",sep = "\t",header = None)
-    table = table.iloc[:,[0,1,2,4,6]]
-    table.columns = ["chr","start","end","score","gene"]
-    table = table.drop_duplicates().head(2000)
-    table.index = range(0,2000)
-    coordinate = []
-    for i in range(len(table)):
-        tmp = table.loc[i,["chr","start","end"]].values.tolist()
-        coordinate.append("%s:%s-%s" % (tmp[0],tmp[1],tmp[2]))
-    table["coordinate"] = coordinate
-    table = table.loc[:,["gene","score","coordinate"]]
-    html = "<tr><td>{Gene}</td><td>{Score:.2f}</td><td>{Coordinate}</td></tr>"
-    txt = ""
-    for i in range(table.shape[0]):
-        gene = table.loc[i,"gene"]
-        score = table.loc[i,"score"]
-        coor = table.loc[i,"coordinate"]
-        txt += html.format(Gene=gene, Score=score, Coordinate=coor)
-    return txt
-
-def parse_version(software):
-    if software == "bwa":
-        # out = subprocess.Popen("bwa", shell=True, stderr=subprocess.PIPE).stderr.read().decode('utf-8')
-        # version = out.strip().split("\n")[1].split()[1]
-        with open(output_path+"/align/run_info.txt") as out:
-            version = out.read().strip()
-    # elif software == "bowtie2":
-    #     out = subprocess.check_output("bowtie2 --version", shell=True).decode('utf-8')
-    #     version = out.strip().split("\n")[0].split("version")[1].strip()
-    elif software == "macs2":
-        with open(output_path+"/peaks/run_info.txt") as out:
-            version = out.readlines()[0].strip().split()[1]
-    else:
-        version = ""
-    return version
-
-
-def result_dict(wildcards):
-    report_dict={}
-    report_dict["Config"]={}
-    # ChipsVersion
-    git_commit_string = "XXXXXX"
-    if os.path.exists(src_path + "/.git"):
-        git_commit_string = subprocess.check_output('git --git-dir=src_path + "/.git" rev-parse --short HEAD',shell=True).decode('utf-8').strip()
-    report_dict["Config"]["ChipsVersion"]=git_commit_string
-    # result path
-    report_dict["Config"]["ResultsPath"]=os.path.abspath(output_path)
-    # assembly
-    report_dict["Config"]["AssemblyVersion"]=config["assembly"]
-    # sentieon
-    UsingSentieon = "No"
-    if "sentieon" in config and config["sentieon"]:
-        UsingSentieon = "Yes"
-    report_dict["Config"]["UsingSentieon"]=UsingSentieon
-    # aligner
-    report_dict["Config"]["Aligner"]="bwa " + parse_version("bwa")
-    # Peaks caller
-    report_dict["Config"]["PeaksCaller"]="MACS2" + " " + parse_version("macs2")
-    # cutoff of filtering 
-    report_dict["Config"]["Cutoff"]=config["cutoff"]
-    # motif
-    MotifFinder = "No"
-    report_dict["Motifs"]={}
-    if "motif" in config and config["motif"]:
-        MotifFinder = config["motif"]
-        for run in config["runs"].keys():
-            report_dict["Motifs"][run]={}
-            for rep in _reps[run]:
-                runRep = "%s.%s" % (run, rep)
-                if config["motif"] == "mdseqpos":
-                    report_dict["Motifs"][run][runRep]={"MotifHtml": "motif/%s/results/table.html"% runRep}
-                if config["motif"] == "homer":
-                    report_dict["Motifs"][run][runRep]={"MotifHtml": "motif/%s/results/homerResults.html"% runRep}
-    report_dict["Config"]["MotifFinder"]=MotifFinder
-    # contamination
-    ContaminationPanel = "None"
-    report_dict["Contam"]={}
-    if "contamination_panel" in config and len(config["contamination_panel"]) > 0:
-        ContaminationPanel = "; ".join([c.split("/")[-1] for c in config["contamination_panel"]])
-        for run in config["runs"].keys():
-            report_dict["Contam"][run] = {}
-            for sample in config["runs"][run]:
-                if sample:
-                    report_dict["Contam"][run][sample]={}
-                    for i in parse_contamination(sample):
-                        report_dict["Contam"][run][sample][i[0]]="%.2f%%" % float(i[1])
-    report_dict["Config"]["ContaminationPanel"]=ContaminationPanel
-    # CNV
-    CNVAnalysis = "No"
-    if "cnv_analysis" in config and config["cnv_analysis"]:
-        CNVAnalysis = "Yes"
-    report_dict["Config"]["CNVAnalysis"]=CNVAnalysis
-    # Run information
-    RunsInformation=[]
-    for run in config["runs"].keys():
-        RunsInformation.append("%s: %s" % (run, ", ".join([s for s in config["runs"][run] if s])))
-    report_dict["Config"]["Runlist"]=list(config["runs"].keys())
-    report_dict["Config"]["RunsInformation"]="; ".join(RunsInformation)
-    # Mapped GC PBC FRiP Fragments Conserv
-    report_dict["Mapped"]={}
-    report_dict["GC"]={}
-    report_dict["PBC"]={}
-    report_dict["FRiP"]={}
-    report_dict["Fragments"]={}
-    report_dict["Conserv"]={}
-    report_dict["Peaks"]={}
-    report_dict["Targets"]={}
-    for run in config["runs"].keys():
-        report_dict["Mapped"][run]={}
-        report_dict["GC"][run]={}
-        report_dict["PBC"][run]={}
-        report_dict["Fragments"][run]={}
-        report_dict["Conserv"][run]={}
-        report_dict["FRiP"][run]={}
-        report_dict["Peaks"][run]={}
-        report_dict["Targets"][run]={}
-        for rep in _reps[run]:
-            runRep = "%s.%s" % (run, rep)
-            ReadsInPeaks,Total=parse_FRiP(runRep)
-            report_dict["FRiP"][run][runRep]={"ReadsInPeaks":ReadsInPeaks, "FRiP":"%.2f%%" % (ReadsInPeaks*100/Total), 
-                                              "FRiPFigure": data_uri_from_file(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))[0]}
-            report_dict["Conserv"][run][runRep]={"ConservationFigure": data_uri_from_file(output_path+"/conserv/%s/%s_conserv.png"%(runRep,runRep))[0]}
-            tot,fc_10,fc_20,dhs,prom,exon,intr,inte=parse_peaks(runRep)
-            report_dict["Peaks"][run][runRep]={"TotalPeaks":tot, "10FoldChangePeaks":fc_10, "20FoldChangePeaks":fc_20, "DHSPeaks":dhs, 
-                                               "PromoterPeaks":prom, "ExonPeaks":exon, "IntronPeaks":intr, "IntergenicPeaks":inte, 
-                                               "PeaksFigure":data_uri_from_file(output_path+"/peaks/%s/%s_peaks.png"%(runRep,runRep))[0],
-                                               "PeaksFile":"files/%s_sorted_peaks.bed" % runRep}
-            html_table = parse_targets(runRep)
-            report_dict["Targets"][run][runRep]={"TargetsTable": html_table, "TargetsFile": "files/%s_gene_score.txt" % runRep}
-        for sample in config["runs"][run]:
-            if sample:
-                total,mapped,uniq_mapped = parse_mapped_rate(sample)
-                report_dict["Mapped"][run][sample]={"TotalReads":total, "MappedReads":mapped, "UniquelyMappedReads":uniq_mapped, 
-                                                    "MappedRate":"%.2f%%" % (mapped*100/total), "UniquelyMappedRate":"%.2f%%" % (uniq_mapped*100/total),
-                                                    "MappedFigure":data_uri_from_file(output_path + "/align/%s/%s_mapping.png"% (sample,sample))[0]}
-                MQ,GC=parse_GC_rate(sample)
-                report_dict["GC"][run][sample]={"MedianQuality":MQ, "GCMedian":GC, "GCFigure": data_uri_from_file(output_path + "/fastqc/%s/%s_perSeqGC.png"% (sample,sample))[0]}
-                N1,Nd=parse_PBC(sample)
-                report_dict["PBC"][run][sample]={"N1Score":N1,"NdScore":Nd,"PBCScore":"%.2f%%" % (N1*100/Nd)}
-                if len(config["samples"][sample]) > 1:
-                    report_dict["Fragments"][run][sample]={"FragmentFigure": data_uri_from_file(output_path + "/frag/%s/%s_fragDist.png"% (sample,sample))[0]}
-    report_dict["Group"]={}
-    report_dict["Group"]["Mapping"]=data_uri_from_file(output_path + "/report/image/mapping.png")[0]
-    report_dict["Group"]["PBC"]=data_uri_from_file(output_path + "/report/image/pbc.png")[0]
-    report_dict["Group"]["Peaks"]=data_uri_from_file(output_path + "/report/image/peakFoldChange.png")[0]
-    return report_dict
-
-
-def getReportInputs(wildcards):
-    ret = []
-    ret.append(output_path + '/report/image/mapping.png')
-    ret.append(output_path + '/report/image/pbc.png')
-    ret.append(output_path + '/report/image/peakFoldChange.png')
-    ret.append(output_path + '/peaks/run_info.txt')
-    for run in config["runs"].keys():
-        for rep in _reps[run]:
-            runRep = "%s.%s" % (run, rep)
-            if "motif" in config and config["motif"]:
-                if config["motif"] == "mdseqpos":
-                    ret.append(output_path + "/motif/%s/results/table.html"% runRep)
-                if config["motif"] == "homer":
-                    ret.append(output_path + "/motif/%s/results/homerResults.html"% runRep)
-            ret.append(output_path + "/frips/%s/%s_frip.txt"%(runRep,runRep))
-            ret.append(output_path+"/frips/%s/%s_frip.png"%(runRep,runRep))
-            if "macs2_broadpeaks" in config and config["macs2_broadpeaks"]:
-                ret.append(output_path+"/peaks/%s/%s_peaks.broadPeak"%(runRep,runRep))
-            else:
-                ret.append(output_path+"/peaks/%s/%s_peaks.narrowPeak"%(runRep,runRep))
-            ret.append(output_path+"/ceas/%s/%s_summary.txt"%(runRep,runRep))
-            ret.append(output_path+"/ceas/%s/%s_DHS_summary.dhs"%(runRep,runRep))
-            ret.append(output_path +"/targets/%s/%s_gene_score.txt"%(runRep,runRep))
-            ret.append(output_path+"/conserv/%s/%s_conserv.png"%(runRep,runRep))
-            ret.append(output_path + "/targets/%s/%s_gene_score.txt" % (runRep,runRep))
-            ret.append(output_path + "/peaks/%s/%s_sorted_peaks.bed" % (runRep,runRep))
-        for sample in config["runs"][run]:
-            if sample:
-                ret.append(output_path + "/align/%s/%s_mapping.txt" %(sample,sample))
-                ret.append(output_path + "/frips/%s/%s_pbc.txt"%(sample,sample))
-                ret.append(output_path + "/align/%s/%s_mapping.png"% (sample,sample))
-                ret.append(output_path + "/fastqc/%s/%s_perSeqGC.png"% (sample,sample))
-                ret.append(output_path + "/frag/%s/%s_fragDist.png"% (sample,sample))
-                if "contamination_panel" in config and len(config["contamination_panel"]) > 0:
-                    ret.append(output_path + "/contam/%s/%s_contamination.txt"% (sample,sample))
-    return ret
-
-def getZipReportInput(wildcards):
-    ret = []
-    for run in config["runs"].keys():
-        for rep in _reps[run]:
-            runRep = "%s.%s" % (run, rep)
-            ret.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
-            ret.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
-            if "motif" in config and config["motif"]:
-                if config["motif"] == "mdseqpos":
-                    ret.append(output_path + "/motif/%s/results/table.html"% runRep)
-                if config["motif"] == "homer":
-                    ret.append(output_path + "/motif/%s/results/homerResults.html"% runRep)
-    return ret
-
-
-def report_targets(wildcards):
-    """Generates the targets for this module"""
+def report_htmlTargets(wildcards):
     ls = []
-    ls.append(output_path + '/report/report.html')
-    ls.append(output_path + '/report/image/mapping.png')
-    ls.append(output_path + '/report/image/pbc.png')
-    ls.append(output_path + '/report/image/peakFoldChange.png')
-    for run in config["runs"].keys():
-        for rep in _reps[run]:
-            runRep = "%s.%s" % (run, rep)
-            ls.append(output_path + "/report/files/%s_gene_score.txt" % runRep)
-            ls.append(output_path + "/report/files/%s_sorted_peaks.bed" % runRep)
-    if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
-        if 'motif' in config and config['motif']:
-            ls.append(output_path + '/report/motif')
-    ls.append(output_path + '/report/report.zip')
-    return ls
+    ls.append(output_path + "/report/Overview/01_chips_workflow.png")
+    ls.append(output_path + "/report/Overview/01_details.yaml")
+    ls.append(output_path + "/report/Overview/02_select_software_versions.tsv")
+    ls.append(output_path + "/report/Overview/02_details.yaml")
+    ls.append(output_path + "/report/Overview/03_assembly.csv")
 
+    #READ LEVEL QUALITY
+    ls.append(output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt")
+    ls.append(output_path + "/report/Reads_Level_Quality/01_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/02_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/03_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/04_contamination_table.dt")
+    ls.append(output_path + "/report/Reads_Level_Quality/04_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/05_details.yaml")
+    ls.append(output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly")
+    ls.append(output_path + "/report/Reads_Level_Quality/06_details.yaml")
+
+    #PEAK LEVEL QUALITY
+    ls.append(output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.dt")
+    ls.append(output_path + "/report/Peaks_Level_Quality/01_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/02_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/03_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/04_details.yaml")
+    ls.append(output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly")
+    ls.append(output_path + "/report/Peaks_Level_Quality/05_details.yaml")
+
+    #GENOME TRACK VIEW
+    for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
+        if gene in pd.read_csv(config['geneBed'], sep = '\t',header=None, index_col=None).iloc[:-3].values:
+            ls.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+            ls.append(output_path + "/report/Genome_Track_View/0_details.yaml")
+    #DOWNSTREAM
+    ls.append(output_path + "/report/Downstream/01_conservation_and_top_motifs.csv")
+    ls.append(output_path + "/report/Downstream/01_details.yaml")
+    return ls
 
 rule report_all:
     input:
-        report_targets
+        output_path+ "/report/report.zip"
 
-rule report_generate:
+########################### OVERVIEW Section ##################################
+rule report_overview_workflow:
     input:
-        getReportInputs
+        png=src_path + "/report/chips_workflow.png",
+        yml=src_path + "/report/intro_details.yaml",
     output:
-        output_path + '/report/report.html'
-    message: "REPORT: Generate report for whole runs"
-    run:
-        report_dict=result_dict(wildcards)
-        template = src_path + "/static/chipsTemplate.html"
-        report = open(template)
-        with open(str(output),"w") as o:
-            o.write(report.read().replace("{ RESULT_DICT }",json.dumps(report_dict)))
-        report.close()
+        png = output_path + "/report/Overview/01_chips_workflow.png",
+        det = output_path + "/report/Overview/01_details.yaml",
+    shell:
+        "cp {input.png} {output.png} && cp {input.yml} {output.det}"
 
-if ("macs2_broadpeaks" not in config) or config["macs2_broadpeaks"] != True:
-    if 'motif' in config and config['motif']:
-        rule report_copyMotif:
-            input:
-                motif_targets
-            output:
-                directory(output_path + '/report/motif')
-            message: "REPORT: Copy motif results to report"
-            params:
-                motif_path = output_path + "/motif/"
-            shell:
-                "cp -r {params.motif_path} {output}"
+rule report_overview_software_versions:
+    #inpuy: #NO Input
+    output:
+        tsv=output_path + "/report/Overview/02_select_software_versions.tsv",
+        details=output_path + "/report/Overview/02_details.yaml",
+    params:
+        caption="""caption: 'The details of other software used in CHIPs are written to software_versions_all.txt in the directory where this report was generated.'"""
+    shell:
+        """echo "{params.caption}" >> {output.details} && """ +
+        src_path + "/modules/scripts/report/overview/software_versions.py -o {output.tsv}"""
 
-rule report_copyTargets:
+rule report_overview_assembly:
+    #inpuy: #NO Input
+    output:
+        output_path + "/report/Overview/03_assembly.csv",
+    params:
+        assembly=config['assembly']
+    shell:
+        "echo {params.assembly} > {output}"
+########################### END OVERVIEW Section ##############################
+
+########################### Read Level Quality Section ########################
+rule report_read_level_summary_table:
     input:
-        output_path + "/targets/{run}.{rep}/{run}.{rep}_gene_score.txt"
+        mapping=output_path + "/align/mapping.csv",
+        pbc=output_path + "/frips/pbc.csv",
     output:
-        score=output_path + "/report/files/{run}.{rep}_gene_score.txt",
-    message: "REPORT: Copy targets results to report"
+        csv=output_path + "/report/Reads_Level_Quality/01_read_level_summary_table.dt",
+        details=output_path + "/report/Reads_Level_Quality/01_details.yaml",
+    params:
+        caption="""caption: 'Abbreviations: M, million; PBC, PCR bottlneck coefficient.'"""
     shell:
-        "cp {input} {output}"
+        """echo "{params.caption}" >> {output.details} && """ +
+        src_path + "/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
 
-rule report_copyPeaks:
+rule report_read_level_mapped_reads:
     input:
-        output_path + "/peaks/{run}.{rep}/{run}.{rep}_sorted_peaks.bed"
+        output_path + "/align/mapping.csv",
     output:
-        output_path + "/report/files/{run}.{rep}_sorted_peaks.bed",
-    message: "REPORT: Copy peaks results to report"
+        csv=output_path + "/report/Reads_Level_Quality/02_mapped_reads_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/02_details.yaml",
+    params:
+        caption="""caption: 'Mapped reads refer to the number of reads successfully mapping to the genome, while uniquely mapped reads are the subset of mapped reads mapping only to one genomic location.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Number of reads','value':'Number of reads'}}}),
     shell:
-        "cp {input} {output}"
+        """echo "{params.caption}" >> {output.details} && """
+        """echo "{params.plot_options}" >> {output.details} &&"""
+        """cp {input} {output.csv}"""
 
-rule report_plotMapStat:
+rule report_read_level_pcr_bottleneck_coefficient:
+    """Plot PBC"""
     input:
-        output_path + "/align/mapping.csv"
+        output_path + "/frips/pbc.csv",
     output:
-        output_path + "/report/image/mapping.png"
-    log: _report_log
-    conda: "../envs/report/report.yaml"
+        csv=output_path + "/report/Reads_Level_Quality/03_pcr_bottleneck_coefficient_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/03_details.yaml",
+    params:
+        caption="""caption: 'The PCR bottleneck coefficient (PBC) refers to the number of locations with exactly one uniquely mapped read divided by the number of unique genomic locations.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'PBC score','value':'PBC score'}}}),
+    group: "cohort_report"
     shell:
-        "Rscript " + src_path + "/modules/scripts/report_mapStats.R {input} {output}"
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/read_level_quality/read_level_pbc.py -p {input} -o {output.csv}"""
 
-rule report_plotPBCStat:
+rule report_read_level_contamination_tbl:
     input:
-        #output_path + "/align/pbc.csv"
-        output_path + "/frips/pbc.csv"
+         output_path + "/contam/contamination.csv"
     output:
-        output_path + "/report/image/pbc.png"
-    log: _report_log
-    conda: "../envs/report/report.yaml"
+         csv=output_path + "/report/Reads_Level_Quality/04_contamination_table.dt",
+         details=output_path + "/report/Reads_Level_Quality/04_details.yaml"
+    params:
+         caption="caption: 'Contamination percentages for all reference genomes are included here.' "
     shell:
-        "Rscript " + src_path + "/modules/scripts/report_plotPBC.R {input} {output}"
+        """echo "{params.caption}" >> {output.details} &&
+        cp {input} {output.csv}"""
 
-rule report_plotPeakFoldChange:
-    input: 
-        output_path + "/peaks/peakStats.csv"
-    output:
-        output_path + "/report/image/peakFoldChange.png"
-    log: _report_log
-    conda: "../envs/report/report.yaml"
-    shell:
-        "Rscript " + src_path + "/modules/scripts/report_plotFoldChange.R {input} {output}"
-
-rule report_zipReport:
+rule report_read_level_contamination_plot:
+    """Plot contamination"""
     input:
-        report=output_path + '/report/report.html',
-        files=getZipReportInput,
+        output_path + "/contam/contamination.csv"
     output:
-        output_path + '/report/report.zip'
-    message: "REPORT: Compress report"
-    params: 
-        motif = output_path + '/report/motif' if ("motif" in config and config["motif"]) else "" ,
-        files = output_path + '/report/files'
+        csv=output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly",
+        details=output_path + "/report/Reads_Level_Quality/05_details.yaml",
+    params:
+        #files=lambda wildcards,input: " -f ".join(input),
+        caption="""caption: 'The reported values for each species represent the percent of 100,000 reads that map to the reference genome of that species.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of 100,000 reads','value':'Percentage of 100,000 reads'}}}),
+    group: "cohort_report"
     shell:
-        "zip -q -r {output} {input.report} {params.files} {params.motif}"
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/read_level_quality/read_level_contam.py -c {input} -o {output.csv}"""
+
+rule report_read_level_fragment_plot:
+    """Make fragment plots"""
+    input:
+        expand(output_path + "/frag/{sample}/{sample}_frags.txt", sample = list(config["samples"].keys())),
+    output:
+        csv=output_path + "/report/Reads_Level_Quality/06_fragment_length_line.plotly",
+        details=output_path + "/report/Reads_Level_Quality/06_details.yaml",
+    params:
+        files=lambda wildcards, input: " -f ".join(input),
+        caption="""caption: 'Fragment size distributions show paired-end fragments in each sample. The plotted value for each sample is the probability density in a 5 bp bin size normalized so the integral is 1.'""",
+    shell:
+        """echo "{params.caption}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/read_level_quality/read_level_frag.py -f {params.files} -o {output.csv}"""
+
+########################### END Read Level Quality Section ####################
+########################### Peak Level Quality Section ########################
+
+rule report_peak_level_summary:
+    """Copy the csv files for rendering table of peak data"""
+    input:
+        map= output_path + "/align/mapping.csv",
+        peak= output_path + "/peaks/peakStats.csv",
+        frip= output_path + "/frips/frips.csv",
+        ceas= output_path + "/ceas/meta.csv",
+        dhs= output_path + "/ceas/dhs.csv",
+    output:
+        details= output_path + "/report/Peaks_Level_Quality/01_details.yaml",
+        sum= output_path + "/report/Peaks_Level_Quality/01_peak_level_summary_table.dt",
+        frip= output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+        ceas= output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+        dhs= output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly",
+    params:
+        caption="caption: 'Abbreviations: 10FC, > 10 fold change; 20FC, > 20 fold change; FRiP, Fraction of reads in peaks; Prom, Promoter; Inter, Intergenic; DHS, DNAseI hypersensitivity sites' "
+    shell:
+        """
+        echo "{params.caption}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/peak_level_quality/peak_level_summary.py -p {input.peak} -f {input.frip} -m {input.ceas} -d {input.dhs} -s {output.sum} -r {output.frip} -a {output.ceas} -o {output.dhs}"""
+
+rule report_peak_level_peaks_plot:
+    """Render number of peaks"""
+    input:
+        output_path + "/peaks/peakStats.csv",
+    output:
+        csv=output_path + "/report/Peaks_Level_Quality/02_number_of_peaks_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/02_details.yaml",
+    params:
+        #files = lambda wildcards,input: " -f ".join(input),
+        caption="""caption: 'The total peaks called, the peaks with a > 10 fold change (10FC), and the peaks with a > 20 fold change (20FC) for each run are represented here.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Number of peaks','value':'Number of peaks'}}}),
+    group: "cohort_report"
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details} &&
+        cp {input} {output.csv}"""
 
 
+rule report_peaks_level_frips:
+    """Render FRIP"""
+    output:
+        #csv=output_path + "/report/Peaks_Level_Quality/03_fraction_of_reads_in_peaks_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/03_details.yaml",
+    params:
+        caption="""caption: 'The fraction of reads in peaks (FRIP) score is the fraction of 4 million subsampled reads that fall within a defined peak region.'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'FRIP score (% of reads)','value':'FRIP score (% of reads)'}}}),
+    group: "cohort_report"
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details}"""
+
+rule report_peaks_level_annotations:
+    """Render peak annotation"""
+    output:
+        #csv=output_path + "/report/Peaks_Level_Quality/04_peak_annotations_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/04_details.yaml",
+    params:
+        files = lambda wildcards,input: " -f ".join(input),
+        caption="""caption: 'The proportions of peaks for each sample overlapping with the promoters, exons, introns, and intergenic regions are shown here.'""",
+        plot_options = yaml_dump({'plotly': {'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of peaks','value':'Percentage of peaks'}}}),
+    group: "cohort_report"
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details}"""
+
+rule report_peaks_level_dhs:
+    """Render peak dhs"""
+    output:
+        #csv=output_path + "/report/Peaks_Level_Quality/05_DNAse_I_hypersensitivity_bar.plotly",
+        details=output_path + "/report/Peaks_Level_Quality/05_details.yaml",
+    params:
+        caption="""caption: 'DNAse hypersensitive sites (DHS) may represent highly active regions of the genome. The data below represent the percentage of 4 million subsampled peaks that intersect with DHS peaks as defined by list of known DHS regions (specific to each species).'""",
+        plot_options = yaml_dump({'plotly': {'barmode':"overlay",'opacity':1.0, 'orientation': "h", 'labels':{'X':'Percentage of peaks','value':'Percentage of peaks'}}}),
+    shell:
+        """echo "{params.caption}" >> {output.details} &&
+        echo "{params.plot_options}" >> {output.details}"""
+
+########################### END Peak Level Quality Section ####################
+########################### Genome Track View Section ########################
+rule report_genome_track_make_bed:
+    """Make new bed files for genome track"""
+    input:
+        config['geneBed'],
+    output:
+        extend= output_path + "/report/Genome_Track_View/extend.bed",
+        tss= output_path + "/report/Genome_Track_View/tss.bed"
+    params:
+        up= config['upstream'],
+        down= config['downstream'],
+    shell:
+        src_path + "/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.extend} -t {output.tss}"""
+
+def genome_tracks_init_inputFn(wildcards):
+    ls = []
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            ls.append((output_path + "/peaks/{runRep}/{runRep}_treat_pileup.bw").format(runRep = runRep))
+    tmp = {'pileups': ls,
+         'extend': output_path + "/report/Genome_Track_View/extend.bed",
+         'tss': output_path + "/report/Genome_Track_View/tss.bed",
+         }
+    return tmp
+
+rule report_genome_track_make_tracks:
+    """Make genome track configuration file"""
+    input:
+        unpack(genome_tracks_init_inputFn)
+    output:
+        output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
+    params:
+        track= temp(output_path + "/report/Genome_Track_View/tracks_all.ini"),
+    shell:
+        """make_tracks_file --trackFiles {input.pileups} -o {params.track} &&""" +
+        src_path + """/modules/scripts/report/genome_track_view/make_track_file.py -i {params.track} -e {input.extend} -t {input.tss} -o {output}"""
+
+_png_list = []
+for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
+    if gene in pd.read_csv(config['geneBed'], sep = '\t',header=None, index_col=None).iloc[:-3].values:
+        _png_list.append((output_path + "/report/Genome_Track_View/{num}_genome_track_for_{track}.png").format(num = list_num, track = gene))
+    else:
+        print(gene + " not found")
 
 
+rule report_genome_track_make_plot:
+    """Make genome track plot"""
+    input:
+        ini= output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
+        extend= output_path + "/report/Genome_Track_View/extend.bed",
+    output:
+        plist=_png_list,
+        details=output_path + "/report/Genome_Track_View/0_details.yaml",
+    params:
+        genes= lambda wildcards: [" -g %s" % g for g in config["genes_to_plot"].strip().split()],
+        png= lambda wildcards, output: " -o ". join(output.plist),
+        caption="""caption: 'The genomic coordinates and chromosome number are indicated above the sample tracks. Transcripts in this region are indicated by the bars below the sample tracks.' """
+    shell:
+        """echo "{params.caption}" > {output.details} &&""" +
+        src_path + """/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.extend} {params.genes} -o {params.png}"""
 
+########################### END Genome Track View Section ####################
+########################### Downstream Section ################################
+def report_downstream_conser_motif_inputFn(wildcards):
+    #get conservation png files
+    conserv_ls = []
+    for run in config["runs"].keys():
+        for rep in _reps[run]:
+            runRep = "%s.%s" % (run, rep)
+            conserv_ls.append((output_path + "/conserv/{runRep}/{runRep}_conserv_thumb.png").format(runRep = runRep))
 
+    #get homer ls files
+    homer_ls = []
+    motif_ls = []
+    if 'motif' in config and config['motif'] == 'homer':
+        for run in config["runs"].keys():
+            for rep in _reps[run]:
+                runRep = "%s.%s" % (run, rep)
+                #LEN: Please check this path!
+                homer_ls.append((output_path + "/motif/{runRep}/results/knownResults/known1.logo.png").format(runRep = runRep))
+                motif_ls.append((output_path + "/motif/{runRep}/results/knownResults.txt").format(runRep = runRep))
+    tmp = {'conserv_logos': conserv_ls,
+           'homer_logos': homer_ls,
+           'motif_txt': motif_ls}
+    return tmp
 
+rule report_downstream_conser_motif:
+    input:
+        unpack(report_downstream_conser_motif_inputFn)
+    output:
+        csv= output_path + "/report/Downstream/01_conservation_and_top_motifs.csv",
+        details= output_path + "/report/Downstream/01_details.yaml",
+    params:
+        outpath=output_path + "/report/Downstream",
+        conserv_logos= lambda wildcards, input: " -c ".join(input.conserv_logos),
+        motif_logos= lambda wildcards, input: " -m ".join(input.homer_logos),
+        motif_txt= lambda wildcards, input: " -t ".join(input.motif_txt),
+        caption= """caption: 'The conservation plots of transcription factor (ChIP-seq) runs typically show a high focal point around peak summits (characterized as "needle points"), while histone runs typically show bimodal peaks (characterized as "shoulders"). If motif analysis is enabled, the top 5000 most significant peak summits (ranked by the MACS P-value) are written to a subfolder for each sample in the report directory. Though several motifs typically arise for each sample, only the top hit is shown here. Further downstream analyses, including regulatory potential scores derived from LISA, are also available for each sample in the report directory.' """
+    shell:
+        """ echo "{params.caption}" > {output.details} &&""" +
+        src_path + """/modules/scripts/report/downstream/conserv_motif_table.py -c {params.conserv_logos} -p {params.outpath} -o {output.csv} -t {params.motif_txt} -m {params.motif_logos}"""
 
+########################### END Downstream Section ############################
+rule report_auto_render:
+    """Generalized rule to dynamically generate the report BASED
+    on what is in the report directory"""
+    input:
+        report_htmlTargets
+    params:
+        jinja2_template=src_path + "/report/index.sample.html",
+        output_path = output_path + "/report",
+        sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality', 'Genome_Track_View', 'Downstream']),
+        title="CHIPs Report",
+    output:
+        output_path+ "/report/report.html"
+    message:
+        "REPORT: Generating example report"
+    shell:
+        src_path + """/modules/scripts/report.py -d {params.output_path} -s {params.sections_list} -j {params.jinja2_template} -t "{params.title}" -o {output} && cp -r """ + src_path +"/report/static {params.output_path}"""
 
-
-
-
-
-
-
+rule report_zip:
+    """Zip final report"""
+    input:
+        output_path+ "/report/report.html"
+    output:
+        output_path+ "/report/report.zip"
+    params:
+        output_path+ "/report/"
+    shell:
+        """cd {params} && zip -q -r report.zip *"""
