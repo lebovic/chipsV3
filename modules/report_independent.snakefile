@@ -240,8 +240,8 @@ rule report_all:
 ########################### OVERVIEW Section ##################################
 rule report_overview_workflow:
     input:
-        png="cidc_chips/report/chips_workflow.png",
-        yml="cidc_chips/report/intro_details.yaml",
+        png=src_path + "/report/chips_workflow.png",
+        yml=src_path + "/report/intro_details.yaml",
     output:
         png = output_path + "/report/Overview/01_chips_workflow.png",
         det = output_path + "/report/Overview/01_details.yaml",
@@ -257,7 +257,7 @@ rule report_overview_software_versions:
         caption="""caption: 'The details of other software used in CHIPs are written to software_versions_all.txt in the directory where this report was generated.'"""
     shell:
         """echo "{params.caption}" >> {output.details} && """
-        """cidc_chips/modules/scripts/report/overview/software_versions.py -o {output.tsv}"""
+        ""src_path + "/modules/scripts/report/overview/software_versions.py -o {output.tsv}"""
 
 rule report_overview_assembly:
     #inpuy: #NO Input
@@ -281,7 +281,7 @@ rule report_read_level_summary_table:
         caption="""caption: 'Abbreviations: M, million; PBC, PCR bottlneck coefficient.'"""
     shell:
         """echo "{params.caption}" >> {output.details} && """
-        """cidc_chips/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
+        ""src_path + "/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
 
 rule report_read_level_mapped_reads:
     input:
@@ -450,7 +450,7 @@ rule report_genome_track_make_bed:
         up= config['upstream'],
         down= config['downstream'],
     shell:
-        """cidc_chips/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.extend} -t {output.tss}"""
+        ""src_path + "/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.extend} -t {output.tss}"""
 
 def genome_tracks_init_inputFn(wildcards):
     ls = []
@@ -548,7 +548,7 @@ rule report_auto_render:
     input:
         report_htmlTargets
     params:
-        jinja2_template="cidc_chips/report/index.sample.html",
+        jinja2_template=src_path + "/report/index.sample.html",
         output_path = output_path + "/report",
         sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality', 'Genome_Track_View', 'Downstream']),
         title="CHIPs Report",

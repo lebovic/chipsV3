@@ -228,7 +228,7 @@ rule virusseq_filteredCounts:
     output:
         output_path +"/virusseq/{sample}/{sample}.virusseq.counts.filtered.txt"
     shell:
-        "cidc_chips/modules/scripts/virusseq_filterAndNormalize.py -f {input.counts} -m {input.mapping} -o {output}"
+        src_path + "/modules/scripts/virusseq_filterAndNormalize.py -f {input.counts} -m {input.mapping} -o {output}"
 
 rule virusseq_aggregateFilteredCts:
     input:
@@ -240,7 +240,7 @@ rule virusseq_aggregateFilteredCts:
         cts = output_path + "/virusseq/virusseq.allSample.counts.csv",
         tpm = output_path + "/virusseq/virusseq.allSample.tpms.csv",
     shell:
-        "cidc_chips/modules/scripts/virusseq_aggregateFiltered.py -f {params.files} -s {params.samples} -o {output.cts} -t {output.tpm}"
+        src_path + "/modules/scripts/virusseq_aggregateFiltered.py -f {params.files} -s {params.samples} -o {output.cts} -t {output.tpm}"
 
 rule virusseq_bamTobedgraph:
     """Create a bedgraph for the chrM reads"""
@@ -265,5 +265,5 @@ rule virusseq_bdgTobw:
         output_path + "/virusseq/{sample}/{sample}.virusseq.bw"
     shell:
         #"bedGraphToBigWig {input} {params.virusseq_len} {output}"
-        "cidc_chips/modules/scripts/virusseq_bdgToBw.sh {input} {params.virusseq_len} {output}"
+        src_path + "/modules/scripts/virusseq_bdgToBw.sh {input} {params.virusseq_len} {output}"
         

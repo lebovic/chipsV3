@@ -20,6 +20,9 @@ trim_adapter: true
 #NOTE: you could comment this line, the default path is "analysis"
 output_path: "analysis"
 
+#Path to your chips source code directory
+#NOTE: you could comment this line, the default path is "cidc_chips"
+src_path: "cidc_chips"
 
 #ALIGNER: if you have sentieon license and got sentieon installed on your machine
 #Uncomment the following line and set absolute path of sentieon

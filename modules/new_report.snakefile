@@ -64,8 +64,8 @@ rule report_all:
 ########################### OVERVIEW Section ##################################
 rule report_overview_workflow:
     input:
-        png="cidc_chips/report/chips_workflow.png",
-        yml="cidc_chips/report/intro_details.yaml",
+        png=src_path + "/report/chips_workflow.png",
+        yml=src_path + "/report/intro_details.yaml",
     output:
         png = output_path + "/report/Overview/01_chips_workflow.png",
         det = output_path + "/report/Overview/01_details.yaml",
@@ -80,8 +80,8 @@ rule report_overview_software_versions:
     params:
         caption="""caption: 'The details of other software used in CHIPs are written to software_versions_all.txt in the directory where this report was generated.'"""
     shell:
-        """echo "{params.caption}" >> {output.details} && """
-        """cidc_chips/modules/scripts/report/overview/software_versions.py -o {output.tsv}"""
+        """echo "{params.caption}" >> {output.details} && """ +
+        src_path + "/modules/scripts/report/overview/software_versions.py -o {output.tsv}"""
 
 rule report_overview_assembly:
     #inpuy: #NO Input
@@ -104,8 +104,8 @@ rule report_read_level_summary_table:
     params:
         caption="""caption: 'Abbreviations: M, million; PBC, PCR bottlneck coefficient.'"""
     shell:
-        """echo "{params.caption}" >> {output.details} && """
-        """cidc_chips/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
+        """echo "{params.caption}" >> {output.details} && """ +
+        src_path + "/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
 
 rule report_read_level_mapped_reads:
     input:
@@ -134,8 +134,8 @@ rule report_read_level_pcr_bottleneck_coefficient:
     group: "cohort_report"
     shell:
         """echo "{params.caption}" >> {output.details} &&
-        echo "{params.plot_options}" >> {output.details} &&
-        cidc_chips/modules/scripts/report/read_level_quality/read_level_pbc.py -p {input} -o {output.csv}"""
+        echo "{params.plot_options}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/read_level_quality/read_level_pbc.py -p {input} -o {output.csv}"""
 
 rule report_read_level_contamination_tbl:
     input:
@@ -163,8 +163,8 @@ rule report_read_level_contamination_plot:
     group: "cohort_report"
     shell:
         """echo "{params.caption}" >> {output.details} &&
-        echo "{params.plot_options}" >> {output.details} &&
-        cidc_chips/modules/scripts/report/read_level_quality/read_level_contam.py -c {input} -o {output.csv}"""
+        echo "{params.plot_options}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/read_level_quality/read_level_contam.py -c {input} -o {output.csv}"""
 
 rule report_read_level_fragment_plot:
     """Make fragment plots"""
@@ -177,8 +177,8 @@ rule report_read_level_fragment_plot:
         files=lambda wildcards, input: " -f ".join(input),
         caption="""caption: 'Fragment size distributions show paired-end fragments in each sample. The plotted value for each sample is the probability density in a 5 bp bin size normalized so the integral is 1.'""",
     shell:
-        """echo "{params.caption}" >> {output.details} &&
-        cidc_chips/modules/scripts/report/read_level_quality/read_level_frag.py -f {params.files} -o {output.csv}"""
+        """echo "{params.caption}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/read_level_quality/read_level_frag.py -f {params.files} -o {output.csv}"""
 
 ########################### END Read Level Quality Section ####################
 ########################### Peak Level Quality Section ########################
@@ -201,8 +201,8 @@ rule report_peak_level_summary:
         caption="caption: 'Abbreviations: 10FC, > 10 fold change; 20FC, > 20 fold change; FRiP, Fraction of reads in peaks; Prom, Promoter; Inter, Intergenic; DHS, DNAseI hypersensitivity sites' "
     shell:
         """
-        echo "{params.caption}" >> {output.details} &&
-        cidc_chips/modules/scripts/report/peak_level_quality/peak_level_summary.py -p {input.peak} -f {input.frip} -m {input.ceas} -d {input.dhs} -s {output.sum} -r {output.frip} -a {output.ceas} -o {output.dhs}"""
+        echo "{params.caption}" >> {output.details} &&""" +
+        src_path + """/modules/scripts/report/peak_level_quality/peak_level_summary.py -p {input.peak} -f {input.frip} -m {input.ceas} -d {input.dhs} -s {output.sum} -r {output.frip} -a {output.ceas} -o {output.dhs}"""
 
 rule report_peak_level_peaks_plot:
     """Render number of peaks"""
@@ -274,7 +274,7 @@ rule report_genome_track_make_bed:
         up= config['upstream'],
         down= config['downstream'],
     shell:
-        """cidc_chips/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.extend} -t {output.tss}"""
+        src_path + "/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.extend} -t {output.tss}"""
 
 def genome_tracks_init_inputFn(wildcards):
     ls = []
@@ -297,8 +297,8 @@ rule report_genome_track_make_tracks:
     params:
         track= temp(output_path + "/report/Genome_Track_View/tracks_all.ini"),
     shell:
-        """make_tracks_file --trackFiles {input.pileups} -o {params.track} &&
-        cidc_chips/modules/scripts/report/genome_track_view/make_track_file.py -i {params.track} -e {input.extend} -t {input.tss} -o {output}"""
+        """make_tracks_file --trackFiles {input.pileups} -o {params.track} &&""" +
+        src_path + """/modules/scripts/report/genome_track_view/make_track_file.py -i {params.track} -e {input.extend} -t {input.tss} -o {output}"""
 
 _png_list = []
 for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
@@ -321,8 +321,8 @@ rule report_genome_track_make_plot:
         png= lambda wildcards, output: " -o ". join(output.plist),
         caption="""caption: 'The genomic coordinates and chromosome number are indicated above the sample tracks. Transcripts in this region are indicated by the bars below the sample tracks.' """
     shell:
-        """echo "{params.caption}" > {output.details} &&
-        cidc_chips/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.extend} {params.genes} -o {params.png}"""
+        """echo "{params.caption}" > {output.details} &&""" +
+        src_path + """/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.extend} {params.genes} -o {params.png}"""
 
 ########################### END Genome Track View Section ####################
 ########################### Downstream Section ################################
@@ -362,8 +362,8 @@ rule report_downstream_conser_motif:
         motif_txt= lambda wildcards, input: " -t ".join(input.motif_txt),
         caption= """caption: 'The conservation plots of transcription factor (ChIP-seq) runs typically show a high focal point around peak summits (characterized as "needle points"), while histone runs typically show bimodal peaks (characterized as "shoulders"). If motif analysis is enabled, the top 5000 most significant peak summits (ranked by the MACS P-value) are written to a subfolder for each sample in the report directory. Though several motifs typically arise for each sample, only the top hit is shown here. Further downstream analyses, including regulatory potential scores derived from LISA, are also available for each sample in the report directory.' """
     shell:
-        """ echo "{params.caption}" > {output.details} &&
-        cidc_chips/modules/scripts/report/downstream/conserv_motif_table.py -c {params.conserv_logos} -p {params.outpath} -o {output.csv} -t {params.motif_txt} -m {params.motif_logos}"""
+        """ echo "{params.caption}" > {output.details} &&""" +
+        src_path + """/modules/scripts/report/downstream/conserv_motif_table.py -c {params.conserv_logos} -p {params.outpath} -o {output.csv} -t {params.motif_txt} -m {params.motif_logos}"""
 
 ########################### END Downstream Section ############################
 rule report_auto_render:
@@ -372,7 +372,7 @@ rule report_auto_render:
     input:
         report_htmlTargets
     params:
-        jinja2_template="cidc_chips/report/index.sample.html",
+        jinja2_template=src_path + "/report/index.sample.html",
         output_path = output_path + "/report",
         sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality', 'Genome_Track_View', 'Downstream']),
         title="CHIPs Report",
@@ -381,7 +381,7 @@ rule report_auto_render:
     message:
         "REPORT: Generating example report"
     shell:
-        """python cidc_chips/modules/scripts/report.py -d {params.output_path} -s {params.sections_list} -j {params.jinja2_template} -t "{params.title}" -o {output} && cp -r cidc_chips/report/static {params.output_path}"""
+        src_path + """/modules/scripts/report.py -d {params.output_path} -s {params.sections_list} -j {params.jinja2_template} -t "{params.title}" -o {output} && cp -r """ + src_path +"/report/static {params.output_path}"""
 
 rule report_zip:
     """Zip final report"""

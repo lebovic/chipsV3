@@ -89,6 +89,6 @@ rule motif_getMotifSummary:
         files = lambda wildcards, input: [" -m %s" % i for i in input]
     # run:
     #     files = " -m ".join(input)
-    #     shell("cidc_chips/modules/scripts/motif_getSummary.py -m {files} -o {output} 2>> {log}")
+    #     shell(src_path + "/modules/scripts/motif_getSummary.py -m {files} -o {output} 2>> {log}")
     shell:
-        "cidc_chips/modules/scripts/motif_getSummary.py {params.files} -o {output}"# 2>> {log}"
+        src_path + "/modules/scripts/motif_getSummary.py {params.files} -o {output}"# 2>> {log}"

@@ -68,10 +68,10 @@ rule qdnaseq_perform:
     conda: "../envs/qdnaseq/qdnaseq.yaml"
     params:
         name="qdnaseq",
-        qbin="cidc_chips/static/qdnaseq/qdnaseq_hg19_50.bin",
+        qbin=src_path + "/static/qdnaseq/qdnaseq_hg19_50.bin",
         out=output_path + "/qdnaseq/"
     shell:
-        "R CMD BATCH --vanilla '--args {params.name} .tmp {params.qbin} {params.out}' cidc_chips/modules/scripts/qdnaseq.R "#{log}"
+        "R CMD BATCH --vanilla '--args {params.name} .tmp {params.qbin} {params.out}' " + src_path + "/modules/scripts/qdnaseq.R "#{log}"
 
 rule qdnaseq_annotate:
     """Processes the segmented.igv file, which is region-based, and creates
@@ -88,4 +88,4 @@ rule qdnaseq_annotate:
         geneTable=config['geneTable'],
         outPath=output_path + "/qdnaseq/"
     shell:
-        "cidc_chips/modules/scripts/qdnaseq_annotate.py -g {params.geneTable} -i {input} -o {params.outPath}"
+        src_path + "/modules/scripts/qdnaseq_annotate.py -g {params.geneTable} -i {input} -o {params.outPath}"

@@ -35,4 +35,4 @@ rule align_chromapInfo:
     message: "ALIGN/REPORT - collect chromap version info"
     #conda: "../envs/align/align_bwa.yaml"
     shell:
-        "cidc_chips/modules/scripts/align_parseChromapVersion.py -o {output}"
+        src_path + "/modules/scripts/align_parseChromapVersion.py -o {output}"

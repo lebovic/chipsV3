@@ -12,9 +12,9 @@ from scripts.cfce_report.report import data_uri
 from tabulate import tabulate
 
 _cfce_report_log = output_path + "/logs/cfce_report.log"
-_CFCE_LOGO = "cidc_chips/static/cfce_report/CFCE_Logo_Final.jpg"
-_ReportCSS = "cidc_chips/static/cfce_report/report.css"
-_ReportTemplate = Template(open("cidc_chips/static/cfce_report/cfce_report_template.txt").read())
+_CFCE_LOGO = src_path + "/static/cfce_report/CFCE_Logo_Final.jpg"
+_ReportCSS = src_path + "/static/cfce_report/report.css"
+_ReportTemplate = Template(open(src_path + "/static/cfce_report/cfce_report_template.txt").read())
 
 def cfce_report_targets(wildcards):
     ls = []
@@ -210,7 +210,7 @@ rule samples_summary_table:
         output_path + "/cfce_report/sequencingStatsSummary.csv"
     log: _cfce_report_log
     shell:
-        "cidc_chips/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} > {output} 2>>{log}"
+        src_path + "/modules/scripts/get_sampleSummary.py -f {input.fastqc} -m {input.mapping} -p {input.pbc} > {output} 2>>{log}"
 
 rule runs_summary_table:
     input:
@@ -222,7 +222,7 @@ rule runs_summary_table:
         output_path + "/cfce_report/peaksSummary.csv"
     log: _cfce_report_log
     shell:
-        "cidc_chips/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -m {input.meta} -o {output} 2>>{log}"
+        src_path + "/modules/scripts/get_runsSummary.py -p {input.peaks} -f {input.frips} -d {input.dhs} -m {input.meta} -o {output} 2>>{log}"
 
 ######## PLOTS ######
 rule plot_map_stat:
@@ -232,7 +232,7 @@ rule plot_map_stat:
         output_path + "/cfce_report/mapping.png"
     log: _cfce_report_log
     shell:
-        "Rscript cidc_chips/modules/scripts/report_mapStats.R {input} {output}"
+        "Rscript " + src_path + "/modules/scripts/report_mapStats.R {input} {output}"
 
 rule plot_pbc_stat:
     input:
@@ -241,7 +241,7 @@ rule plot_pbc_stat:
         output_path + "/cfce_report/pbc.png"
     log: _cfce_report_log
     shell:
-        "Rscript cidc_chips/modules/scripts/report_plotPBC.R {input} {output}"
+        "Rscript " + src_path + "/modules/scripts/report_plotPBC.R {input} {output}"
 
 rule plot_peakFoldChange:
     input: 
@@ -250,4 +250,4 @@ rule plot_peakFoldChange:
         output_path + "/cfce_report/peakFoldChange.png"
     log: _cfce_report_log
     shell:
-        "Rscript cidc_chips/modules/scripts/report_plotFoldChange.R {input} {output}"
+        "Rscript " + src_path + "/modules/scripts/report_plotFoldChange.R {input} {output}"

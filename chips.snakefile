@@ -161,6 +161,13 @@ if ("output_path" not in config) or config["output_path"] == "":
 else:
     output_path = re.sub("^\./","", config["output_path"].rstrip("/"))
 
+# Set src path
+if ("src_path" not in config) or config["src_path"] == "":
+    src_path = "cidc_chips"
+else:
+    src_path = re.sub("^\./","", config["src_path"].rstrip("/"))
+
+
 #NOTE: Template class allows for _ in the variable names, we want to DISALLOW
 #that for replicates
 #ref: http://stackoverflow.com/questions/2326757/string-templates-in-python-what-are-legal-characters
