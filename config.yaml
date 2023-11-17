@@ -1,6 +1,10 @@
+#Path to your chips source code directory
+#NOTE: you could comment this line, the default path is "chipsV3"
+src_path: "chipsV3"
+
 #NOTE: you won't typically have to change the following two lines!
 metasheet: 'metasheet.csv'
-ref: "cidc_chips/ref.yaml"
+ref: "chipsV3/ref.yaml"
 
 #Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
 assembly: GDC_hg38
@@ -19,10 +23,6 @@ trim_adapter: true
 #Where you want to store your results
 #NOTE: you could comment this line, the default path is "analysis"
 output_path: "analysis"
-
-#Path to your chips source code directory
-#NOTE: you could comment this line, the default path is "cidc_chips"
-src_path: "cidc_chips"
 
 #ALIGNER: if you have sentieon license and got sentieon installed on your machine
 #Uncomment the following line and set absolute path of sentieon

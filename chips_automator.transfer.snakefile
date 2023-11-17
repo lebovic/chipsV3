@@ -46,7 +46,7 @@ rule transfer_src:
     output:
         "atacseq_tx.src.txt"
     shell:
-        """gsutil -m cp -r cidc_chips/ {params.transfer_path} &&
+        """gsutil -m cp -r chipsV3/ {params.transfer_path} &&
         touch {output}"""
 
 rule transfer_config_meta:

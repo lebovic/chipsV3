@@ -163,7 +163,7 @@ else:
 
 # Set src path
 if ("src_path" not in config) or config["src_path"] == "":
-    src_path = "cidc_chips"
+    src_path = "chipsV3"
 else:
     src_path = re.sub("^\./","", config["src_path"].rstrip("/"))
 

@@ -4,7 +4,7 @@
 
 #print(sys.path)
 from string import Template
-#from cidc_chips.modules.scripts.cfce_report.report import report
+#from chipsV3.modules.scripts.cfce_report.report import report
 from scripts.cfce_report.report import report as snkmk_report
 from scripts.cfce_report.report import data_uri
 

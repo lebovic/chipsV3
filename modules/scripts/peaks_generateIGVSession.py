@@ -3,7 +3,7 @@
 1. paths to all of the .treat.bw files
 2. the genome used, e.g. hg19
 
-NOTE: uses cidc_chips/static/chips_igv.session.xml as a TEMPLATE and fills in 
+NOTE: uses chipsV3/static/chips_igv.session.xml as a TEMPLATE and fills in 
 the resource and track info
 ref: https://software.broadinstitute.org/software/igv/Sessions
 
@@ -45,7 +45,7 @@ def main():
         _template = options.xml
     else:
         #OTHERWISE: use default template
-        _template = "cidc_chips/static/chips_igv.session.xml"
+        _template = "chipsV3/static/chips_igv.session.xml"
 
     if not os.path.isfile(_template):
         print("ERROR: Unable to find template XML file OR invalid file")

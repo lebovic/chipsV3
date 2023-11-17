@@ -121,11 +121,11 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-dark fixed-top navbar-expand-lg p-0" style="background-color:#1E284A"> <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="https://bitbucket.org/plumbers/cidc_chips/">Chips</a>
+    <nav class="navbar navbar-dark fixed-top navbar-expand-lg p-0" style="background-color:#1E284A"> <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="https://bitbucket.org/cfce/chipsV3/">Chips</a>
         <div class="container-fluid">
             <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
                 <li class="nav-item active">
-                    <a class="nav-link nav-a" href="https://bitbucket.org/plumbers/cidc_chips/" style="font-size: 1rem">Chips Report</a>
+                    <a class="nav-link nav-a" href="https://bitbucket.org/cfce/chipsV3/" style="font-size: 1rem">Chips Report</a>
                 </li>
             </ul>
         </div>
@@ -143,7 +143,7 @@
                         <tbody>
                             <tr>
                                 <th scope="row">Chips Version</th>
-                                <td><a herf="https://bitbucket.org/plumbers/cidc_chips/commits/" οnclick=get_chips_version() id="ChipsVersion">{ChipsVersion}</a></td>
+                                <td><a herf="https://bitbucket.org/cfce/chipsV3/commits/" οnclick=get_chips_version() id="ChipsVersion">{ChipsVersion}</a></td>
                             </tr>
                             <tr>
                                 <th scope="row">Results Path</th>
@@ -678,7 +678,7 @@
 <script type="text/javascript">
 var Chips_result = { RESULT_DICT };
 
-$("#ChipsVersion").attr("href", "https://bitbucket.org/plumbers/cidc_chips/commits/" + Chips_result["Config"]["ChipsVersion"]);
+$("#ChipsVersion").attr("href", "https://bitbucket.org/cfce/chipsV3/commits/" + Chips_result["Config"]["ChipsVersion"]);
 $("#ChipsVersion").text(Chips_result["Config"]["ChipsVersion"]);
 $("#ResultsPath").text(Chips_result["Config"]["ResultsPath"]);
 $("#AssemblyVersion").text(Chips_result["Config"]["AssemblyVersion"]);
