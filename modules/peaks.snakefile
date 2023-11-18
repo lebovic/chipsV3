@@ -624,14 +624,15 @@ rule peaks_generateIGVsession:
         _getRepInput(output_path + "/peaks/$runRep/$runRep_treat_pileup.bw")
     params:
         genome=config['assembly'],
-        treats = lambda wildcards, input: [" -t %s" % i for i in input]
+        treats = lambda wildcards, input: [" -t %s" % i for i in input],
+        xml = src_path + "/static/chips_igv.session.xml"
     # log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     output:
         output_path + "/peaks/all_treatments.igv.xml"
     message: "PEAKS: generate IGV session for all treatment.bw files"
     shell:
-        src_path + "/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -o {output}"# 2>>{log}"
+        src_path + "/modules/scripts/peaks_generateIGVSession.py -g {params.genome} {params.treats} -x {params.xml} -o {output}"# 2>>{log}"
 
 rule peaks_generateIGVperTrack:
     """Generates analysis/peaks/{runRep}/{runRep}.igv.xml, a igv session of
@@ -641,7 +642,8 @@ rule peaks_generateIGVperTrack:
     input:
         output_path + "/peaks/{run}.{rep}/{run}.{rep}_treat_pileup.bw"
     params:
-        genome=config['assembly']
+        genome=config['assembly'],
+        xml = src_path + "/static/chips_igv.session.xml"
     log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
     output:
@@ -649,4 +651,4 @@ rule peaks_generateIGVperTrack:
     message: "PEAKS: generate IGV session for {run}.{rep} treatment.bw file"
     shell:
         #NOTE: difference with this call and with generate_IGV_session is we pass the -l param which changes the file path
-        src_path + "/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -o {output} -l"# 2>>{log}"
+        src_path + "/modules/scripts/peaks_generateIGVSession.py -g {params.genome} -t {input} -x {params.xml} -o {output} -l"# 2>>{log}"

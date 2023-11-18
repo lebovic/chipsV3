@@ -52,8 +52,9 @@ dependencies:
 - jinja2>=2.10
 
 #Tied to 2.8.2=3 b/c other updated versions produce missing seqlogo bin (homer)
-- weblogo=2.8.2
+- weblogo=2.8.2=3
 - bioconductor-seqlogo>=1.46.0
+- ghostscript
 
 #peaks.snakefile
 - ucsc-bedgraphtobigwig>=332
@@ -84,7 +85,7 @@ dependencies:
 - tqdm >=4.20
 - multiqc=1.9
 - plotly_express
-- markdown
+- markdown=3.4.4
 - pyyaml>=4
 - pygenometracks
 - docutils=0.16
