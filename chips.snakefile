@@ -96,12 +96,11 @@ def loadRef(config):
         config['contamination_panel'] = ref_info['contamination_panel']
 
     #ALSO load virusseq
-    if config.get("run_virusseq"):
-        for (k,v) in ref_info['virusseq'].items():
-            #NO CLOBBERING what is user-defined!
-            if k not in config:
-                config[k] = v
-
+    #if config.get("run_virusseq"): LEN: this causes a bug
+    for (k,v) in ref_info['virusseq'].items():
+        #NO CLOBBERING what is user-defined!
+        if k not in config:
+            config[k] = v
 
     return missing_ref
 

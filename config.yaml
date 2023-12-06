@@ -7,7 +7,7 @@ metasheet: 'metasheet.csv'
 ref: "chipsV3/ref.yaml"
 
 #Tell us what assembly to use (!! MUST be defined in chips/ref.yaml !!)
-assembly: GDC_hg38
+assembly: hg38
 
 #ALIGNER: if you want to use chromap, set your aligner as 'chromap';
 #OTHERWISE leave it as 'bwa' (default)
