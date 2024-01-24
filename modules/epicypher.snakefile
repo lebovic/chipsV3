@@ -38,7 +38,7 @@ rule epicypher_alignToEpicypher:
     params:
         epicypher_index=lambda wildcards: src_path + "/static/epicypher/%s/epicypher.fa" % wildcards.ttype,
         #check for PE mate
-        mate2 =  lambda wildcards: output_path + "/align/{sample}/{sample}.unmapped.fq2.gz" if len(config["samples"][wildcards.sample]) == 2 else ""
+        mate2 =  lambda wildcards: output_path + f"/align/{wildcards.sample}/{wildcards.sample}.unmapped.fq2.gz" if len(config["samples"][wildcards.sample]) == 2 else ""
     output:
         output_path + "/epicypher.{ttype}/{sample}/{sample}.epicypher.bam"
     threads: _threads
