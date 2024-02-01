@@ -56,6 +56,11 @@ motif: 'homer'
 
 contamination_panel_qc: true
 
+#Define the minimal threshold that the max value of a column must surpass in
+#order for it to be reported in the chips report
+contam_min_threshold: "2.0"
+
+
 #NOTE: CNV analysis using QDNAseq R pkg- {true, false}
 cnv_analysis: true
 
@@ -67,6 +72,7 @@ cnv_analysis: true
 #Uncomment the following if you want to perform a scan of viral dna on your
 #samples.  Possible value are [true,false]; default: false
 #run_virusseq: false
+
 
 # FOR CISTROME DATABASE TEAM:
 # Uncomment it to enable json and cistrome modules

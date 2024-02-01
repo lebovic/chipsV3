@@ -167,7 +167,7 @@ def getReportInputs(wildcards):
            'conservPlots': sorted(_getRepInput(output_path + "/conserv/$runRep/$runRep_conserv_thumb.png")),
            'samples_summary': output_path + "/cfce_report/sequencingStatsSummary.csv",
            'runs_summary':output_path + "/cfce_report/peaksSummary.csv",
-           'contam_panel':output_path + "/contam/contamination.csv",
+           'contam_panel':output_path + "/contam/contamination_filtered.csv",
            'fastqc_stats':output_path + "/fastqc/fastqc.csv",
            'fastqc_gc_plots': expand(output_path + "/fastqc/{sample}/{sample}_perSeqGC_thumb.png", sample=config["samples"])
            }

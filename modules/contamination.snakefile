@@ -28,6 +28,7 @@ def contamination_targets(wildcards):
             ls.append(output_path + "/contam/%s/%s.%s.txt" % (sample, sample, panel))
             ls.append(output_path + "/contam/%s/%s_contamination.txt" % (sample, sample))
     ls.append(output_path + "/contam/contamination.csv")
+    ls.append(output_path + "/contam/contamination_filtered.csv")
     return ls
 
 def get100k_sample(wildcards):
@@ -116,3 +117,16 @@ rule contamination_collectAllContamination:
     #     shell(src_path + "/modules/scripts/contam_getStats.py -f {files} -o {output} 2>>{log}")
     shell:
         src_path + "/modules/scripts/contam_getStats.py {params.files} -o {output} "#2>>{log}"
+
+rule contamination_filter:
+    """Filter out columns that don't meet the min_threshold defined in config.yaml"""
+    input:
+        output_path + "/contam/contamination.csv"
+    message: "Contamination: filtering contamination panel"
+    output:
+        output_path + "/contam/contamination_filtered.csv"
+    params:
+        thresh = config['contam_min_threshold']
+    conda: "../envs/contamination/contamination.yaml"
+    shell:
+        src_path + "/modules/scripts/contam_min_thresh_filter.py -f {input} -t {params.thresh} -o {output} "#2>>{log}"

@@ -139,7 +139,7 @@ rule report_read_level_pcr_bottleneck_coefficient:
 
 rule report_read_level_contamination_tbl:
     input:
-         output_path + "/contam/contamination.csv"
+         output_path + "/contam/contamination_filtered.csv"
     output:
          csv=output_path + "/report/Reads_Level_Quality/04_contamination_table.dt",
          details=output_path + "/report/Reads_Level_Quality/04_details.yaml"
@@ -152,7 +152,7 @@ rule report_read_level_contamination_tbl:
 rule report_read_level_contamination_plot:
     """Plot contamination"""
     input:
-        output_path + "/contam/contamination.csv"
+        output_path + "/contam/contamination_filtered.csv"
     output:
         csv=output_path + "/report/Reads_Level_Quality/05_contamination_bar.plotly",
         details=output_path + "/report/Reads_Level_Quality/05_details.yaml",
