@@ -82,7 +82,7 @@ cnv_analysis: true
 # Cistrome_path: "analysis/cistrome"
 
 # TO Generate the legacy CFCE chips report uncomment the following line below
-# cfce_report: true
+cfce_report: true
 
 # DEFINE the samples- each sample should have a name, e.g. SAMPLE1
 # and a path to the input file, e.g. data/sample1.fastq.gz
