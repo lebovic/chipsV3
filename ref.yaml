@@ -165,34 +165,33 @@ contamination_panel:
   #- /some/path/to/BWA_index/
   #- ./ref_files/contam_panel/GDC_hg38/GRCh38.d1.vd1.CIDC.fa
   #- ./ref_files/contam_panel/hg38/hg38.fa
-  #- ./ref_files/contam_panel/hg19/hg19.fa
-  #- ./ref_files/contam_panel/mm9/mm9.fa
-  - ./ref_files/contam_panel/dm3/dm3.fa
-  - ./ref_files/contam_panel/S_cerevisiae/S_cerevisiae.fa
-  - ./ref_files/contam_panel/e_coli/e_coli.fasta
-  - ./ref_files/contam_panel/mycoplasma/GCF_000018785.1_ASM1878v1/myco_PG-8A.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000085865.1_ASM8586v1/myco_ATCC23114.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000186005.1_ASM18600v1/myco_m64.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000313635.1_ASM31363v1/myco_SK76.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000420105.1_ASM42010v1/myco_ATCC23714.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000485555.1_ASM48555v1/myco_ATCC23064.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_001547975.1_ASM154797v1/myco_HAZ145_1.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000027345.1_ASM2734v1/myco_ATCC29342.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000092585.1_ASM9258v1/myco_R.fna
-  - ./ref_files/contam_panel/mycoplasma/GCF_000969765.1_ASM96976v1/myco_WVU1853.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_001523705.1/b_vietnamiensis.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_019890915.1/m_luteus.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_020885575.1/p_terrae.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_000191145.1/a_pittii.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_000013425.1/s_aureus.fna
-  #- /home/lentaing/chipsV3/bacteria/GCF_016698705.1/b_gladioli.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_001729805.1/e_roggenkampii.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_000006765.1/p_aeruginosa.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_009734005.1/e_faecium.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_000376705.1/c_acnes.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_018885085.1/c_difficile.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_000393015.1/e_faecalis.fna
-  - /home/lentaing/chipsV3/bacteria/GCF_013347325.1/c_gilardii.fna
+  - /home/lentaing/chipsV3/bwt2_contamPanel/hg19/hg19.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mm9/mm9.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/dm3/dm3.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/S_cerevisiae/S_cerevisiae.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/e_coli/e_coli.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000018785.1_ASM1878v1/myco_PG-8A.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000085865.1_ASM8586v1/myco_ATCC23114.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000186005.1_ASM18600v1/myco_m64.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000313635.1_ASM31363v1/myco_SK76.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000420105.1_ASM42010v1/myco_ATCC23714.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000485555.1_ASM48555v1/myco_ATCC23064.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_001547975.1_ASM154797v1/myco_HAZ145_1.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000027345.1_ASM2734v1/myco_ATCC29342.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000092585.1_ASM9258v1/myco_R.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/mycoplasma/GCF_000969765.1_ASM96976v1/myco_WVU1853.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_001523705.1/b_vietnamiensis.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_019890915.1/m_luteus.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_020885575.1/p_terrae.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_000191145.1/a_pittii.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_000013425.1/s_aureus.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_001729805.1/e_roggenkampii.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_000006765.1/p_aeruginosa.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_009734005.1/e_faecium.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_000376705.1/c_acnes.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_018885085.1/c_difficile.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_000393015.1/e_faecalis.fa
+  - /home/lentaing/chipsV3/bwt2_contamPanel/bacteria/GCF_013347325.1/c_gilardii.fa
     
 virusseq:
   virusseq_bowtie2_index: ./ref_files/virusseq/bwt2/chrVirus/chrVirus

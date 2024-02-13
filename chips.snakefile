@@ -58,6 +58,27 @@ def check_bwa_index_exist(path):
             missing_index_files.append(file)
     return missing_index_files
 
+def check_bwt2_index_exist(path):
+    """check if bowtie2 index files exist or not
+    given a path to the fasta.
+    e.g., given ./ref_files/contam_panel/hg19/hg19
+    check if
+    ./ref_files/contam_panel/hg19/hg19.1.bt2
+    ./ref_files/contam_panel/hg19/hg19.2.bt2
+    ./ref_files/contam_panel/hg19/hg19.3.bt2
+    ./ref_files/contam_panel/hg19/hg19.4.bt2
+    ./ref_files/contam_panel/hg19/hg19.rev.1.bt2
+    ./ref_files/contam_panel/hg19/hg19.rev.2.bt2
+    exist or not
+
+    """
+    bwt_suffix = ['.1.bt2', '.2.bt2', '.3.bt2', '.4.bt2', '.rev.1.bt2', '.rev.2.bt2']
+    bwt_index_files = [ path + suffix for suffix in bwt_suffix ]
+    missing_index_files = []
+    for file in bwt_index_files:
+        if not os.path.isfile(file):
+            missing_index_files.append(file)
+    return missing_index_files
 
 def loadRef(config):
     """Adds the static reference paths found in config['ref']
@@ -92,7 +113,7 @@ def loadRef(config):
     if config.get('contamination_panel_qc'):
         # check if contamination reference files exist, The bwa index files should exist
         for contamination in ref_info['contamination_panel']:
-            missing_ref.extend(check_bwa_index_exist(contamination))
+            missing_ref.extend(check_bwt2_index_exist(contamination))
         config['contamination_panel'] = ref_info['contamination_panel']
 
     #ALSO load virusseq
