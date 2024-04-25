@@ -38,7 +38,7 @@ def getFastq(wildcards):
 ## see https://bitbucket.org/snakemake/snakemake/issues/865/pre-determined-dynamic-output
 ## and https://stackoverflow.com/questions/56861913/split-bam-by-clusters-and-then-merge-bam-by-cluster-using-checkpoint
 
-FASTP_VERSION = subprocess.check_output("fastp -v", shell=True)
+#FASTP_VERSION = subprocess.check_output("fastp -v", shell=True)
 
 # rule trim_fastp:
 #   input: getFastq
@@ -67,9 +67,9 @@ rule trim_fastp:
         html = output_path + "/trim_adaptor/{sample}/{sample}_fastp.html"
     threads: _fastp_threads
     message: "trimming adaptors for {input} using fastp"
-    version: FASTP_VERSION
+    #version: FASTP_VERSION
     log: output_path + "/logs/trim_adaptor/{sample}.log"
-    conda: "../envs/trimming/trim_fastp.yaml"
+    #conda: "../envs/trimming/trim_fastp.yaml"
     benchmark: output_path + "/Benchmark/{sample}_trim_adapter.benchmark"
     #resources: disk_mb=20000 
     run:

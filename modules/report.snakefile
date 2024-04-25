@@ -81,7 +81,7 @@ rule report_overview_software_versions:
         caption="""caption: 'The details of other software used in CHIPs are written to software_versions_all.txt in the directory where this report was generated.'"""
     shell:
         """echo "{params.caption}" >> {output.details} && """ +
-        src_path + "/modules/scripts/report/overview/software_versions.py -o {output.tsv}"""
+        src_path + "/modules/scripts/report/overview/software_versions.py -o {output.tsv}"
 
 rule report_overview_assembly:
     #inpuy: #NO Input
@@ -105,7 +105,7 @@ rule report_read_level_summary_table:
         caption="""caption: 'Abbreviations: M, million; PBC, PCR bottlneck coefficient.'"""
     shell:
         """echo "{params.caption}" >> {output.details} && """ +
-        src_path + "/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"""
+        src_path + "/modules/scripts/report/read_level_quality/read_level_summary.py -m {input.mapping} -p {input.pbc} -o {output.csv}"
 
 rule report_read_level_mapped_reads:
     input:
@@ -268,13 +268,13 @@ rule report_genome_track_make_bed:
     input:
         config['geneBed'],
     output:
-        extend= output_path + "/report/Genome_Track_View/extend.bed",
+        ext= output_path + "/report/Genome_Track_View/extend.bed",
         tss= output_path + "/report/Genome_Track_View/tss.bed"
     params:
         up= config['upstream'],
         down= config['downstream'],
     shell:
-        src_path + "/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.extend} -t {output.tss}"""
+        src_path + "/modules/scripts/report/genome_track_view/make_bed_file.py -i {input} -u {params.up} -d {params.down} -e {output.ext} -t {output.tss}"
 
 def genome_tracks_init_inputFn(wildcards):
     ls = []
@@ -283,7 +283,7 @@ def genome_tracks_init_inputFn(wildcards):
             runRep = "%s.%s" % (run, rep)
             ls.append((output_path + "/peaks/{runRep}/{runRep}_treat_pileup.bw").format(runRep = runRep))
     tmp = {'pileups': ls,
-         'extend': output_path + "/report/Genome_Track_View/extend.bed",
+         'ext': output_path + "/report/Genome_Track_View/extend.bed",
          'tss': output_path + "/report/Genome_Track_View/tss.bed",
          }
     return tmp
@@ -298,7 +298,7 @@ rule report_genome_track_make_tracks:
         track= temp(output_path + "/report/Genome_Track_View/tracks_all.ini"),
     shell:
         """make_tracks_file --trackFiles {input.pileups} -o {params.track} &&""" +
-        src_path + """/modules/scripts/report/genome_track_view/make_track_file.py -i {params.track} -e {input.extend} -t {input.tss} -o {output}"""
+        src_path + """/modules/scripts/report/genome_track_view/make_track_file.py -i {params.track} -e {input.ext} -t {input.tss} -o {output}"""
 
 _png_list = []
 for list_num, gene in enumerate(config["genes_to_plot"].strip().split()):
@@ -312,7 +312,7 @@ rule report_genome_track_make_plot:
     """Make genome track plot"""
     input:
         ini= output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
-        extend= output_path + "/report/Genome_Track_View/extend.bed",
+        ext= output_path + "/report/Genome_Track_View/extend.bed",
     output:
         plist=_png_list,
         details=output_path + "/report/Genome_Track_View/0_details.yaml",
@@ -322,7 +322,7 @@ rule report_genome_track_make_plot:
         caption="""caption: 'The genomic coordinates and chromosome number are indicated above the sample tracks. Transcripts in this region are indicated by the bars below the sample tracks.' """
     shell:
         """echo "{params.caption}" > {output.details} &&""" +
-        src_path + """/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.extend} {params.genes} -o {params.png}"""
+        src_path + """/modules/scripts/report/genome_track_view/make_track_png.py -i {input.ini} -e {input.ext} {params.genes} -o {params.png}"""
 
 ########################### END Genome Track View Section ####################
 ########################### Downstream Section ################################
@@ -381,7 +381,7 @@ rule report_auto_render:
     message:
         "REPORT: Generating example report"
     shell:
-        src_path + """/modules/scripts/report.py -d {params.output_path} -s {params.sections_list} -j {params.jinja2_template} -t "{params.title}" -o {output} && cp -r """ + src_path +"/report/static {params.output_path}"""
+        src_path + """/modules/scripts/report.py -d {params.output_path} -s {params.sections_list} -j {params.jinja2_template} -t "{params.title}" -o {output} && cp -r """ + src_path +"/report/static {params.output_path}"
 
 rule report_zip:
     """Zip final report"""
