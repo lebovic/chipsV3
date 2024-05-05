@@ -2,7 +2,7 @@
 #MODULE: virusseq- quantify virusseq viral baits
 
 #_logfile="analysis/logs/virusseq.log"
-_virusseq_threads=8
+_threads=8
 _viral_bait_chr_name = _vChrName = config.get('virusseq_chrName', "chrVirus")
 
 def virusseq_targets(wildcards):
@@ -27,7 +27,7 @@ rule virusseq_getUnmappedReads:
         output_path + "/align/{sample}/{sample}.sorted.bam"
     output:
         output_path + "/virusseq/{sample}/{sample}.unmapped.bam"
-    threads: _virusseq_threads
+    threads: _threads
     shell:
         "samtools view -b -f 4 -@ {threads} {input} > {output}"
 
@@ -36,7 +36,7 @@ rule virusseq_sortByReadname:
         output_path + "/virusseq/{sample}/{sample}.unmapped.bam"
     output:
         output_path + "/virusseq/{sample}/{sample}.unmapped.sorted.bam"
-    threads: _virusseq_threads
+    threads: _threads
     shell:
         "sambamba sort -o {output} -N -t {threads} {input}"
 
@@ -46,12 +46,11 @@ rule virusseq_bamToFastq:
         output_path + "/virusseq/{sample}/{sample}.unmapped.sorted.bam"
     params:
         #fq2 = lambda wildcards: "-fq2 analysis/virusseq/%s/%s.unmapped.fq2" % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
-        fq2 = lambda wildcards: "-2 "+ output_path + "/virusseq/%s/%s.unmapped.fq2" % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
+        fq2 = lambda wildcards: "-2 analysis/virusseq/%s/%s.unmapped.fq2" % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
     output:
-        #LEN: these .fq files are big and maybe should be gziped or made into temp files
         fq1=output_path + "/virusseq/{sample}/{sample}.unmapped.fq",
         #fq2=output_path + "/virusseq/{sample}/{sample}.unmapped.fq2",
-    threads: _virusseq_threads
+    threads: _threads
     shell:
         #"bamToFastq -i {input} -fq {output.fq1} -fq2 {output.fq2}"
         #"bamToFastq -i {input} -fq {output.fq1} {params.fq2} 2> /dev/null"
@@ -64,34 +63,15 @@ rule virusseq_bamToFastq:
 #        ls.append(output_path + "/virusseq/%s/%s.unmapped.fq2" % (sample, sample))
 #    return ls
 
-rule virusseq_sample100k:
-    input:
-        fq1=output_path + "/virusseq/{sample}/{sample}.unmapped.fq"
-    params:
-        fq2_out = lambda wildcards: output_path +"/virusseq/%s/%s.unmapped.100k.fq2" % (wildcards.sample, wildcards.sample),
-        fq2_in = lambda wildcards: output_path +"/virusseq/%s/%s.unmapped.fq2" % (wildcards.sample, wildcards.sample),
-        seed = "777",
-        num_reads= "100000",
-    output:
-        fq1_out=output_path + "/virusseq/{sample}/{sample}.unmapped.100k.fq"
-    #threads: _virusseq_threads
-    #shell:
-    #    "seqtk sample -s {params.seed} {input} {params.num_reads} > {output} && {params.cmd_fq2}"
-    run:
-        shell("seqtk sample -s {params.seed} {input} {params.num_reads} > {output}")
-        if len(config["samples"][wildcards.sample]) == 2:
-            shell("seqtk sample -s {params.seed} {params.fq2_in} {params.num_reads} > {params.fq2_out}")
-
 rule virusseq_gzip:
     input:
         #virusseq_gzip_input
-        #LEN: switching to 100k reads b/c it's much faster
-        #fq1=output_path + "/virusseq/{sample}/{sample}.unmapped.fq",
-        fq1=output_path + "/virusseq/{sample}/{sample}.unmapped.100k.fq",
+        fq1=output_path + "/virusseq/{sample}/{sample}.unmapped.fq",
+        #fq2=output_path + "/virusseq/{sample}/{sample}.unmapped.fq2",
     params:
-        fq2 = lambda wildcards: output_path + "/virusseq/%s/%s.unmapped.100k.fq2" % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
+        fq2 = lambda wildcards: output_path + "/virusseq/%s/%s.unmapped.fq2" % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
     output:
-        gz_fq1 = output_path + "/virusseq/{sample}/{sample}.unmapped.100k.fq.gz",
+        gz_fq1 = output_path + "/virusseq/{sample}/{sample}.unmapped.fq.gz",
         #DON'T check that the fq2 is also gzipped!
         #gz_fq2 = output_path + "/virusseq/{sample}/{sample}.unmapped.fq2.gz"
     shell:
@@ -119,7 +99,7 @@ rule virusseq_gzip:
 #         gz_fq2 = lambda wildcards: output_path + "/virusseq/%s/%s.unmapped.fq2.gz" \
 # % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
 #         mapq_thresh = config.get('virusseq_mapq','30')
-#     threads: _virusseq_threads
+#     threads: _threads
 #     output:
 #         output_path + "/virusseq/{sample}/{sample}.virusseq.bam"
 #     shell:
@@ -131,16 +111,14 @@ rule virusseq_gzip:
 ###############################################################################
 rule virusseq_bwt2_map:
     input:
-        #LEN: switching to 100k reads b/c it's much faster
-        #gz_fq1 = output_path + "/virusseq/{sample}/{sample}.unmapped.fq.gz",
-        gz_fq1 = output_path + "/virusseq/{sample}/{sample}.unmapped.100k.fq.gz",
+        gz_fq1 = output_path + "/virusseq/{sample}/{sample}.unmapped.fq.gz",
     params:
         bwt2_virusseq = config['virusseq_bowtie2_index'],
-        gz_fq2 = lambda wildcards: "-2 analysis/virusseq/%s/%s.unmapped.100k.fq2.gz" % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
+        gz_fq2 = lambda wildcards: "-2 analysis/virusseq/%s/%s.unmapped.fq2.gz" % (wildcards.sample, wildcards.sample) if len(config["samples"][wildcards.sample]) == 2 else "",
         gz_fq1_flag = lambda wildcards: "-1" if len(config["samples"][wildcards.sample]) == 2 else "-U",
         mapq_thresh = config.get('virusseq_mapq','30'),
         num_mismatch = config.get('virusseq_num_mismatch','1'),
-    threads: _virusseq_threads
+    threads: _threads
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.bam"
     shell:
@@ -152,7 +130,7 @@ rule virusseq_dedup:
         output_path + "/virusseq/{sample}/{sample}.virusseq.bam"
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.dedup.bam"
-    threads: _virusseq_threads
+    threads: _threads
     shell:
         "sambamba markdup -t {threads} --remove-duplicates {input} {output}"
 
@@ -163,7 +141,7 @@ rule virusseq_sortByName:
         #TODO: if using dedup, then sorted.bam becomes sorted.dedup.bam
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.sorted.bam"
-    threads: _virusseq_threads
+    threads: _threads
     shell:
         "sambamba sort -o {output} -t {threads} {input}"
 
@@ -192,7 +170,7 @@ rule virusseq_sortAndIndexChrVirus:
     output:
         bam = output_path + "/virusseq/{sample}/{sample}.virusseq.%s.sorted.bam" % _viral_bait_chr_name,
         bai = output_path + "/virusseq/{sample}/{sample}.virusseq.%s.sorted.bam.bai" % _viral_bait_chr_name,
-    threads: _virusseq_threads
+    threads: _threads        
     shell:
         "samtools sort -@ {threads} -o {output.bam} {input} && samtools index {output.bam}"
 
@@ -234,7 +212,7 @@ rule virusseq_countViralReads:
 #         output_path + "/align/{sample}/{sample}.sorted.bam"
 #     output:
 #         output_path + "/virusseq/{sample}/{sample}_mapping.txt",
-#     threads: _virusseq_threads
+#     threads: _threads
 #     shell:
 #         "samtools flagstat -@ {threads} {input} > {output}"
     
