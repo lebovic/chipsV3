@@ -172,11 +172,15 @@ rule fastqc_collectFastQCStats:
     output:
         output_path + "/fastqc/fastqc.csv"
     message: "FASTQC: collect and parse ALL mapping stats for {input}"
+    params:
+        files = lambda wildcards,input: " -f ".join(input)
+    shell:
+        src_path + "/modules/scripts/fastqc_getFastQCStats.py -f {params.files} > {output} "
     # log: output_path + "/logs/fastqc/{sample}.log"
     #conda: "../envs/fastqc/fastqc.yaml"
-    run:
-        files = " -f ".join(input)
-        shell(src_path + "/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output}")
+    #run:
+    #    files = " -f ".join(input)
+    #    shell(src_path + "/modules/scripts/fastqc_getFastQCStats.py -f {files} > {output}")
 
 rule fastqc_plotFastQCGC:
     """Plots the GC distribution of the sample according to data in

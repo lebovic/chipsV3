@@ -21,31 +21,20 @@ def main():
     print(",".join(["Sample","Total","Mapped","UniquelyMapped"]))
 
     for f in options.files:
-        #UGH: this script is ugly!!
         #TRY to infer the SAMPLE NAMES--SAMPLE.virusseq.ReadsPerGene.out.tab
         sampleID = f.strip().split("/")[-1].split('.')[0]
         #ALSO remove the suffix '_mapping' from the sampleID name
         if sampleID.endswith('_mapping'):
             sampleID = sampleID.replace("_mapping","")
 
-        f = open(f)
-        total = int(f.readline().strip().split()[0])
-        #skip 3 lines
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        mapped = int(f.readline().strip().split()[0])
-        #skip 8 lines
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        l = f.readline()
-        uniq_mapped = int(f.readline().strip())
-        print(",".join([sampleID,str(total),str(mapped),str(uniq_mapped)]))#"%.2f" % (float(mapped)/total *100)]))
+        with open(f) as ffile:
+            #Total reads needs to be parsed from 1st line; mapped is 7th line
+            #uniq is last line
+            tmp = ffile.readlines()
+            total = int(tmp[0].strip().split()[0])
+            mapped = int(tmp[6].strip().split()[0])
+            uniq_mapped = int(tmp[-1].strip())
+            print(",".join([sampleID,str(total),str(mapped),str(uniq_mapped)]))
 
 if __name__=='__main__':
     main()

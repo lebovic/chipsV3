@@ -79,6 +79,7 @@ rule align_bwaAln:
     message: "ALIGN: Running BWA aln for alignment for {input}"
     log: output_path + "/logs/align/{sample}_{mate}.log"
     benchmark: output_path + "/Benchmark/{sample}_{mate}_align_bwaAln.benchmark"
+    conda: "../envs/align/align_bwa.yaml"
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai} 2>>{log}"
 
@@ -99,6 +100,7 @@ rule align_bwaConvert:
     message: "ALIGN: Converting BWA alignment to BAM for {input}"
     log: output_path + "/logs/align/{sample}.log"
     benchmark: output_path + "/Benchmark/{sample}_align_bwaConvert.benchmark"
+    conda: "../envs/align/align_bwa.yaml"
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 

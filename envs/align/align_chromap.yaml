@@ -1,0 +1,9 @@
+name: align_chromap
+channels:
+- bioconda
+#- conda-forge
+- defaults
+dependencies:
+- chromap
+- samtools
+- python>=3.5
