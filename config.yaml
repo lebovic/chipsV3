@@ -19,7 +19,7 @@ genes_to_plot: GAPDH ACTB TP53
 upstream: 50000
 downstream: 50000
 
-trim_adapter: true
+trim_adapter: false
 #Where you want to store your results
 #NOTE: you could comment this line, the default path is "analysis"
 output_path: "analysis"
@@ -40,6 +40,10 @@ cutoff: 150
 # This parameter will disable motif finding modules(whatever you set or not set motif)
 # Uncomment below line and set value as true
 macs2_broadpeaks: false
+
+# MACS fdr: define the minimum false discovery rate used by macs2
+# Uncomment below line and set value (default: "0.01")
+#macs_fdr: "0.01"
 
 
 # for narrowpeak calling, extra parameters passed to macs2.

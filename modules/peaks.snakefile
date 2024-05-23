@@ -2,7 +2,7 @@
 
 #PARAMETERS
 # _logfile=output_path + "/logs/peaks.log"
-_macs_fdr="0.01"
+_macs_fdr=config.get("macs_fdr", "0.01")
 _macs_keepdup="1"
 _macs_extsize="146"
 
