@@ -17,24 +17,21 @@ def emptyCheckingInput(wildcards):
     return ls
 
 
+rule emptyChecking_all:
+    input:
+        checking_targets
+
 rule emptyChecking:
     input:
         emptyCheckingInput
+    params:
+        files = lambda wildards, input: " -f ".join(input),
     output:
         file=output_path + "/logs/empty_file_list.txt"
     message:
         "EMPTYCHECKING: checking whether any files are empty"
-    run:
-        empty_list = []
-        for i in input:
-            size = os.path.getsize(i)
-            if size == 0:
-                empty_list.append(i)
-            else:
-                continue
-        with open(output.file,"w") as op:
-            op.write("\n".join(empty_list))
-
+    shell:
+        src_path + "/modules/scripts/emptycheck.py -f {params.files} -o {output}"
 
 
 

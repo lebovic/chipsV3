@@ -1,7 +1,7 @@
 name: report
 channels:
 - bioconda
-#- conda-forge
+- conda-forge
 - defaults
 dependencies:
 - r>=3.4.1
@@ -9,4 +9,8 @@ dependencies:
 - r-reshape2>=1.4.2
 - pandas
 - seaborn
-
+- markdown
+- yaml
+- matplotlib
+- multiqc=1.9
+- plotly

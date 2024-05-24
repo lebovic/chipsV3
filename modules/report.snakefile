@@ -376,6 +376,7 @@ rule report_auto_render:
         output_path = output_path + "/report",
         sections_list=",".join(['Overview','Reads_Level_Quality', 'Peaks_Level_Quality', 'Genome_Track_View', 'Downstream']),
         title="CHIPs Report",
+    conda: "../envs/report/report.yaml"
     output:
         output_path+ "/report/report.html"
     message:
