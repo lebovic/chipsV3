@@ -174,6 +174,7 @@ rule fastqc_collectFastQCStats:
     message: "FASTQC: collect and parse ALL mapping stats for {input}"
     params:
         files = lambda wildcards,input: " -f ".join(input)
+    conda: "../envs/fastqc/fastqc.yaml"
     shell:
         src_path + "/modules/scripts/fastqc_getFastQCStats.py -f {params.files} > {output} "
     # log: output_path + "/logs/fastqc/{sample}.log"
