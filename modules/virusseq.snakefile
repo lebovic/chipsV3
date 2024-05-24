@@ -28,6 +28,7 @@ rule virusseq_getUnmappedReads:
     output:
         output_path + "/virusseq/{sample}/{sample}.unmapped.bam"
     threads: _virusseq_threads
+    conda: "../envs/virusseq/virusseq.yaml"
     shell:
         "samtools view -b -f 4 -@ {threads} {input} > {output}"
 
@@ -37,6 +38,7 @@ rule virusseq_sortByReadname:
     output:
         output_path + "/virusseq/{sample}/{sample}.unmapped.sorted.bam"
     threads: _virusseq_threads
+    conda: "../envs/virusseq/virusseq.yaml"
     shell:
         "sambamba sort -o {output} -N -t {threads} {input}"
 
@@ -52,6 +54,7 @@ rule virusseq_bamToFastq:
         fq1=output_path + "/virusseq/{sample}/{sample}.unmapped.fq",
         #fq2=output_path + "/virusseq/{sample}/{sample}.unmapped.fq2",
     threads: _virusseq_threads
+    conda: "../envs/virusseq/virusseq.yaml"
     shell:
         #"bamToFastq -i {input} -fq {output.fq1} -fq2 {output.fq2}"
         #"bamToFastq -i {input} -fq {output.fq1} {params.fq2} 2> /dev/null"
@@ -69,18 +72,20 @@ rule virusseq_sample100k:
         fq1=output_path + "/virusseq/{sample}/{sample}.unmapped.fq"
     params:
         fq2_out = lambda wildcards: output_path +"/virusseq/%s/%s.unmapped.100k.fq2" % (wildcards.sample, wildcards.sample),
-        fq2_in = lambda wildcards: output_path +"/virusseq/%s/%s.unmapped.fq2" % (wildcards.sample, wildcards.sample),
+        #fq2_in = lambda wildcards: output_path +"/virusseq/%s/%s.unmapped.fq2" % (wildcards.sample, wildcards.sample),
         seed = "777",
         num_reads= "100000",
+        cmd_fq2=lambda wildcards: "seqtk sample -s 777 "+output_path +f"/virusseq/{wildcards.sample}/{wildcards.sample}.unmapped.fq2 100000"
+    conda: "../envs/virusseq/virusseq.yaml"
     output:
         fq1_out=output_path + "/virusseq/{sample}/{sample}.unmapped.100k.fq"
     #threads: _virusseq_threads
-    #shell:
-    #    "seqtk sample -s {params.seed} {input} {params.num_reads} > {output} && {params.cmd_fq2}"
-    run:
-        shell("seqtk sample -s {params.seed} {input} {params.num_reads} > {output}")
-        if len(config["samples"][wildcards.sample]) == 2:
-            shell("seqtk sample -s {params.seed} {params.fq2_in} {params.num_reads} > {params.fq2_out}")
+    shell:
+        "seqtk sample -s {params.seed} {input} {params.num_reads} > {output} && {params.cmd_fq2} > {params.fq2_out}"
+    #run:
+    #    shell("seqtk sample -s {params.seed} {input} {params.num_reads} > {output}")
+    #    if len(config["samples"][wildcards.sample]) == 2:
+    #        shell("seqtk sample -s {params.seed} {params.fq2_in} {params.num_reads} > {params.fq2_out}")
 
 rule virusseq_gzip:
     input:
@@ -141,6 +146,7 @@ rule virusseq_bwt2_map:
         mapq_thresh = config.get('virusseq_mapq','30'),
         num_mismatch = config.get('virusseq_num_mismatch','1'),
     threads: _virusseq_threads
+    conda: "../envs/virusseq/virusseq.yaml"
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.bam"
     shell:
@@ -153,6 +159,7 @@ rule virusseq_dedup:
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.dedup.bam"
     threads: _virusseq_threads
+    conda: "../envs/virusseq/virusseq.yaml"
     shell:
         "sambamba markdup -t {threads} --remove-duplicates {input} {output}"
 
@@ -164,12 +171,14 @@ rule virusseq_sortByName:
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.sorted.bam"
     threads: _virusseq_threads
+    conda: "../envs/virusseq/virusseq.yaml"
     shell:
         "sambamba sort -o {output} -t {threads} {input}"
 
 rule virusseq_indexSorted:
     input:
         output_path + "/virusseq/{sample}/{sample}.virusseq.sorted.bam"
+    conda: "../envs/virusseq/virusseq.yaml"
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.sorted.bam.bai"
     shell:
@@ -193,6 +202,7 @@ rule virusseq_sortAndIndexChrVirus:
         bam = output_path + "/virusseq/{sample}/{sample}.virusseq.%s.sorted.bam" % _viral_bait_chr_name,
         bai = output_path + "/virusseq/{sample}/{sample}.virusseq.%s.sorted.bam.bai" % _viral_bait_chr_name,
     threads: _virusseq_threads
+    conda: "../envs/virusseq/virusseq.yaml"
     shell:
         "samtools sort -@ {threads} -o {output.bam} {input} && samtools index {output.bam}"
 

@@ -110,12 +110,17 @@ rule contamination_collectStats:
     """Collect the mapping stats across the entire panel"""
     input:
         expand(output_path + "/contam/{{sample}}/{{sample}}.{panel}.txt", panel=_contaminationNames)
+    params:
+        files = lambda wildcards, input: " -f ".join(input),
+        names = " -n ".join(_contaminationNames),
     output:
         output_path + "/contam/{sample}/{sample}_contamination.txt"
-    #conda: "../envs/contamination/contamination.yaml"
-    run:
-        for (n, f) in zip(_contaminationNames, input):
-            shell("per=$(cat {f}) && echo {n} $per >> {output}")
+    conda: "../envs/contamination/contamination.yaml"
+    shell:
+        src_path + "/modules/scripts/contam_sampleStats.py -f {params.files} -n {params.names} -o {output}"
+    #run:
+    #    for (n, f) in zip(_contaminationNames, input):
+    #        shell("per=$(cat {f}) && echo {n} $per >> {output}")
 
 rule contamination_collectAllContamination:
     """Aggregate all of the contamination stats into one large table/panel"""

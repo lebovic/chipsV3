@@ -34,7 +34,7 @@ rule targets_get5FoldPeaksRPScore:
         scripts="targets_getRP.py"
     message: "REGULATORY: get RP score of 5 fold peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_targets_get5FoldPeaksRPScore.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_targets_get5FoldPeaksRPScore.benchmark"
     shell:
         src_path + "/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
 
@@ -46,7 +46,7 @@ rule targets_getTopPeaks:
     params:
         peaks = 10000
     log:output_path + "/logs/targets/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_targets_getTopPeaks.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_targets_getTopPeaks.benchmark"
     message: "REGULATORY: get top summits for regpotential"
     shell:
         "head -n {params.peaks} {input} > {output}"
@@ -61,7 +61,7 @@ rule targets_getTopPeaksRPScore:
         decay=target_decay_rate
     message: "REGULATORY: get RP score of top peaks"
     log:output_path + "/logs/targets/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_targets_getTopPeaksRPScore.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_targets_getTopPeaksRPScore.benchmark"
     shell:
         src_path + "/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
 
@@ -76,7 +76,7 @@ rule targets_getAllPeaksRPScore:
         decay=target_decay_rate
     message: "REGULATORY: get RP score of all peaks with 10k decay rate"
     log:output_path + "/logs/targets/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_targets_getAllPeaksRPScore.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_targets_getAllPeaksRPScore.benchmark"
     shell:
         src_path + "/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
 
@@ -90,7 +90,7 @@ rule targets_getAllPeaksRPScore1k:
         decay=1000
     message: "REGULATORY: get RP score of all peaks with 1k decay rate"
     log:output_path + "/logs/targets/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_targets_getAllPeaksRPScore1k.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_targets_getAllPeaksRPScore1k.benchmark"
     shell:
         src_path + "/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"
 
@@ -104,6 +104,6 @@ rule targets_getAllPeaksRPScore100k:
         decay=100000
     message: "REGULATORY: get RP score of all peaks with 100k decay rate"
     log:output_path + "/logs/targets/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_targets_getAllPeaksRPScore100k.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_targets_getAllPeaksRPScore100k.benchmark"
     shell:
         src_path + "/modules/scripts/targets_RegPotential_Version2.py -p {input} -a {params.genome} -n {output} -d {params.decay}"

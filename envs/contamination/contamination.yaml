@@ -7,3 +7,6 @@ dependencies:
 - bwa>=0.7.15
 - samtools
 - python>=3
+- bowtie2
+- sambamba
+- pandas

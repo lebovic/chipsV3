@@ -1,4 +1,4 @@
-name: epicypherl
+name: virusseq
 channels:
 - bioconda
 #- conda-forge
@@ -6,4 +6,7 @@ channels:
 dependencies:
 - sambamba
 - samtools
+- seqtk
+- bowtie2
+- bedtools
 - bwa>=0.7.15
