@@ -1,0 +1,7 @@
+name: trim_adapter
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- fastp

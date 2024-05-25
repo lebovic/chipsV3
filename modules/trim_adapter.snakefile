@@ -33,6 +33,10 @@ def trim_targets(wildcards):
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]
 
+rule trim_adapter_all:
+    input:
+        trim_targets
+        
 ## it is not possible to write an output function to determine the output file number
 ## based on the wildcards. use touch to trick snakemake instead.
 ## see https://bitbucket.org/snakemake/snakemake/issues/865/pre-determined-dynamic-output
@@ -57,6 +61,14 @@ def getFastq(wildcards):
 #           shell("fastp --thread {threads} --in1 {input[0]} --out1 {output.fastqs[0]} -h {output.html} -j {output.json} > {log} 2>&1")
 #           shell("touch {output.fastqs[1]}")
 
+def makeFastpArgs(wildcards, input, output):
+    """Generate the correct call to fastp based on whether it's single-end 
+    or paired-end"""
+    if len(input) > 1:
+        ret = f"--detect_adapter_for_pe --in1 {input[0]} --in2 {input[1]} --out1 {output.fq1} --out2 {output.fq2} -h {output.html} -j {output.json}"
+    else:
+        ret = f"--in1 {input[0]} --out1 {output.fq1} -h {output.html} -j {output.json} && touch {output.fq2}"
+    return ret
 
 rule trim_fastp:
     input: getFastq
@@ -70,11 +82,16 @@ rule trim_fastp:
     #version: FASTP_VERSION
     log: output_path + "/logs/trim_adaptor/{sample}.log"
     #conda: "../envs/trimming/trim_fastp.yaml"
-    benchmark: output_path + "/Benchmark/{sample}_trim_adapter.benchmark"
-    #resources: disk_mb=20000 
-    run:
-        if len(input) > 1:
-            shell("fastp --thread {threads} --detect_adapter_for_pe --in1 {input[0]} --in2 {input[1]} --out1 {output.fq1} --out2 {output.fq2} -h {output.html} -j {output.json} > {log} 2>&1")
-        else:
-            shell("fastp --thread {threads} --in1 {input[0]} --out1 {output.fq1} -h {output.html} -j {output.json} > {log} 2>&1")
-            shell("touch {output.fq2}")
+    benchmark: output_path + "/benchmark/{sample}_trim_adapter.benchmark"
+    conda: "../envs/trim_adapter/trim_adapter.yaml"
+    #resources: disk_mb=20000
+    params:
+        args = lambda wildcards,input,output: makeFastpArgs(wildcards, input, output)
+    shell:
+        """fastp --thread {threads} {params.args} > {log} 2>&1"""
+    # run:
+    #     if len(input) > 1:
+    #         shell("fastp --thread {threads} --detect_adapter_for_pe --in1 {input[0]} --in2 {input[1]} --out1 {output.fq1} --out2 {output.fq2} -h {output.html} -j {output.json} > {log} 2>&1")
+    #     else:
+    #         shell("fastp --thread {threads} --in1 {input[0]} --out1 {output.fq1} -h {output.html} -j {output.json} > {log} 2>&1")
+    #         shell("touch {output.fq2}")
