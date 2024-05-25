@@ -190,6 +190,7 @@ rule virusseq_extractChrVirus:
         bai = output_path + "/virusseq/{sample}/{sample}.virusseq.sorted.bam.bai"
     params:
         chrName = _viral_bait_chr_name,
+    conda: "../envs/virusseq/virusseq.yaml"
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.%s.bam" % _viral_bait_chr_name
     shell:
@@ -217,6 +218,7 @@ rule virusseq_countViralReads:
         #virus in the bait set
         #viral_bed = "/data/static_libraries/viper/ref_files/hg19/virusseq/hg19Virus.bed",
         viral_bed = config['virusseq_bed'],
+    conda: "../envs/virusseq/virusseq.yaml"
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.counts.txt"
     shell:
@@ -281,6 +283,7 @@ rule virusseq_bamTobedgraph:
         #virusseq.sorted.bam IN case samples don't have any viral contam.
         #output_path + "/virusseq/{sample}/{sample}.virusseq.chrM.sorted.bam"
         output_path + "/virusseq/{sample}/{sample}.virusseq.sorted.bam"
+    conda: "../envs/virusseq/virusseq.yaml"
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.bdg"
     shell:
@@ -293,6 +296,7 @@ rule virusseq_bdgTobw:
         output_path + "/virusseq/{sample}/{sample}.virusseq.bdg"
     params:
         virusseq_len=config['virusseq_chrom_len'],
+    conda: "../envs/virusseq/virusseq.yaml"
     output:
         output_path + "/virusseq/{sample}/{sample}.virusseq.bw"
     shell:

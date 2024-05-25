@@ -44,7 +44,7 @@ rule epicypher_alignToEpicypher:
     threads: _threads
     message: "EPICYPHER: aligning unmapped reads to epicypher assembly"
     # log: output_path + "/logs/epicypher/{sample}.log"
-    conda: "../envs/epicypher/epicypherl.yaml"
+    conda: "../envs/epicypher/epicypher.yaml"
     shell:
         "bwa mem -t {threads} {params.epicypher_index} {input} {params.mate2} | samtools view -Sb - > {output}"
 
@@ -56,7 +56,7 @@ rule epicypher_sortEpicypher:
     message: "EPICYPHER: sorting epicypher bam file"
     # log: output_path + "/logs/epicypher/{sample}.log"
     threads: _threads
-    conda: "../envs/epicypher/epicypherl.yaml"
+    conda: "../envs/epicypher/epicypher.yaml"
     shell:
         "sambamba sort {input} -o {output} -t {threads}"# 2>>{log}"
 
@@ -69,7 +69,7 @@ rule epicypher_uniquelyMapped:
     message: "EPICYPHER: get uniquely mapped reads"
     threads: _threads
     # log: output_path + "/logs/epicypher/{sample}.log"
-    conda: "../envs/epicypher/epicypherl.yaml"
+    conda: "../envs/epicypher/epicypher.yaml"
     shell:
         "samtools view -bq 1 -@ {threads} {input} > {output}"
 
@@ -80,7 +80,7 @@ rule epicypher_indexEpicypher:
         output_path + "/epicypher.{ttype}/{sample}/{sample}.epicypher.sorted.unique.bam.bai"
     message: "EPICYPHER: indexing epicypher bam file"
     # log:output_path + "/logs/epicypher/{sample}.log"
-    conda: "../envs/epicypher/epicypherl.yaml"
+    conda: "../envs/epicypher/epicypher.yaml"
     shell:
         "sambamba index {input} {output}"
 
@@ -96,6 +96,6 @@ rule epicypher_quantify:
     message: "EPICYPHER: quantifying epicypher marks"
     threads: _threads
     # log: output_path + "/logs/epicypher/{sample}.log"
-    conda: "../envs/epicypher/epicypherl.yaml"
+    conda: "../envs/epicypher/epicypher.yaml"
     shell:
         "{params.script} -b {input.bam} > {output}"

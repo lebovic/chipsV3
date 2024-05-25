@@ -296,6 +296,7 @@ rule report_genome_track_make_tracks:
         output_path + "/report/Genome_Track_View/tracks_all_vlines.ini",
     params:
         track= temp(output_path + "/report/Genome_Track_View/tracks_all.ini"),
+    conda: "../envs/report/report.yaml"
     shell:
         """make_tracks_file --trackFiles {input.pileups} -o {params.track} &&""" +
         src_path + """/modules/scripts/report/genome_track_view/make_track_file.py -i {params.track} -e {input.ext} -t {input.tss} -o {output}"""
@@ -316,6 +317,7 @@ rule report_genome_track_make_plot:
     output:
         plist=_png_list,
         details=output_path + "/report/Genome_Track_View/0_details.yaml",
+    conda: "../envs/report/report.yaml"
     params:
         genes= lambda wildcards: [" -g %s" % g for g in config["genes_to_plot"].strip().split()],
         png= lambda wildcards, output: " -o ". join(output.plist),
