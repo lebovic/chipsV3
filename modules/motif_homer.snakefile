@@ -55,25 +55,27 @@ rule motif_homer:
     threads:_threads
     log: output_path + "/logs/motif/{run}.{rep}.log"
     benchmark: output_path + "/benchmark/{run}.{rep}_motif_homer.benchmark"
-    #conda: "../envs/motif/motif.yaml"
-    run:
-        #check to see if _sorted_5k_summits.bed is valid
-        wc = str(subprocess.check_output(['wc', '-l', input.bed]))
-        #this returns a byte string--we need to eliminate the b' ... '
-        #and then convert the first elm to int
-        wc = int(wc[2:-1].split()[0])
+    conda: "../envs/motif/motif_homer.yaml"
+    shell:
+        src_path + "/modules/scripts/motif_homer_wrapper.py -b {input.bed} -m {_minPeaks} -g {params.genome} -s {params.size} -t {threads} -r {params.results} --output_html {output.html} --output_txt {output.txt} --output_logo {output.logo} >> {log} 2>&1"
+    # run:
+    #     #check to see if _sorted_5k_summits.bed is valid
+    #     wc = str(subprocess.check_output(['wc', '-l', input.bed]))
+    #     #this returns a byte string--we need to eliminate the b' ... '
+    #     #and then convert the first elm to int
+    #     wc = int(wc[2:-1].split()[0])
 
-        if wc >= _minPeaks:
-            try:
-            #PASS- run motif scan
-                shell("findMotifsGenome.pl {input} {params.genome} {params.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {params.results} >>{log} 2>&1")
-            except:
-                print("homer package not installed")
-        else:
-            #FAIL - create empty outputs
-            _createEmptyMotif(output.html)
-            _createEmptyMotif(output.txt)
-            _createEmptyMotif(output.logo)
+    #     if wc >= _minPeaks:
+    #         try:
+    #         #PASS- run motif scan
+    #             shell("findMotifsGenome.pl {input} {params.genome} {params.results} -size {params.size} -p {threads} -mask -seqlogo -preparsedDir {params.results} >>{log} 2>&1")
+    #         except:
+    #             print("homer package not installed")
+    #     else:
+    #         #FAIL - create empty outputs
+    #         _createEmptyMotif(output.html)
+    #         _createEmptyMotif(output.txt)
+    #         _createEmptyMotif(output.logo)
 
 rule motif_getMotifSummary:
     """Summarize the top hits for each run into a file"""
@@ -86,10 +88,7 @@ rule motif_getMotifSummary:
     # log: output_path + "/logs/motif/{run}.{rep}.log"
     params:
         files = lambda wildcards, input: [" -m %s" % i for i in input]
-    conda: "../envs/motif/motif.yaml"
-    # run:
-    #     files = " -m ".join(input)
-    #     shell(src_path + "/modules/scripts/motif_homerSummary.py -m {files} -o {output} 2>> {log}")
+    conda: "../envs/motif/motif_homer.yaml"
     shell:
         src_path + "/modules/scripts/motif_homerSummary.py {params.files} -o {output} " # 2>> {log}"
 
@@ -106,7 +105,7 @@ rule motif_homerAnnotatePeaks:
     message: "MOTIF: homer annotatePeaks"
     log: output_path + "/logs/motif/{run}.{rep}.log"
     benchmark: output_path + "/benchmark/{run}.{rep}_motif_homerAnnotatePeaks.benchmark"
-    #conda: "../envs/motif/motif.yaml"
+    conda: "../envs/motif/motif_homer.yaml"
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"
 
@@ -119,6 +118,6 @@ rule motif_homerProcessAnnPeaks:
         csv=output_path + "/peaks/{run}.{rep}/{run}.{rep}_annotatePeaks.csv",
     message: "MOTIF: Post-process homer annotatePeaks.txt file"
     log: output_path + "/logs/motif/{run}.{rep}.log"
-    #conda: "../envs/motif/motif.yaml"
+    #conda: "../envs/motif/motif_homer.yaml"
     shell:
         src_path + "/modules/scripts/motif_annPeaksTsvCsv.sh {input} {output.tsv} {output.csv}"
