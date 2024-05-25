@@ -182,7 +182,7 @@ if config.get("macs2_broadpeaks"):
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "--nolambda",
         message: "PEAKS: calling peaks with macs2 for {input}"
         log: output_path + "/logs/peaks/{run}.{rep}.log"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callBroad.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_peaks_callBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             """
@@ -217,7 +217,7 @@ if config.get("macs2_broadpeaks"):
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling broad peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterBroad.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_peaks_filterBroad.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            """
@@ -308,7 +308,7 @@ if config.get("macs2_broadpeaks"):
             output_path + "/peaks/peakStats.csv"
         message: "PEAKS: collecting peaks stats for each run for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_getBroadStats.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_peaks_getBroadStats.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             src_path + "/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
@@ -321,7 +321,7 @@ if config.get("macs2_broadpeaks"):
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
         message: "PEAKS: Plot peaks region for {input}"
         conda: "../envs/peaks/peaks.yaml"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_broadPeaksPlot.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_peaks_broadPeaksPlot.benchmark"
         shell:
             src_path + "/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
@@ -350,7 +350,7 @@ else:
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_callNarrow.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_peaks_callNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            """
@@ -387,7 +387,7 @@ else:
             control = lambda wildcards, input: [" -c %s" % i for i in input.cont] if input.cont else "",
         message: "PEAKS: calling filtered reads peaks with macs2 for {input}"
         log:output_path + "/logs/peaks/{run}.{rep}.log"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_filterNarrow.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_peaks_filterNarrow.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
            "macs2 callpeak --SPMR -B -q {params.fdr} --keep-dup {params.keepdup} -g {params.genome_size} {params.BAMPE} {params.macs_extra_param} "
@@ -474,7 +474,7 @@ else:
             output_path + "/peaks/peakStats.csv"
         message: "PEAKS: collecting peaks stats for each run for {input}"
         #log:output_path + "/logs/peaks/{run}.{rep}.log"
-        #benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_getPeaksStats.benchmark"
+        #benchmark: output_path + "/benchmark/{run}.{rep}_peaks_getPeaksStats.benchmark"
         conda: "../envs/peaks/peaks.yaml"
         shell:
             src_path + "/modules/scripts/peaks_getPeakStats.py {params.files} -o {output}"# 2>>{log}"
@@ -498,7 +498,7 @@ else:
             output_path + "/peaks/{run}.{rep}/{run}.{rep}_peaks.png"
         message: "PEAKS: Plot peaks region for {input}"
         conda: "../envs/peaks/peaks.yaml"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_NarrowPeaksPlot.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_peaks_NarrowPeaksPlot.benchmark"
         shell:
             src_path + "/modules/scripts/peaks_figure.py -f {input.peaks} -c {input.ceas} -o {output}"
 
@@ -516,7 +516,7 @@ rule peaks_macs2GetFragment:
     message: "PEAKS: Get fragment size with macs2 for {input}"
     log:output_path + "/logs/peaks/{run}.{rep}.log"
     conda: "../envs/peaks/peaks.yaml"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_macs2GetFragment.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_peaks_macs2GetFragment.benchmark"
     shell:
        "macs2 predictd {params.treatment} --rfile {output} -g {params.genome} "#2>>{log}"
 
@@ -531,7 +531,7 @@ rule peaks_sortBedgraphs:
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: sorting bdg pileups {params.msg}"
     #log:output_path + "/logs/peaks/{run}.{rep}.log"
-    #benchmark: output_path + "/Benchmark/{run}.{rep}_peaks_sortBedgraphs.benchmark"
+    #benchmark: output_path + "/benchmark/{run}.{rep}_peaks_sortBedgraphs.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedSort {input} {output}"# 2>>{log}"
@@ -548,7 +548,7 @@ rule peaks_bdgToBw:
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
     log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_bdgToBw.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_{suffix}_peaks_bdgToBw.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output} "#2>>{log}"
@@ -580,7 +580,7 @@ rule peaks_filteredBdgToBw:
         msg= lambda wildcards: "%s.%s_%s" % (wildcards.run, wildcards.rep, wildcards.suffix)
     message: "PEAKS: Convert bedGraphs to BigWig {params.msg}"
     log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_filteredBdgToBw.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_{suffix}_peaks_filteredBdgToBw.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "bedGraphToBigWig {input} {params.chroms} {output}"# 2>>{log}"
@@ -598,7 +598,7 @@ rule peaks_gzipBdg:
         msg= lambda wildcards: "%s.%s" % (wildcards.run, wildcards.rep)
     message: "PEAKS: compressing sorted.bdg {params.msg}"
     log:output_path + "/logs/peaks/{run}.{rep}_{suffix}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_{suffix}_peaks_gzipBdg.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_{suffix}_peaks_gzipBdg.benchmark"
     conda: "../envs/peaks/peaks.yaml"
     shell:
         "gzip {input.bdg} " #2>> {log}"

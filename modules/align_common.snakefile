@@ -206,7 +206,7 @@ else:
             # bai = output_path + "/align/{sample}/{sample}_unique.sorted.dedup.bam.bai"
         message: "ALIGN: dedup sorted unique bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
-        benchmark: output_path + "/Benchmark/{sample}_align_dedup.benchmark"
+        benchmark: output_path + "/benchmark/{sample}_align_dedup.benchmark"
         conda: "../envs/align/align_common.yaml"
         threads: _align_threads
         shell:
@@ -223,7 +223,7 @@ else:
             #output_path + "/align/{sample}/{sample}.sorted.bam.bai"
         message: "ALIGN: sort bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
-        benchmark: output_path + "/Benchmark/{sample}_align_sortBam.benchmark"
+        benchmark: output_path + "/benchmark/{sample}_align_sortBam.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
             memory = _sambamba_sort_mem
@@ -242,7 +242,7 @@ else:
             #output_path + "/align/{sample}/{sample}_unique.sorted.bam.bai"
         message: "ALIGN: sort bam file for {input}"
         log: output_path + "/logs/align/{sample}.log"
-        benchmark: output_path + "/Benchmark/{sample}_align_sortUnique.benchmark"
+        benchmark: output_path + "/benchmark/{sample}_align_sortUnique.benchmark"
         conda: "../envs/align/align_common.yaml"
         params:
             memory = _sambamba_sort_mem

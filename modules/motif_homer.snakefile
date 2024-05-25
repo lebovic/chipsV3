@@ -54,7 +54,7 @@ rule motif_homer:
     message: "MOTIF: calling HOMER on top 5k summits"
     threads:_threads
     log: output_path + "/logs/motif/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_motif_homer.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_motif_homer.benchmark"
     #conda: "../envs/motif/motif.yaml"
     run:
         #check to see if _sorted_5k_summits.bed is valid
@@ -105,7 +105,7 @@ rule motif_homerAnnotatePeaks:
         genome=config['motif_path'],
     message: "MOTIF: homer annotatePeaks"
     log: output_path + "/logs/motif/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_motif_homerAnnotatePeaks.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_motif_homerAnnotatePeaks.benchmark"
     #conda: "../envs/motif/motif.yaml"
     shell:
         "annotatePeaks.pl {input} {params.genome} > {output}"

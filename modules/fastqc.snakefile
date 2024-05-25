@@ -64,7 +64,7 @@ rule fastqc_downsampleFastq:
         size=100000
     message: "FASTQC: downsample {input} to 100k reads"
     log: output_path + "/logs/fastqc/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_fastqc_downsample.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_fastqc_downsample.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "seqtk sample -s {params.seed} {input} {params.size} > {output} 2>>{log}"
@@ -80,7 +80,7 @@ rule fastqc_sampleBam:
         temp(output_path + "/align/{sample}/{sample}_100k.bam")
     message: "FASTQC: sampling 100k reads from bam for {input}"
     log: output_path + "/logs/fastqc/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_fastqc_samplebam.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_fastqc_samplebam.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         src_path + "/modules/scripts/fastqc_sampleBam.sh -i {input} -n {params.n} -o {output}"
@@ -93,7 +93,7 @@ rule fastqc_convertBamToFastq:
         temp(output_path + "/align/{sample}/{sample}_100k.bam.fastq")
     message: "FASTQC: converting 100k.bam to 100k.fastq for {input}"
     log: output_path + "/logs/fastqc/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_fastqc_bamtofastq.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_fastqc_bamtofastq.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "bamToFastq -i {input} -fq {output} 2>> {log}"
@@ -114,7 +114,7 @@ rule fastqc_callFastqc:
         main_output_path = output_path
     message: "FASTQC: call fastqc for {input}"
     log: output_path + "/logs/fastqc/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_fastqc_call.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_fastqc_call.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         "fastqc {input} --extract -o {params.main_output_path}/fastqc/{params.sample} 2>>{log}"
@@ -130,7 +130,7 @@ rule fastqc_getPerSequenceQual:
         section="'Per sequence quality'"
     message: "FASTQC: get_PerSequenceQual for {input}"
     log: output_path + "/logs/fastqc/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_fastqc_SeqQual.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_fastqc_SeqQual.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         src_path + "/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -146,7 +146,7 @@ rule fastqc_getPerSequenceGC:
         section="'Per sequence GC content'"
     message: "FASTQC: get_PerSequenceGC for {input}"
     log: output_path + "/logs/fastqc/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_fastqc_GC.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_fastqc_GC.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         src_path + "/modules/scripts/fastqc_dataExtract.py -f {input} -s {params.section} > {output} 2>>{log}"
@@ -160,7 +160,7 @@ rule fastqc_extractFastQCStats:
         output_path + "/fastqc/{sample}/{sample}_stats.csv"
     message: "FASTQC: extract_FastQCStats from {input}"
     log:output_path + "/logs/fastqc/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_fastqc_extractFastQCStats.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_fastqc_extractFastQCStats.benchmark"
     conda: "../envs/fastqc/fastqc.yaml"
     shell:
         src_path + "/modules/scripts/fastqc_stats.py -a {input.qual} -b {input.gc} > {output} 2>>{log}"

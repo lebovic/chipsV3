@@ -75,7 +75,7 @@ rule frips_sample4MFromNonChrM:
         n="4000000"
     message: "FRiPs: sample- 4M from non-chrM reads"
     log:output_path + "/logs/frips/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_frips_sample4MFromNonChrM.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_frips_sample4MFromNonChrM.benchmark"
     conda: "../envs/frips/frips.yaml"
     output:
         temp(output_path + '/align/{sample}/{sample}_4M_nonChrM.bam')
@@ -94,7 +94,7 @@ rule frips_createUniqueNonChrM:
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: create uniquely mapped non-chrM reads {params.msg}"
     log:output_path + "/logs/frips/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_frips_createUniqueNonChrM.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_frips_createUniqueNonChrM.benchmark"
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:
@@ -115,7 +115,7 @@ rule frips_sample4MFromUniqueNonChrM:
         msg= lambda wildcards: wildcards.sample
     message: "FRiPs: sample- 4M from uniquely mapped non-chrM reads {params.msg}"
     log:output_path + "/logs/frips/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_frips_sample4MFromUniqueNonChrM.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_frips_sample4MFromUniqueNonChrM.benchmark"
     conda: "../envs/frips/frips.yaml"
     output:
         temp(output_path + '/align/{sample}/{sample}_4M_unique_nonChrM.bam')
@@ -135,7 +135,7 @@ if ("macs2_broadpeaks" in config) and config["macs2_broadpeaks"]:
             pval="1E-9"
         message: "FRiPs: calculate frips"
         log:output_path + "/logs/frips/{sample}.log"
-        benchmark: output_path + "/Benchmark/{sample}_frips_broadCalculate.benchmark"
+        benchmark: output_path + "/benchmark/{sample}_frips_broadCalculate.benchmark"
         conda: "../envs/frips/frips.yaml"
         shell:
             src_path + "/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
@@ -152,7 +152,7 @@ else:
             pval="1E-9"
         message: "FRiPs: calculate frips"
         log:output_path + "/logs/frips/{run}.{rep}.log"
-        benchmark: output_path + "/Benchmark/{run}.{rep}_frips_calculate.benchmark"
+        benchmark: output_path + "/benchmark/{run}.{rep}_frips_calculate.benchmark"
         conda: "../envs/frips/frips.yaml"
         shell:
             src_path + "/modules/scripts/frips_calculate.sh -a {input.treat} -b {input.bed} -p {params.pval} > {output} " # 2>>{log}"
@@ -214,7 +214,7 @@ rule frips_nonChrMStats:
         output_path + "/align/{sample}/{sample}_nonChrM_stat.txt"
     message: "ALIGN: get nonChrM mapping stats for each bam"
     log: output_path + "/logs/frips/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_frips_nonChrMStats.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_frips_nonChrMStats.benchmark"
     params:
         sam_th = _samtools_threads / 2
     threads: _samtools_threads
@@ -252,7 +252,7 @@ rule frips_getSampleFragLength:
         awk_cmd = """awk '{if($9 <= 1000 && $9 > 0) print $9; else if ($9 == 0) print length($10);}' """
     message: "FRAG: get fragment sizes"
     log:output_path + "/logs/frips/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_frips_getSampleFragLength.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_frips_getSampleFragLength.benchmark"
     threads: _samtools_threads
     conda: "../envs/frips/frips.yaml"
     output:

@@ -65,7 +65,7 @@ rule ceas_annotatePeaksRegions:
         summary=output_path + "/ceas/{run}.{rep}/{run}.{rep}_summary.txt",
     message: "CEAS: annotating peak regions"
     log: output_path + "/logs/ceas/{run}.{rep}.log"
-    benchmark: output_path + "/Benchmark/{run}.{rep}_ceas_annotatePeaksRegions.benchmark"
+    benchmark: output_path + "/benchmark/{run}.{rep}_ceas_annotatePeaksRegions.benchmark"
     conda: "../envs/ceas/ceas.yaml"
     params:
         db=config['geneTable'],
@@ -191,7 +191,7 @@ rule ceas_bamRegionStat:
         msg = lambda wildcards: "%s:%s" % (wildcards.sample, wildcards.region)
     message: "CEAS: bam stat region {params.msg}"
     log: output_path + "/logs/ceas/{sample}.{region}.log"
-    benchmark: output_path + "/Benchmark/{sample}.{region}_ceas_bamRegionStat.benchmark"
+    benchmark: output_path + "/benchmark/{sample}.{region}_ceas_bamRegionStat.benchmark"
     conda: "../envs/ceas/ceas.yaml"
     output:
         #make temp
@@ -210,7 +210,7 @@ rule ceas_collectBamRegionStatsToJson:
         exon = output_path + "/ceas/samples/{sample}/{sample}.exons",
     message: "CEAS: collect bam region stats into json file"
     log: output_path + "/logs/ceas/{sample}.log"
-    benchmark: output_path + "/Benchmark/{sample}_ceas_collectBamRegionStatsToJson.benchmark"
+    benchmark: output_path + "/benchmark/{sample}_ceas_collectBamRegionStatsToJson.benchmark"
     conda: "../envs/ceas/ceas.yaml"
     output:
         output_path + "/ceas/samples/{sample}/{sample}_meta.json"

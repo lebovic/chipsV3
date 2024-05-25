@@ -75,7 +75,7 @@ rule contamination_alignContamination:
     threads: _bwt2_threads
     message: "CONTAMINATION: checking {params.sample} against {params.panel}"
     log: output_path + "/logs/contamination/{sample}.{panel}.log"
-    benchmark: output_path + "/Benchmark/{sample}.{panel}_contam.benchmark"
+    benchmark: output_path + "/benchmark/{sample}.{panel}_contam.benchmark"
     conda: "../envs/contamination/contamination.yaml"
     shell:
         #LEN: 2024-02-12 WITH filtering ALL of the results are 100% ie. total
