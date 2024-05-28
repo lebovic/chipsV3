@@ -1,4 +1,5 @@
 _fastp_threads=2
+_fastp_ram=3 #3GB
 
 # def trim_targets(wildcards):
 #     """Generates the targets for this module"""
@@ -85,6 +86,7 @@ rule trim_fastp:
     benchmark: output_path + "/benchmark/{sample}_trim_adapter.benchmark"
     conda: "../envs/trim_adapter/trim_adapter.yaml"
     #resources: disk_mb=20000
+    resources: mem_mb=1024*_fastp_ram
     params:
         args = lambda wildcards,input,output: makeFastpArgs(wildcards, input, output)
     shell:

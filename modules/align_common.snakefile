@@ -225,6 +225,7 @@ else:
         log: output_path + "/logs/align/{sample}.log"
         benchmark: output_path + "/benchmark/{sample}_align_sortBam.benchmark"
         conda: "../envs/align/align_common.yaml"
+        resources: mem_mb=1024*_sambamba_sort_mem
         params:
             memory = _sambamba_sort_mem
         threads: _align_threads
@@ -244,6 +245,7 @@ else:
         log: output_path + "/logs/align/{sample}.log"
         benchmark: output_path + "/benchmark/{sample}_align_sortUnique.benchmark"
         conda: "../envs/align/align_common.yaml"
+        resources: mem_mb=1024*_sambamba_sort_mem
         params:
             memory = _sambamba_sort_mem
         threads: _align_threads

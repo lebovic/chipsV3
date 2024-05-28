@@ -9,6 +9,7 @@ _bwa_q="5"
 _bwa_l="32"
 _bwa_k="2"
 
+_bwa_ram=7 #7GB
 
 def getTrimmedFastq(wildcards):
     s = wildcards.sample
@@ -61,6 +62,8 @@ rule align_bwaMem:
     log: output_path + "/logs/align/{sample}.log"
     benchmark: output_path + "/benchmark/{sample}_align_bwaMem.benchmark"
     conda: "../envs/align/align_bwa.yaml"
+    resources:
+        mem_mb = 1024*_bwa_ram,
     shell:
         "{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
 
@@ -80,6 +83,8 @@ rule align_bwaAln:
     log: output_path + "/logs/align/{sample}_{mate}.log"
     benchmark: output_path + "/benchmark/{sample}_{mate}_align_bwaAln.benchmark"
     conda: "../envs/align/align_bwa.yaml"
+    resources:
+        mem_mb = 1024*_bwa_ram,
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai} 2>>{log}"
 
@@ -101,6 +106,8 @@ rule align_bwaConvert:
     log: output_path + "/logs/align/{sample}.log"
     benchmark: output_path + "/benchmark/{sample}_align_bwaConvert.benchmark"
     conda: "../envs/align/align_bwa.yaml"
+    resources:
+        mem_mb = 1024*_bwa_ram,
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 

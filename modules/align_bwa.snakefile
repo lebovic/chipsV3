@@ -8,6 +8,7 @@ _bwa_q="5"
 _bwa_l="32"
 _bwa_k="2"
 
+_bwa_ram=7 #7GB
 
 def getFastq(wildcards):
     return config["samples"][wildcards.sample]
@@ -55,6 +56,8 @@ rule align_bwaMem:
     log: output_path + "/logs/align/{sample}.log"
     benchmark: output_path + "/benchmark/{sample}_align_bwaMem.benchmark"
     conda: "../envs/align/align_bwa.yaml"
+    resources:
+        mem_mb = 1024*_bwa_ram,
     shell:
         "{params.sentieon} bwa mem -t {threads} -R \"{params.read_group}\" {params.index} {input} | samtools view -Sb - > {output} 2>>{log}"
 
@@ -75,6 +78,8 @@ rule align_bwaAln:
     # log: output_path + "/logs/align/{sample}.log"
     benchmark: output_path + "/benchmark/{sample}_{mate}_align_bwaAln.benchmark"
     conda: "../envs/align/align_bwa.yaml"
+    resources:
+        mem_mb = 1024*_bwa_ram,
     shell:
         "{params.sentieon} bwa aln -q {params.bwa_q} -l {params.bwa_l} -k {params.bwa_k} -t {threads} {params.index} {input} > {output.sai}"
 
@@ -96,6 +101,8 @@ rule align_bwaConvert:
     # log: output_path + "/logs/align/{sample}.log"
     benchmark: output_path + "/benchmark/{sample}_align_bwaConvert.benchmark"
     conda: "../envs/align/align_bwa.yaml"
+    resources:
+        mem_mb = 1024*_bwa_ram,
     shell:
         """{params.sentieon} bwa {params.run_type} -r \"{params.read_group}\" {params.index} {input.sai} {input.fastq} | samtools {params.hack} > {output}"""
 
@@ -115,6 +122,8 @@ rule align_from_bam:
         gawk_cmd=lambda wildcards: "gawk -v OFS=\'\\t\' \'{rg=match($0,/RG:Z:(\S+)/,a); read_id=a[1]; if (rg) {sub(/RG:Z:\S+/, \"RG:Z:%s.\" read_id, $0); print $0} else { print $0 }}\'" % wildcards.sample,
     benchmark: output_path + "/benchmark/align/{sample}/{sample}.align_from_bam.txt"
     conda: "../envs/align/align_bwa.yaml"
+    resources:
+        mem_mb = 1024*_bwa_ram,
     shell:
         """samtools view -H {input} | grep \"^@RG\" | {params.awk_cmd} > {wildcards.sample}.header && samtools collate --output-fmt SAM -@ {threads} -Of {input} | {params.gawk_cmd} | samtools view -@ {threads} -b - | samtools fastq -@ {threads} -t -s /dev/null -0 /dev/null - | ({params.sentieon} bwa mem -t {threads} -M -K 10000000 -p -C -H {wildcards.sample}.header {params.index} - || echo -n 'error' ) | samtools view -Sb - > {output}; rm {wildcards.sample}.header"""
 
